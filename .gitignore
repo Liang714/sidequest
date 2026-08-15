@@ -1,0 +1,28 @@
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+.pnpm-store/
+__pycache__/
+*.pyc
+.venv/
+
+# Build output
+.next/
+dist/
+build/
+.expo/
+.turbo/
+
+# OS / editor
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Local data
+infra/pgdata/
+infra/minio-data/

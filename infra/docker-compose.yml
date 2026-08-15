@@ -1,0 +1,65 @@
+# Local development stack — Postgres+PostGIS+pgvector, Valkey, MinIO.
+# Everything here is free/local; production swaps in managed equivalents
+# (Supabase Postgres, managed Valkey, Cloudflare R2) — see docs/DEPLOYMENT.md.
+#
+# Usage: docker compose -f infra/docker-compose.yml up -d
+#
+# `services/api` is not included here yet — it's scaffolded in Phase 2 and
+# will be added as a fourth service once it exists (docs/ROADMAP.md).
+
+services:
+  postgres:
+    build: ./postgres
+    container_name: sidequest-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sidequest
+      POSTGRES_PASSWORD: sidequest
+      POSTGRES_DB: sidequest
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sidequest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: sidequest-valkey
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkeydata:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: sidequest-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API (matches STORAGE_ENDPOINT in .env.example)
+      - "9001:9001"   # Web console
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  valkeydata:
+  miniodata:
