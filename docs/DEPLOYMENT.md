@@ -4,7 +4,7 @@
 
 | Env | Purpose | Infra |
 |---|---|---|
-| **Development** | Local machine | `docker compose -f infra/docker-compose.yml up` — Postgres+pgvector, Valkey, MinIO, all free |
+| **Development** | Local machine | `docker compose -f infra/docker-compose.yml up` — Postgres+pgvector, Valkey, MinIO, all free (see §Local dev without Docker if that's not available) |
 | **Staging** | Pre-production verification | Fly.io/Railway (API) + Vercel preview (web) + EAS preview build (mobile), managed Postgres/Valkey at smallest tier |
 | **Production** | Real users | Fly.io/Railway (API, multi-instance behind health checks) + Vercel (web) + EAS production build + submission, managed Postgres (with PITR backups) + Valkey, Cloudflare R2, Supabase Auth |
 
@@ -57,6 +57,36 @@ injected at deploy/build time, not baked into images.
   back to the previous image instead of hot-fixed under pressure.
 - Feature flags (PostHog) gate anything higher-risk (new matching logic, AI
   features) behind a percentage rollout rather than a hard cutover.
+
+## Local dev without Docker
+
+The primary Phase 2 dev machine had neither Docker nor Homebrew installed —
+installing Homebrew needs an interactive sudo password, which isn't
+available in an unattended/agent-driven environment. Rather than block on
+that, local infra runs as a self-contained toolchain under `.tools/`
+(gitignored, no sudo): a portable Postgres 18 build, Valkey built from
+source (no prebuilt macOS binaries are published), Node/pnpm, and
+Python/uv. `./scripts/setup-local-infra.sh` automates it end to end and is
+idempotent. `infra/docker-compose.yml` remains the documented target for
+any machine that does have Docker — nothing about the app depends on which
+path was used to start Postgres/Valkey, since both expose the same
+protocols on the same local ports.
+
+Two real gaps from this path, both already accounted for in the
+architecture rather than silently ignored:
+
+- **No PostGIS / pgvector** (not in the portable Postgres build, no
+  Homebrew to add them). `locations` uses plain lat/lng columns; "nearby"
+  search is a bounding-box + haversine calculation
+  (`services/api/app/services/quest_service.py`) instead of `ST_DWithin`.
+  Swapping in the real `geog` column later is additive, not a rewrite.
+- **No MinIO** (`dl.min.io` was unreachable from this network). Quest photo
+  storage uses a `LocalDiskStorageProvider` behind the same
+  `StorageProvider` interface a real S3/R2 adapter would implement
+  (`services/api/app/storage.py`).
+
+See [services/api/README.md](../services/api/README.md) for the exact
+commands.
 
 See also [ARCHITECTURE.md](ARCHITECTURE.md) for the technology choices this
 plan assumes, and [CONTRIBUTING.md](CONTRIBUTING.md) for the branch/PR

@@ -9,6 +9,10 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
 
 # Build output
 .next/
@@ -31,3 +35,4 @@ next-env.d.ts
 # Local data
 infra/pgdata/
 infra/minio-data/
+services/api/.local-storage/

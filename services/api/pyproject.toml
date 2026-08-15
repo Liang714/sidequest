@@ -1,0 +1,50 @@
+[project]
+name = "sidequest-api"
+version = "0.1.0"
+description = "SIDEQUEST backend — FastAPI modular monolith. See docs/ARCHITECTURE.md."
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.118.0",
+    "uvicorn[standard]>=0.34.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "pyjwt[crypto]>=2.10.0",
+    "argon2-cffi>=23.1.0",
+    "redis>=5.2.0",
+    "email-validator>=2.2.0",
+    "python-multipart>=0.0.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+    "mypy>=1.14.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# One event loop for the whole session, for BOTH fixtures and test
+# functions — the async engine in conftest.py is created once at module
+# scope. Fixture-loop-scope alone isn't enough: pytest-asyncio still gives
+# each test function its own fresh loop by default, so the engine (bound
+# to the fixture/session loop) gets used from a different loop the moment
+# a test awaits an HTTP call, producing "attached to a different loop"
+# asyncpg errors.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]

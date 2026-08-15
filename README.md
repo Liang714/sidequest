@@ -4,10 +4,12 @@
 that turns free time into real-world experiences with other people: discover a
 spontaneous activity, form a temporary group, do it, and level up.
 
-> **Status: Phase 0 — Product Foundation.** This repo currently contains
-> product/architecture documentation and an empty project skeleton only.
-> There is no runnable application yet — that starts in Phase 1 (clickable
-> prototype) / Phase 2 (MVP). See [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status: Phase 2 (MVP) in progress.** Phase 0 (product foundation) and
+> Phase 1 (clickable prototype, `apps/web`) are done. `services/api` is a
+> working FastAPI backend — auth, quests, friends, quest rooms (chat over
+> WebSocket), gamification (XP/achievements) — verified end to end,
+> including two real users creating/discovering/joining/completing a quest
+> together. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Start here
 
@@ -23,7 +25,7 @@ spontaneous activity, form a temporary group, do it, and level up.
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Visual language, tokens, components |
 | [docs/AI.md](docs/AI.md) | AI provider abstraction, quest generation, recommendations |
 | [docs/SECURITY.md](docs/SECURITY.md) | Trust & safety, privacy, abuse prevention |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Environments, CI/CD, hosting |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Environments, CI/CD, hosting, **local-dev-without-Docker notes** |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phase-by-phase build plan |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Branching, commit conventions, workflow |
 
@@ -31,26 +33,49 @@ spontaneous activity, form a temporary group, do it, and level up.
 
 ```
 sidequest/
-├── apps/mobile/       # React Native + Expo (Phase 2)
-├── apps/web/            # Next.js + TypeScript (Phase 2)
-├── services/api/         # FastAPI modular monolith (Phase 2)
+├── apps/mobile/       # React Native + Expo (not started — Phase 2 continues here next)
+├── apps/web/            # Next.js + TypeScript — Phase 1 prototype, mock data only
+├── services/api/         # FastAPI modular monolith — real backend, see below
 ├── packages/              # design-tokens, i18n, types — shared across apps
-├── infra/                  # docker-compose for local Postgres/Valkey/MinIO
-└── docs/                    # this table, in file form
+├── infra/                  # docker-compose target shape (Postgres+PostGIS+pgvector, Valkey, MinIO)
+├── scripts/                 # setup-local-infra.sh / stop-local-infra.sh — see below
+└── docs/                     # this table, in file form
 ```
 
-## Local development (once Phase 2 code lands)
+## Local development
+
+This dev machine has neither Docker nor Homebrew, so local infra runs as a
+**self-contained toolchain under `.tools/`** (gitignored, no sudo) instead
+of `infra/docker-compose.yml` — same services (Postgres, Valkey), just
+installed as portable binaries. `infra/docker-compose.yml` is still the
+documented target shape for anyone who *does* have Docker (staging/prod use
+managed equivalents regardless — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
 ```bash
-cp .env.example .env        # fill in local values; defaults match docker-compose
-docker compose -f infra/docker-compose.yml up -d   # Postgres+pgvector, Valkey, MinIO
-# backend: cd services/api && uv sync && uv run uvicorn app.main:app --reload
-# web:     cd apps/web && pnpm install && pnpm dev
-# mobile:  cd apps/mobile && pnpm install && pnpm expo start
+./scripts/setup-local-infra.sh   # Node+pnpm, Python 3.13+uv, Postgres 18, Valkey — idempotent
+export PATH="$PWD/.tools/node/bin:$PWD/.tools/uv/bin:$PATH"
+export XDG_CONFIG_HOME="$PWD/.tools/uv-config" XDG_DATA_HOME="$PWD/.tools/uv-data" XDG_CACHE_HOME="$PWD/.tools/uv-cache"
+
+cp .env.example .env             # defaults already match the script's setup
+
+# backend
+cd services/api
+uv sync --dev
+uv run alembic upgrade head
+uv run python -m app.seed        # categories/interests/achievements
+uv run uvicorn app.main:app --reload   # http://localhost:8000/api/v1/docs
+uv run pytest                    # 20 tests, incl. the two-user E2E flow
+
+# web (separate terminal)
+cd apps/web
+pnpm install
+pnpm dev                          # http://localhost:3000/en — still on mock data, not yet wired to the API
 ```
 
-Nothing above is wired up yet in Phase 0 — this is the target shape once Phase 2
-starts. Tech choices and the reasoning behind each are in
+`./scripts/stop-local-infra.sh` stops Postgres/Valkey; data persists in
+`.tools/pgdata` and `.tools/valkeydata` for next time.
+
+Tech choices and the reasoning behind each are in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Principles
