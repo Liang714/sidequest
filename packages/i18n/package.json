@@ -1,0 +1,9 @@
+{
+  "name": "@sidequest/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./en.json": "./en.json",
+    "./ko.json": "./ko.json"
+  }
+}

@@ -1,3 +1,15 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+# Native post-install build scripts pnpm otherwise blocks by default.
+# sharp: Next.js's image optimizer (official, widely used native binary).
+# unrs-resolver: native resolver used by eslint-config-next's import
+# resolution. Both are well-known, standard toolchain dependencies.
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver

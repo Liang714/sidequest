@@ -16,6 +16,11 @@ dist/
 build/
 .expo/
 .turbo/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local, self-contained toolchain (see README — no system Node on this box)
+.tools/
 
 # OS / editor
 .DS_Store

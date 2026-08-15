@@ -1,0 +1,179 @@
+{
+  "app": {
+    "name": "SIDEQUEST",
+    "tagline": "What's your sidequest?"
+  },
+  "nav": {
+    "discover": "Discover",
+    "quests": "Quests",
+    "create": "Create",
+    "friends": "Friends",
+    "profile": "Profile",
+    "map": "Map"
+  },
+  "onboarding": {
+    "step1Title": "What are you into?",
+    "step1Sub": "Pick a few — you can change these anytime.",
+    "step2Title": "What do you usually do?",
+    "step2Sub": "Helps us match you with the right group size.",
+    "step2Alone": "Alone",
+    "step2Small": "Small groups",
+    "step2Large": "Large groups",
+    "step3Title": "What's your vibe?",
+    "step3Sub": "Pick as many as fit.",
+    "step4Title": "Find quests near you",
+    "step4Sub": "SIDEQUEST uses your approximate area to show nearby quests. We never share your exact location with other users — see how in Privacy.",
+    "step4Allow": "Allow location",
+    "step4Skip": "Not now",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Let's go",
+    "vibe": {
+      "chill": "Chill",
+      "spontaneous": "Spontaneous",
+      "competitive": "Competitive",
+      "creative": "Creative",
+      "adventurous": "Adventurous",
+      "social": "Social"
+    }
+  },
+  "home": {
+    "greeting": "Friday night.",
+    "greetingAccent": "What's your sidequest?",
+    "subline": "{count} quests near you, starting soon",
+    "sectionNow": "Now",
+    "sectionNowDesc": "Starting soon",
+    "sectionNear": "Near You",
+    "sectionForYou": "For You",
+    "sectionFriends": "Friends",
+    "sectionTrending": "Trending",
+    "sectionSponsored": "Sponsored",
+    "seeAll": "See all",
+    "filters": "Filters",
+    "emptyFriends": "No friend activity right now — invite someone to a quest.",
+    "friendJoined": "{names} joined <link>{quest}</link>"
+  },
+  "quest": {
+    "joinQuest": "Join Quest",
+    "leaveQuest": "Leave Quest",
+    "leaveQuestConfirm": "Leave this quest? Your spot opens up for someone else.",
+    "viewRoom": "Open Quest Room",
+    "participants": "{joined}/{max}",
+    "startsIn": "Starts in {minutes} min",
+    "objectives": "Quest Objectives",
+    "xpReward": "+{xp} XP",
+    "compatibility": "Quest Compatibility",
+    "compatibilityBreakdown": "Why this match",
+    "compatBudget": "Budget",
+    "compatLocation": "Location",
+    "compatTime": "Available time",
+    "compatGroup": "Group fit",
+    "meetingPoint": "Meeting Point",
+    "createdBy": "Hosted by {name}",
+    "visibility": {
+      "public": "Public",
+      "friends": "Friends only",
+      "private": "Private invite"
+    },
+    "status": {
+      "open": "Open",
+      "full": "Full",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "createQuest": {
+    "title": "Create a SideQuest",
+    "fieldTitle": "Title",
+    "fieldTitlePlaceholder": "Hongdae Photo Hunt",
+    "fieldDescription": "Description",
+    "fieldDescriptionPlaceholder": "What are we doing?",
+    "fieldLocation": "Location",
+    "fieldLocationPlaceholder": "Where should people meet?",
+    "fieldDate": "Date",
+    "fieldStartTime": "Start time",
+    "fieldDuration": "Duration (minutes)",
+    "fieldBudget": "Budget",
+    "fieldMaxParticipants": "Max participants",
+    "fieldCategory": "Category",
+    "fieldVisibility": "Who can see this?",
+    "fieldDifficulty": "Difficulty",
+    "budgetFree": "Free",
+    "publish": "Publish Quest",
+    "publishHint": "This is a Phase 1 prototype — publishing shows you the quest detail screen with what you entered, nothing is saved."
+  },
+  "questRoom": {
+    "title": "Quest Room",
+    "chatPlaceholder": "Message the group…",
+    "send": "Send",
+    "checkIn": "Check In",
+    "checkedIn": "Checked in",
+    "objectivesTitle": "Objectives",
+    "completeQuest": "Complete Quest",
+    "archived": "This quest is archived in your history."
+  },
+  "profile": {
+    "level": "Level {level}",
+    "xpProgress": "{current} / {next} XP",
+    "achievements": "{count} Achievements",
+    "questsCompleted": "Completed",
+    "questsCompletedCount": "{count} quests",
+    "favoriteCategories": "Favorite categories",
+    "editProfile": "Edit Profile",
+    "friendsCount": "{count} friends",
+    "realNameHidden": "Real name hidden from non-friends"
+  },
+  "friends": {
+    "title": "Friends",
+    "requests": "Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "remove": "Remove",
+    "addFriend": "Add Friend",
+    "noRequests": "No pending requests.",
+    "inviteToQuest": "Invite to quest"
+  },
+  "map": {
+    "title": "Map",
+    "subtitle": "Approximate positions only — exact meeting points are shared once you join.",
+    "legendQuest": "Quest",
+    "legendBusiness": "Business",
+    "legendFriend": "Friend activity",
+    "placeholderNote": "Live map rendering (MapLibre GL + Kakao/Mapbox tiles) ships in Phase 2 — this is a static layout preview using real quest positions."
+  },
+  "category": {
+    "food": "Food",
+    "cafe": "Café",
+    "gaming": "Gaming",
+    "photography": "Photography",
+    "dance": "Dance",
+    "movies": "Movies",
+    "art": "Art",
+    "sports": "Sports",
+    "exploration": "Exploration",
+    "music": "Music",
+    "shopping": "Shopping",
+    "random": "Random"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "epic": "Epic"
+  },
+  "achievement": {
+    "firstQuest": "First Quest",
+    "nightOwl": "Night Owl",
+    "photographer": "Photographer",
+    "foodHunter": "Food Hunter",
+    "explorer": "Explorer"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading…",
+    "prototypeBadge": "Phase 1 prototype — mock data, no backend"
+  }
+}
