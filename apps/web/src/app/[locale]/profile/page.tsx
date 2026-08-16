@@ -128,6 +128,24 @@ export default async function ProfilePage() {
 
       <div className="mt-6 flex flex-col gap-2">
         <Link
+          href="/subscription"
+          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
+        >
+          ⭐ {t("subscription.navLink")}
+        </Link>
+        <Link
+          href="/marketplace"
+          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
+        >
+          🛍️ {t("marketplace.navLink")}
+        </Link>
+        <Link
+          href="/creator"
+          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
+        >
+          🎨 {t("creator.dashboardLink")}
+        </Link>
+        <Link
           href="/business"
           className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
         >

@@ -12,11 +12,13 @@ from app.routers import (
     auth,
     business,
     chat,
+    creators,
     friends,
     gamification,
     moderation,
     notifications,
     quests,
+    subscriptions,
     users,
 )
 
@@ -46,6 +48,8 @@ app.include_router(gamification.router)
 app.include_router(moderation.router)
 app.include_router(ai.router)
 app.include_router(business.router)
+app.include_router(subscriptions.router)
+app.include_router(creators.router)
 
 
 @app.get("/health", tags=["health"])

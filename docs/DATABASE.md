@@ -80,10 +80,13 @@ CREATE TABLE profiles (
     visibility_settings      JSONB NOT NULL DEFAULT '{}',  -- per-field visibility
     xp                        INTEGER NOT NULL DEFAULT 0,   -- denormalized cache
     level                       INTEGER NOT NULL DEFAULT 1,  -- derived from xp
+    ai_credits                   INTEGER NOT NULL DEFAULT 0,   -- Phase 6 — a plain wallet, not a ledger; see app/services/ai_quota_service.py
     updated_at                   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 -- xp/level are a read cache. Source of truth is xp_transactions (below);
 -- never UPDATE xp directly from application code outside that trigger/service.
+-- ai_credits has no such ledger — unlike xp there's no anti-cheat/audit
+-- need, so app/routers/ai.py mutates it directly.
 
 CREATE TABLE interests (
     id        UUID PRIMARY KEY,
@@ -262,12 +265,18 @@ CREATE TABLE creators (
     follower_count   INTEGER NOT NULL DEFAULT 0
 );
 
+-- creator_quests, subscriptions, payments below were built in Phase 6
+-- (docs/ROADMAP.md) — schema matches the original Phase 0 ERD closely;
+-- see docs/API.md's Creator marketplace / Subscriptions & AI credits
+-- sections for the endpoints that read/write them, and
+-- app/services/subscription_service.py + ai_quota_service.py for the
+-- business logic.
 CREATE TABLE creator_quests (
     id                  UUID PRIMARY KEY,
     creator_id          UUID NOT NULL REFERENCES creators(id) ON DELETE CASCADE,
     quest_id            UUID NOT NULL UNIQUE REFERENCES quests(id) ON DELETE CASCADE,
     price_amount        NUMERIC(12,2) NOT NULL,
-    revenue_share_pct   SMALLINT NOT NULL  -- creator's share; platform keeps the remainder
+    revenue_share_pct   SMALLINT NOT NULL  -- creator's share; platform keeps the remainder — fixed at 70, not creator-configurable yet
 );
 ```
 
@@ -277,11 +286,11 @@ CREATE TABLE creator_quests (
 CREATE TABLE subscriptions (
     id                    UUID PRIMARY KEY,
     user_id               UUID NOT NULL REFERENCES users(id),
-    plan                  subscription_plan NOT NULL, -- free|pro
-    status                subscription_status NOT NULL,
+    plan                  subscription_plan NOT NULL, -- free|pro — in practice only "pro" rows are ever inserted; "free" is the absence of a row
+    status                subscription_status NOT NULL, -- active|canceled
     current_period_start  TIMESTAMPTZ NOT NULL,
     current_period_end    TIMESTAMPTZ NOT NULL,
-    provider_ref          TEXT   -- Toss/Stripe subscription id
+    provider_ref          TEXT   -- Toss/Stripe subscription id ("fake_..." under the dev-default PaymentProvider)
 );
 
 CREATE TABLE payments (
@@ -290,9 +299,9 @@ CREATE TABLE payments (
     type          payment_type NOT NULL, -- subscription|quest_purchase|booking|ai_credits
     amount        NUMERIC(12,2) NOT NULL,
     currency      CHAR(3) NOT NULL,
-    provider      TEXT NOT NULL,          -- "toss" | "stripe"
+    provider      TEXT NOT NULL,          -- "fake" (dev/test default) | "toss" | "stripe"
     provider_ref  TEXT NOT NULL,
-    status        payment_status NOT NULL,
+    status        payment_status NOT NULL, -- succeeded|failed — written even on a declined charge, for the audit trail
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -54,6 +54,11 @@ class Profile(Base):
     # Denormalized cache — source of truth is xp_transactions (gamification.py).
     xp: Mapped[int] = mapped_column(default=0)
     level: Mapped[int] = mapped_column(default=1)
+    # Phase 6: a simple wallet, not a ledger — unlike xp (which needs an
+    # audit trail for anti-cheat/dispute reasons), AI credits are just a
+    # balance purchased via app/routers/ai.py's credits-purchase endpoint
+    # and spent by app/services/ai_quota_service.py. See docs/ROADMAP.md.
+    ai_credits: Mapped[int] = mapped_column(default=0)
 
     user: Mapped[User] = relationship(back_populates="profile")
 

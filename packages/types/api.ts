@@ -554,6 +554,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ai/quota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Quota */
+        get: operations["get_quota_ai_quota_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/credits/purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Purchase Credits */
+        post: operations["purchase_credits_ai_credits_purchase_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/generate-quest": {
         parameters: {
             query?: never;
@@ -695,6 +729,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subscriptions/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Subscription */
+        get: operations["get_my_subscription_subscriptions_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/subscriptions/subscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Subscribe */
+        post: operations["subscribe_subscriptions_subscribe_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/subscriptions/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel */
+        post: operations["cancel_subscriptions_cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/creators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Become A Creator */
+        post: operations["become_a_creator_creators_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/creators/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Creator Profile */
+        get: operations["get_my_creator_profile_creators_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/creators/quests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Creator Quest */
+        post: operations["publish_creator_quest_creators_quests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/marketplace/quests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Marketplace Quests */
+        get: operations["list_marketplace_quests_marketplace_quests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/marketplace/{quest_id}/purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Purchase Marketplace Quest */
+        post: operations["purchase_marketplace_quest_marketplace__quest_id__purchase_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -726,6 +896,17 @@ export interface components {
             unlocked: boolean;
             /** Unlocked At */
             unlocked_at?: string | null;
+        };
+        /** AiQuotaOut */
+        AiQuotaOut: {
+            /** Is Pro */
+            is_pro: boolean;
+            /** Daily Limit */
+            daily_limit: number;
+            /** Used Today */
+            used_today: number;
+            /** Credits Remaining */
+            credits_remaining: number;
         };
         /** BlockCreate */
         BlockCreate: {
@@ -812,6 +993,52 @@ export interface components {
             score: number;
             /** Breakdown */
             breakdown: components["schemas"]["CompatibilityBreakdownOut"][];
+        };
+        /** CreatorCreate */
+        CreatorCreate: {
+            /** Display Name */
+            display_name: string;
+        };
+        /** CreatorOut */
+        CreatorOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Follower Count */
+            follower_count: number;
+        };
+        /** CreatorQuestCreate */
+        CreatorQuestCreate: {
+            quest: components["schemas"]["QuestCreate"];
+            /** Price Amount */
+            price_amount: number | string;
+        };
+        /** CreatorQuestOut */
+        CreatorQuestOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Creator Id
+             * Format: uuid
+             */
+            creator_id: string;
+            quest: components["schemas"]["QuestOut"];
+            /** Price Amount */
+            price_amount: string;
+            /** Revenue Share Pct */
+            revenue_share_pct: number;
         };
         /** FriendOut */
         FriendOut: {
@@ -948,6 +1175,44 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /**
+         * MarketplaceQuestOut
+         * @description Browsable preview shape for GET /marketplace/quests — deliberately
+         *     not a full QuestOut (no objectives/participants) since these quests
+         *     are paywalled: full detail only unlocks after purchase. See
+         *     app/routers/creators.py.
+         */
+        MarketplaceQuestOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Quest Id
+             * Format: uuid
+             */
+            quest_id: string;
+            /**
+             * Creator Id
+             * Format: uuid
+             */
+            creator_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Category Key */
+            category_key: string;
+            /** Price Amount */
+            price_amount: string;
+            /** Currency */
+            currency: string;
+            /** Creator Display Name */
+            creator_display_name: string;
+            /** Already Purchased */
+            already_purchased: boolean;
         };
         /** MeOut */
         MeOut: {
@@ -1381,6 +1646,23 @@ export interface components {
          * @enum {string}
          */
         SponsorshipType: "sponsored" | "discount" | "challenge";
+        /** SubscriptionOut */
+        SubscriptionOut: {
+            plan: components["schemas"]["SubscriptionPlan"];
+            status?: components["schemas"]["SubscriptionStatus"] | null;
+            /** Current Period End */
+            current_period_end?: string | null;
+        };
+        /**
+         * SubscriptionPlan
+         * @enum {string}
+         */
+        SubscriptionPlan: "free" | "pro";
+        /**
+         * SubscriptionStatus
+         * @enum {string}
+         */
+        SubscriptionStatus: "active" | "canceled";
         /** TokenPair */
         TokenPair: {
             /** Access Token */
@@ -2445,6 +2727,46 @@ export interface operations {
             };
         };
     };
+    get_quota_ai_quota_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiQuotaOut"];
+                };
+            };
+        };
+    };
+    purchase_credits_ai_credits_purchase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiQuotaOut"];
+                };
+            };
+        };
+    };
     generate_quest_ai_generate_quest_post: {
         parameters: {
             query?: never;
@@ -2712,6 +3034,203 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BusinessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_subscription_subscriptions_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+        };
+    };
+    subscribe_subscriptions_subscribe_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+        };
+    };
+    cancel_subscriptions_cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+        };
+    };
+    become_a_creator_creators_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatorCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_creator_profile_creators_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatorOut"];
+                };
+            };
+        };
+    };
+    publish_creator_quest_creators_quests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatorQuestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatorQuestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_marketplace_quests_marketplace_quests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketplaceQuestOut"][];
+                };
+            };
+        };
+    };
+    purchase_marketplace_quest_marketplace__quest_id__purchase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quest_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestOut"];
                 };
             };
             /** @description Validation Error */

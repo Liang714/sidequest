@@ -92,6 +92,7 @@
     "meetingPoint": "Meeting Point",
     "createdBy": "Hosted by {name}",
     "sponsoredBy": "Sponsored by {name}",
+    "paywallNotice": "This is a paid marketplace quest — purchase it to view the full details.",
     "visibility": {
       "public": "Public",
       "friends": "Friends only",
@@ -112,6 +113,11 @@
     "aiGenerate": "Generate with AI",
     "aiGenerating": "Thinking…",
     "aiFilledIn": "Drafted below — edit anything before publishing.",
+    "aiQuotaFree": "{remaining}/{total} free today",
+    "aiQuotaPro": "Unlimited (Pro)",
+    "aiCreditsRemaining": "{count} credits",
+    "aiBuyCredits": "Buy 10 credits — ₩3,900",
+    "aiUpgrade": "or upgrade to Pro",
     "fieldTitle": "Title",
     "fieldTitlePlaceholder": "Hongdae Photo Hunt",
     "fieldDescription": "Description",
@@ -252,5 +258,49 @@
     "noPendingBusinesses": "No businesses waiting for review.",
     "verify": "Verify",
     "reject": "Reject"
+  },
+  "subscription": {
+    "navLink": "Subscription",
+    "title": "Subscription",
+    "subline": "Pro is additive — more of what you already have, never an advantage over other users.",
+    "freePlan": "Free",
+    "proPlan": "Pro",
+    "statusActive": "Active",
+    "statusCanceled": "Canceled",
+    "activeUntil": "Pro until {date}, then reverts to Free",
+    "renewsOn": "Renews {date}",
+    "perksTitle": "What's included",
+    "perk": {
+      "unlimitedAi": "Unlimited AI quest generations",
+      "proBadge": "A Pro badge on your profile",
+      "moreObjectives": "More objectives per quest"
+    },
+    "subscribeCta": "Upgrade to Pro — ₩9,900/mo",
+    "cancel": "Cancel Pro"
+  },
+  "creator": {
+    "navLink": "Creator",
+    "dashboardLink": "Creator Dashboard",
+    "title": "Become a Creator",
+    "registerIntro": "Publish paid quest templates and earn a share of every purchase.",
+    "fieldDisplayName": "Creator name",
+    "fieldDisplayNamePlaceholder": "Seoul Walker",
+    "register": "Register as a Creator",
+    "followerCount": "{count} followers",
+    "publishQuest": "Publish a Paid Quest",
+    "myQuests": "My Published Quests",
+    "fieldPrice": "Price (KRW)",
+    "revenueShareNote": "You keep {pct}% of every purchase — the platform keeps the rest.",
+    "publish": "Publish Quest",
+    "mustRegisterNotice": "Register as a creator before publishing a paid quest."
+  },
+  "marketplace": {
+    "navLink": "Marketplace",
+    "title": "Marketplace",
+    "subline": "Paid quest templates from creators — purchasing unlocks and joins you automatically.",
+    "empty": "No marketplace quests yet.",
+    "byCreator": "by {name}",
+    "purchase": "Purchase",
+    "viewQuest": "View Quest"
   }
 }

@@ -41,3 +41,10 @@ export type BusinessAnalyticsOut = Schemas["BusinessAnalyticsOut"];
 export type QuestAnalyticsOut = Schemas["QuestAnalyticsOut"];
 export type BusinessVerificationStatus = BusinessOut["verification_status"];
 export type SponsorshipType = SponsorInfoOut["sponsorship_type"];
+
+export type SubscriptionOut = Schemas["SubscriptionOut"];
+export type SubscriptionPlan = SubscriptionOut["plan"];
+export type AiQuotaOut = Schemas["AiQuotaOut"];
+export type CreatorOut = Schemas["CreatorOut"];
+export type CreatorQuestOut = Schemas["CreatorQuestOut"];
+export type MarketplaceQuestOut = Schemas["MarketplaceQuestOut"];

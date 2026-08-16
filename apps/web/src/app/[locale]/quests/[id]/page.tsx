@@ -20,15 +20,26 @@ export default async function QuestDetailPage({
   const { id } = await params;
   const session = await requireSession();
 
+  const t = await getTranslations();
+
   let quest: QuestOut;
   try {
     quest = await apiFetch<QuestOut>(`/quests/${id}`);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
+    if (err instanceof ApiError && err.status === 402) {
+      return (
+        <AppShell>
+          <p className="mb-4 text-[13px] text-ink-muted">{t("quest.paywallNotice")}</p>
+          <Link href="/marketplace" className="text-[13px] font-medium text-violet">
+            {t("marketplace.navLink")} →
+          </Link>
+        </AppShell>
+      );
+    }
     throw err;
   }
 
-  const t = await getTranslations();
   const locale = await getLocale();
   const category = categoryShortKey(quest.category_key);
   const stars =

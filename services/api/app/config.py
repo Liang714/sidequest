@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-5"
 
+    # Payments — see docs/ROADMAP.md Phase 6 and app/payments/. "fake"
+    # (no real money, always succeeds) is the dev/test default, same
+    # posture as everything else here — a real Stripe/Toss key is opt-in,
+    # never required to develop or test against.
+    payment_provider: str = "fake"
+    stripe_secret_key: str | None = None
+    toss_secret_key: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

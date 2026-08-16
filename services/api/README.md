@@ -20,15 +20,17 @@ app/
 ├── seed.py                         # reference data: categories, interests, achievements
 ├── make_admin.py                     # CLI: grant is_admin to a user by email (no signup flow for it)
 ├── ai/                                 # AIService, provider interface, Ollama/Anthropic adapters, prompt/parsing
-├── models/                              # SQLAlchemy models, one module per domain
-├── schemas/                              # Pydantic request/response shapes
-├── services/                              # xp_service (level curve, XP ledger), quest_service (nearby search),
-│                                            compatibility_service (interest/proximity/fill-ratio scoring),
-│                                            achievement_service (unlock engine), analytics_service (event log),
-│                                            business_service (sponsored-quest analytics)
-└── routers/                                # one module per API resource — auth, users, quests,
-                                              friends, chat (incl. WebSocket), notifications,
-                                              gamification, moderation, ai, business
+├── payments/                            # PaymentProvider abstraction, Fake/Stripe/Toss adapters (see Known gaps)
+├── models/                                # SQLAlchemy models, one module per domain
+├── schemas/                                # Pydantic request/response shapes
+├── services/                                # xp_service (level curve, XP ledger), quest_service (nearby search),
+│                                              compatibility_service (interest/proximity/fill-ratio scoring),
+│                                              achievement_service (unlock engine), analytics_service (event log),
+│                                              business_service (sponsored-quest analytics), subscription_service,
+│                                              ai_quota_service (free/Pro AI generation limits + credits)
+└── routers/                                  # one module per API resource — auth, users, quests,
+                                                friends, chat (incl. WebSocket), notifications, gamification,
+                                                moderation, ai, business, subscriptions, creators
 ```
 
 ## Local setup
@@ -46,7 +48,7 @@ uv run uvicorn app.main:app --reload   # docs at /api/v1/docs
 ## Testing
 
 ```bash
-uv run pytest              # 54 tests against a real Postgres (sidequest_test db)
+uv run pytest              # 72 tests against a real Postgres (sidequest_test db)
 uv run ruff check .
 uv run mypy app             # strict mode
 ```
@@ -104,3 +106,12 @@ and complete a quest together and earn XP.
   the PostGIS gap above). The `quest_embeddings`/`user_preference_embeddings`
   columns in docs/DATABASE.md exist for when it is; swapping the ranking
   function is additive.
+- **Payments**: `PAYMENT_PROVIDER=fake` (always succeeds, no real money) by
+  default — same posture as everything else here. `StripeProvider` is a
+  real, working backend-only integration (Stripe's own documented
+  test-mode PaymentMethod trick — a `sk_test_...` key is genuinely enough,
+  no frontend Stripe.js needed). `TossProvider` is not: Toss requires a
+  client-side checkout widget this repo doesn't have, so its `charge()`
+  raises rather than pretending; see `app/payments/providers/toss.py`'s
+  docstring for the real `confirm` call it does implement. See
+  docs/ROADMAP.md Phase 6.

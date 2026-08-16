@@ -103,6 +103,24 @@ constraint before shipping:
   it's an internal event log, not a growth/manipulation tool; nothing
   reads it to trigger notifications or engagement loops today.
 
+**Phase 6 audit (2026-08-17):** the Pro subscription's perks were checked
+against the same constraint, and separately against the Phase 6 exit
+criteria's own "additive, not pay-to-win" requirement, before shipping:
+
+- Pro's three perks (unlimited AI generations, a profile badge, more
+  objectives per quest — see docs/ROADMAP.md Phase 6) touch nothing that
+  affects another user: no matching/compatibility boost, no discovery
+  visibility boost, no XP multiplier, no priority in a shared resource
+  (quest capacity, chat, etc). A free user and a Pro user compete for
+  exactly the same things at exactly the same odds.
+- The free AI-generation quota (`app/services/ai_quota_service.py`) resets
+  daily on a fixed schedule, not a use-it-or-lose-it streak — missing a
+  day costs nothing, and there's no "come back or lose your progress"
+  framing anywhere in the quota UI.
+- The AI-credit-pack purchase is an alternative to subscribing, not a
+  Pro-exclusive unlock — anyone can buy past the daily limit without ever
+  subscribing, and Pro users never need to.
+
 ## Auth & API security
 
 - JWT-based auth (Supabase-issued, verified server-side on every protected

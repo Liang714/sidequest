@@ -11,6 +11,7 @@ from app.models import (  # noqa: F401  (registers tables)
     ai,
     analytics,
     business,
+    commerce,
     gamification,
     identity,
     quests,

@@ -88,12 +88,55 @@ user viewed/joined/completed it through the real quest room, and the
 owner's dashboard showed the exact resulting analytics (1 join, 1
 completion, 1 redemption) — zero console errors across the whole chain.
 
-## Phase 6 — Monetization
+## Phase 6 — Monetization *(foundation done 2026-08-17 — real-payment half of the exit criteria intentionally not met, see below)*
 
 **Scope:** subscription (Free/Pro), premium features, creator marketplace
 foundation, AI credits, payment system (Toss + Stripe).
 **Exit criteria:** a real payment completes end to end in both providers;
 premium features are additive, not pay-to-win, per [PRD.md](PRD.md).
+
+**What "not met" means and why:** a real Toss/Stripe charge requires a
+real account with each provider — even sandbox/test mode needs a real
+signup — which isn't something to do unilaterally on the user's behalf.
+Asked directly, the user chose to have everything *else* in this phase
+built and fully tested now, with the payment side going in behind a
+`PaymentProvider` abstraction defaulting to a fake provider that always
+succeeds (`PAYMENT_PROVIDER=fake`, same $0-to-develop posture as every
+other provider abstraction in this app), and real Stripe/Toss wiring
+picked back up once real API keys exist — the same shape as Supabase Auth
+today (self-issued JWTs, documented, swappable later).
+
+Shipped: subscriptions (`POST /subscriptions/subscribe`/`cancel`, `GET
+/subscriptions/me`) with correct non-refunding "stays Pro until the paid
+period ends" semantics; three additive Pro perks (unlimited AI
+generations, a Pro badge, more objectives per quest — audited against
+docs/SECURITY.md §Healthy engagement, none affect matching/visibility/
+XP, so nothing is pay-to-win); a free/Pro AI generation quota (3/day free,
+reusing Phase 4's `analytics`-adjacent `ai_generations` table to count
+usage) with a one-off AI-credit-pack purchase as an alternative to
+subscribing; and a creator marketplace foundation (register as a
+creator, publish a paid quest template, browse `GET /marketplace/quests`,
+purchase auto-joins the buyer) — genuinely paywalled, not just unlisted:
+`GET /quests/{id}` and `POST /quests/{id}/join` both 402 for a
+non-purchaser, and marketplace quests are excluded from every discovery
+endpoint. `app/payments/` holds the `PaymentProvider` abstraction:
+`FakeProvider` (dev/test default), `StripeProvider` (a real, working
+backend-only integration using Stripe's own documented test-mode
+PaymentMethod trick — genuinely testable with just a `sk_test_...` key,
+no frontend Stripe.js needed), and `TossProvider` (the real `confirm`
+API call is implemented, but Toss architecturally requires a client-side
+checkout widget this repo doesn't have yet, so `charge()` honestly raises
+instead of pretending — see `app/payments/providers/toss.py`'s
+docstring). 18 new backend tests (72/72 total), ruff/mypy/tsc/eslint/
+next-build all clean. Verified live via a real end-to-end Playwright run
+through the actual UI: subscribed to Pro and saw "Unlimited (Pro)" on the
+create-quest form; a free user exhausted their 3 daily AI generations
+(real Ollama calls), hit the real 402 + "buy credits" CTA, bought a pack,
+generated again; a creator published a paid quest through the real form,
+confirmed absent from `GET /quests`, a buyer purchased it through the
+real marketplace page and was auto-joined, and a non-buyer hitting the
+quest URL directly saw the real paywall notice (not a crash) — zero
+console errors.
 
 ## Phase 7 — Booking
 

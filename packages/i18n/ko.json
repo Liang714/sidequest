@@ -92,6 +92,7 @@
     "meetingPoint": "만나는 장소",
     "createdBy": "{name} 님이 주최",
     "sponsoredBy": "{name} 후원",
+    "paywallNotice": "유료 마켓플레이스 퀘스트예요 — 전체 내용을 보려면 구매하세요.",
     "visibility": {
       "public": "공개",
       "friends": "친구 공개",
@@ -112,6 +113,11 @@
     "aiGenerate": "AI로 생성",
     "aiGenerating": "생각 중…",
     "aiFilledIn": "아래에 초안이 채워졌어요 — 게시 전에 자유롭게 수정하세요.",
+    "aiQuotaFree": "오늘 {remaining}/{total}회 무료",
+    "aiQuotaPro": "무제한 (Pro)",
+    "aiCreditsRemaining": "크레딧 {count}개",
+    "aiBuyCredits": "10회 추가 구매 — ₩3,900",
+    "aiUpgrade": "또는 Pro로 업그레이드",
     "fieldTitle": "제목",
     "fieldTitlePlaceholder": "홍대 포토헌트",
     "fieldDescription": "설명",
@@ -252,5 +258,49 @@
     "noPendingBusinesses": "검토 대기 중인 비즈니스가 없어요.",
     "verify": "인증",
     "reject": "거절"
+  },
+  "subscription": {
+    "navLink": "구독",
+    "title": "구독",
+    "subline": "Pro는 이미 있는 기능을 더 주는 것일 뿐, 다른 사용자보다 유리해지는 건 아니에요.",
+    "freePlan": "무료",
+    "proPlan": "Pro",
+    "statusActive": "이용 중",
+    "statusCanceled": "해지 예정",
+    "activeUntil": "{date}까지 Pro 유지, 이후 무료로 전환",
+    "renewsOn": "{date}에 갱신",
+    "perksTitle": "포함 혜택",
+    "perk": {
+      "unlimitedAi": "무제한 AI 퀘스트 생성",
+      "proBadge": "프로필에 Pro 배지 표시",
+      "moreObjectives": "퀘스트당 더 많은 목표 설정"
+    },
+    "subscribeCta": "Pro로 업그레이드 — ₩9,900/월",
+    "cancel": "Pro 해지"
+  },
+  "creator": {
+    "navLink": "크리에이터",
+    "dashboardLink": "크리에이터 대시보드",
+    "title": "크리에이터 등록",
+    "registerIntro": "유료 퀘스트 템플릿을 게시하고 구매마다 수익을 나눠 받으세요.",
+    "fieldDisplayName": "크리에이터 이름",
+    "fieldDisplayNamePlaceholder": "서울워커",
+    "register": "크리에이터로 등록",
+    "followerCount": "팔로워 {count}명",
+    "publishQuest": "유료 퀘스트 게시",
+    "myQuests": "게시한 퀘스트",
+    "fieldPrice": "가격 (원)",
+    "revenueShareNote": "구매마다 {pct}%를 가져가요 — 나머지는 플랫폼이 가져가요.",
+    "publish": "퀘스트 게시",
+    "mustRegisterNotice": "유료 퀘스트를 게시하려면 먼저 크리에이터로 등록하세요."
+  },
+  "marketplace": {
+    "navLink": "마켓플레이스",
+    "title": "마켓플레이스",
+    "subline": "크리에이터가 만든 유료 퀘스트 템플릿 — 구매하면 자동으로 참여돼요.",
+    "empty": "아직 마켓플레이스 퀘스트가 없어요.",
+    "byCreator": "{name} 제작",
+    "purchase": "구매",
+    "viewQuest": "퀘스트 보기"
   }
 }

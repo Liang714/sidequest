@@ -122,12 +122,47 @@ sponsor badge is a detail-page/quest-room concern only.
 There's no admin signup flow — `is_admin` is set via
 `uv run python -m app.make_admin <email>` (services/api/README.md).
 
-## Marketplace *(Phase 6)*
+## Subscriptions & AI credits
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/creators/quests` | Publish a paid quest template |
-| POST | `/marketplace/{quest_id}/purchase` | Stripe/Toss payment → unlocks quest |
+| GET | `/subscriptions/me` | `{ plan, status, current_period_end }` — `plan: "free"` when there's no active-or-not-yet-lapsed subscription row |
+| POST | `/subscriptions/subscribe` | Charges via `PaymentProvider`, activates Pro for 30 days. 400 if already subscribed or the charge is declined |
+| POST | `/subscriptions/cancel` | Stops renewal — stays Pro until `current_period_end`, standard non-refunding SaaS semantics |
+| GET | `/ai/quota` | `{ is_pro, daily_limit, used_today, credits_remaining }` |
+| POST | `/ai/credits/purchase` | Charges for a fixed pack of 10 generations, added to `Profile.ai_credits` |
+
+`POST /ai/generate-quest` (see AI above) now 402s once a free user's daily
+limit *and* purchased credits are both exhausted — see
+`app/services/ai_quota_service.py`.
+
+## Creator marketplace
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/creators` | Register as a creator (`display_name`) — 409 if already registered |
+| GET | `/creators/me` | 404 if not yet registered |
+| POST | `/creators/quests` | Publish a paid quest template — 403 unless registered as a creator. Fixed 70% creator / 30% platform split (`PLATFORM_REVENUE_SHARE_PCT`, not creator-configurable in this foundation) |
+| GET | `/marketplace/quests` | Browsable preview (title, description, price, creator name, `already_purchased`) — **not** a full `QuestOut`; objectives/participants stay hidden until purchase |
+| POST | `/marketplace/{quest_id}/purchase` | Charges via `PaymentProvider`, auto-joins the buyer as a participant. 409 if already purchased or full |
+
+Marketplace quests are paywalled, not just unlisted: `GET /quests/{id}`
+402s for anyone who hasn't purchased or created it (`apps/web`'s quest
+detail page catches that and renders a "purchase to view" notice instead
+of the quest), and `POST /quests/{id}/join` 402s too — the only way in is
+`POST /marketplace/{quest_id}/purchase`. They're also excluded from
+`GET /quests`, `/quests/nearby`, and `/quests/recommended` outright.
+
+## Payments
+
+Every charge above goes through one `PaymentProvider.charge()` call — see
+`app/payments/`. `PAYMENT_PROVIDER=fake` (the dev/test default) always
+succeeds and moves no real money; `stripe` and `toss` are implemented
+against the real APIs but **unverified** — see
+`app/payments/providers/stripe.py` and `toss.py` for exactly what each
+can and can't do without a real key. **The Phase 6 exit criteria's "a
+real payment completes end to end in both providers" is explicitly not
+met** — see docs/ROADMAP.md Phase 6.
 
 ## Bookings *(Phase 7)*
 

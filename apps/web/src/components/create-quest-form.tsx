@@ -8,9 +8,12 @@ import { categoryEmoji, type Category, type Difficulty } from "@/lib/types";
 import { categoryShortKey } from "@/lib/format";
 import { SEOUL_NEIGHBORHOODS } from "@/lib/seoul-neighborhoods";
 import { createQuestAction } from "@/app/actions/quests";
-import { generateQuestDraftAction } from "@/app/actions/ai";
+import { generateQuestDraftAction, getAiQuotaAction } from "@/app/actions/ai";
+import { purchaseAiCreditsAction } from "@/app/actions/commerce";
+import { Link } from "@/i18n/navigation";
 import { CategoryChip } from "./category-chip";
 import { Field, inputClass } from "./form-field";
+import type { AiQuotaOut } from "@sidequest/types";
 
 const CATEGORIES = Object.keys(categoryEmoji) as Category[];
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "epic"];
@@ -18,8 +21,10 @@ const VISIBILITIES = ["public", "friends", "private"] as const;
 
 export function CreateQuestForm({
   initialCoords,
+  initialQuota,
 }: {
   initialCoords?: { lat: number; lng: number } | null;
+  initialQuota?: AiQuotaOut | null;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -30,6 +35,9 @@ export function CreateQuestForm({
   const [aiPending, startAiTransition] = useTransition();
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiApplied, setAiApplied] = useState(false);
+  const [quota, setQuota] = useState<AiQuotaOut | null | undefined>(initialQuota);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [buyingCredits, startCreditsTransition] = useTransition();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -51,10 +59,12 @@ export function CreateQuestForm({
     if (!aiPrompt.trim()) return;
     setAiError(null);
     setAiApplied(false);
+    setQuotaExceeded(false);
     startAiTransition(async () => {
       const result = await generateQuestDraftAction(aiPrompt.trim(), initialCoords ?? null);
       if (result.error || !result.draft) {
         setAiError(result.error ?? "Something went wrong.");
+        setQuotaExceeded(!!result.quotaExceeded);
         return;
       }
       const draft = result.draft;
@@ -67,6 +77,18 @@ export function CreateQuestForm({
       setBudget(draft.budget_amount ? String(draft.budget_amount) : "");
       setObjectives(draft.objectives.length > 0 ? draft.objectives : [""]);
       setAiApplied(true);
+      setQuota(await getAiQuotaAction());
+    });
+  };
+
+  const buyCredits = () => {
+    startCreditsTransition(async () => {
+      const result = await purchaseAiCreditsAction();
+      if (!result.error && result.data) {
+        setQuota(result.data);
+        setQuotaExceeded(false);
+        setAiError(null);
+      }
     });
   };
 
@@ -107,9 +129,22 @@ export function CreateQuestForm({
       }}
     >
       <div className="rounded-card border border-violet/30 bg-violet-soft p-4">
-        <p className="mb-2.5 font-display text-[13px] font-semibold text-ink">
-          {t("createQuest.aiTitle")}
-        </p>
+        <div className="mb-2.5 flex items-center justify-between">
+          <p className="font-display text-[13px] font-semibold text-ink">{t("createQuest.aiTitle")}</p>
+          {quota && (
+            <span className="font-mono text-[11px] text-ink-faint">
+              {quota.is_pro
+                ? t("createQuest.aiQuotaPro")
+                : t("createQuest.aiQuotaFree", {
+                    remaining: Math.max(quota.daily_limit - quota.used_today, 0),
+                    total: quota.daily_limit,
+                  })}
+              {!quota.is_pro && quota.credits_remaining > 0 && (
+                <> · {t("createQuest.aiCreditsRemaining", { count: quota.credits_remaining })}</>
+              )}
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
           <input
             value={aiPrompt}
@@ -127,6 +162,21 @@ export function CreateQuestForm({
           </button>
         </div>
         {aiError && <p className="mt-2 text-[12px] text-coral">{aiError}</p>}
+        {quotaExceeded && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={buyingCredits}
+              onClick={buyCredits}
+              className="rounded-button bg-violet px-3 py-1.5 font-mono text-[11.5px] font-medium text-white disabled:opacity-60"
+            >
+              {t("createQuest.aiBuyCredits")}
+            </button>
+            <Link href="/subscription" className="font-mono text-[11.5px] font-medium text-violet underline">
+              {t("createQuest.aiUpgrade")}
+            </Link>
+          </div>
+        )}
         {aiApplied && <p className="mt-2 text-[12px] text-lime">{t("createQuest.aiFilledIn")}</p>}
       </div>
 

@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbSession
 from app.models.business import Business, BusinessQuest
+from app.models.commerce import CreatorQuest
 from app.models.identity import Interest, Profile, User, UserInterest
 from app.models.quests import (
     Location,
@@ -193,7 +194,13 @@ async def list_quests(
     stmt = (
         select(Quest)
         .options(selectinload(Quest.location), selectinload(Quest.category), selectinload(Quest.participants))
-        .where(Quest.deleted_at.is_(None), Quest.status == QuestStatus.open)
+        .where(
+            Quest.deleted_at.is_(None),
+            Quest.status == QuestStatus.open,
+            # Creator marketplace quests (Phase 6) are paywalled — they
+            # don't appear in free discovery, only in GET /marketplace/quests.
+            Quest.id.not_in(select(CreatorQuest.quest_id)),
+        )
         .order_by(Quest.start_time.asc(), Quest.id.asc())
         .limit(limit)
     )
@@ -293,6 +300,8 @@ async def nearby_quests(
             Quest.status == QuestStatus.open,
             Location.lat.between(min_lat, max_lat),
             Location.lng.between(min_lng, max_lng),
+            # See the same exclusion note in list_quests above.
+            Quest.id.not_in(select(CreatorQuest.quest_id)),
         )
     )
     candidates = (await db.scalars(stmt)).all()
@@ -349,7 +358,12 @@ async def recommended_quests(
     stmt = (
         select(Quest)
         .options(selectinload(Quest.location), selectinload(Quest.category), selectinload(Quest.participants))
-        .where(Quest.deleted_at.is_(None), Quest.status == QuestStatus.open)
+        .where(
+            Quest.deleted_at.is_(None),
+            Quest.status == QuestStatus.open,
+            # See the same exclusion note in list_quests above.
+            Quest.id.not_in(select(CreatorQuest.quest_id)),
+        )
         .order_by(Quest.start_time.asc())
         .limit(200)  # candidate pool — fine at MVP scale, see docs/AI.md
     )
@@ -393,6 +407,17 @@ async def recommended_quests(
 @router.get("/{quest_id}", response_model=QuestOut)
 async def get_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestOut:
     quest = await _get_quest_or_404(db, quest_id)
+
+    creator_quest = await db.scalar(select(CreatorQuest).where(CreatorQuest.quest_id == quest_id))
+    if creator_quest is not None and quest.creator_id != current_user.id:
+        is_purchaser = any(
+            p.user_id == current_user.id and p.status != ParticipantStatus.left for p in quest.participants
+        )
+        if not is_purchaser:
+            raise HTTPException(
+                status.HTTP_402_PAYMENT_REQUIRED, "Purchase this quest via the marketplace to view it"
+            )
+
     # The "views" half of business analytics (app/services/business_service.py)
     # reads this — logged here specifically (not inside _to_quest_out, which
     # every mutation handler also calls internally to build its response)
@@ -457,6 +482,13 @@ async def delete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession)
 @router.post("/{quest_id}/join", response_model=QuestOut)
 async def join_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestOut:
     quest = await _get_quest_or_404(db, quest_id)
+
+    is_marketplace_quest = await db.scalar(select(CreatorQuest).where(CreatorQuest.quest_id == quest_id))
+    if is_marketplace_quest is not None:
+        raise HTTPException(
+            status.HTTP_402_PAYMENT_REQUIRED,
+            "This is a paid marketplace quest — purchase it via POST /marketplace/{quest_id}/purchase instead of joining directly",
+        )
 
     active = [p for p in quest.participants if p.status != ParticipantStatus.left]
     if any(p.user_id == current_user.id for p in active):
