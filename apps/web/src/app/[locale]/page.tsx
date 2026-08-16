@@ -17,9 +17,10 @@ export default async function HomePage() {
   const t = await getTranslations();
 
   const coords = (await getLocationCookie()) ?? DEFAULT_SEOUL_CENTER;
-  const quests = await apiFetch<QuestSummaryOut[]>(
-    `/quests/nearby?lat=${coords.lat}&lng=${coords.lng}&radius_km=15&limit=20`,
-  );
+  const [quests, recommended] = await Promise.all([
+    apiFetch<QuestSummaryOut[]>(`/quests/nearby?lat=${coords.lat}&lng=${coords.lng}&radius_km=15&limit=20`),
+    apiFetch<QuestSummaryOut[]>(`/quests/recommended?lat=${coords.lat}&lng=${coords.lng}&limit=6`),
+  ]);
 
   const now = quests.filter((q) => isStartingSoon(q.start_time));
   const rest = quests.filter((q) => !isStartingSoon(q.start_time));
@@ -52,6 +53,21 @@ export default async function HomePage() {
             <QuestCard key={q.id} quest={q} variant="row" />
           ))}
         </div>
+      )}
+
+      {recommended.length > 0 && (
+        <>
+          <SectionHeading title={t("home.sectionForYou")} />
+          <div className="-mx-4 overflow-x-auto px-4 pb-1">
+            <div className="flex w-max gap-3">
+              {recommended.map((q) => (
+                <div key={q.id} className="w-[220px]">
+                  <QuestCard quest={q} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       <SectionHeading title={t("home.sectionNear")} />

@@ -43,6 +43,17 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # AI — see docs/AI.md. "ollama" (a local, free, self-hosted model) is
+    # the dev default, same posture as storage/DB: production-grade
+    # architecture, local/free equivalents until there's a reason to pay.
+    # Set ai_provider=anthropic + anthropic_api_key to use Claude instead —
+    # no other code changes needed, see app/ai/service.py.
+    ai_provider: str = "ollama"
+    ollama_host: str = "http://127.0.0.1:11434"
+    ollama_model: str = "qwen3:8b"
+    anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-sonnet-5"
+
 
 @lru_cache
 def get_settings() -> Settings:

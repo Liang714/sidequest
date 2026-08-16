@@ -8,7 +8,8 @@
 #   - Python 3.13 + uv          (services/api)
 #   - Postgres 18                (portable build, github.com/theseus-rs/postgresql-binaries)
 #   - Valkey                      (built from source — no prebuilt macOS binaries published)
-#   - MinIO                        (skipped if dl.min.io is unreachable — see note below)
+#   - Ollama + qwen3:8b            (local AI provider — docs/AI.md; free, no API key)
+#   - MinIO                          (skipped if dl.min.io is unreachable — see note below)
 #
 # Usage: ./scripts/setup-local-infra.sh
 set -euo pipefail
@@ -98,6 +99,42 @@ if ! "$TOOLS/valkey/bin/valkey-cli" -p 6379 ping >/dev/null 2>&1; then
   disown
 fi
 echo "Valkey: running on 127.0.0.1:6379"
+
+# ---------- Ollama (local AI provider — the dev default, see docs/AI.md) ----------
+# If something is already listening on 11434 (a pre-existing personal
+# Ollama install, e.g. for an unrelated project) this reuses it as-is —
+# `ollama pull` just talks to whatever server owns the port, wherever
+# *its* models directory is, not necessarily ours. It's only a
+# self-contained, project-local install under .tools/ when nothing was
+# already running. Either way you get a real local model; this script
+# does not try to kill or reconfigure a server it didn't start (see
+# stop-local-infra.sh, which likewise never touches Ollama).
+if curl -sf --max-time 2 http://127.0.0.1:11434/ >/dev/null 2>&1; then
+  echo "Ollama: reusing the server already running on 127.0.0.1:11434 (not managed by this script)"
+  OLLAMA_BIN="ollama"
+  command -v ollama >/dev/null 2>&1 || OLLAMA_BIN="$TOOLS/ollama/ollama"
+else
+  if [ ! -x "$TOOLS/ollama/ollama" ]; then
+    echo "==> Installing Ollama (self-contained, under .tools/)"
+    OLLAMA_VER="v0.32.13"
+    mkdir -p "$TOOLS/ollama"
+    curl -sL "https://github.com/ollama/ollama/releases/download/${OLLAMA_VER}/ollama-darwin.tgz" -o "$TOOLS/ollama.tgz"
+    tar -xzf "$TOOLS/ollama.tgz" -C "$TOOLS/ollama"
+    rm "$TOOLS/ollama.tgz"
+  fi
+  echo "==> Starting Ollama (self-contained — models under .tools/ollama-data)"
+  mkdir -p "$TOOLS/ollama-data"
+  nohup env OLLAMA_MODELS="$TOOLS/ollama-data" OLLAMA_HOST="127.0.0.1:11434" \
+    "$TOOLS/ollama/ollama" serve >"$TOOLS/ollama.log" 2>&1 &
+  disown
+  OLLAMA_BIN="$TOOLS/ollama/ollama"
+fi
+
+if ! OLLAMA_HOST="127.0.0.1:11434" "$OLLAMA_BIN" list 2>/dev/null | awk '{print $1}' | grep -qx "qwen3:8b"; then
+  echo "==> Pulling qwen3:8b (~5.2GB, one-time, into whichever server is running above)"
+  OLLAMA_HOST="127.0.0.1:11434" "$OLLAMA_BIN" pull qwen3:8b
+fi
+echo "Ollama: qwen3:8b ready on 127.0.0.1:11434"
 
 # ---------- MinIO (best-effort — dl.min.io has been unreachable from some networks) ----------
 if [ ! -x "$TOOLS/minio/bin/minio" ]; then

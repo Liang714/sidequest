@@ -38,11 +38,3 @@ export const difficultyStars: Record<Difficulty, number> = {
   hard: 3,
   epic: 4,
 };
-
-/** Still unused post-Phase-2 (no compatibility scoring until Phase 3) but
- * kept alive for components/compatibility-badge.tsx, which docs/DESIGN_SYSTEM.md
- * documents as a real future screen element, not dead code to delete. */
-export interface CompatibilityBreakdownItem {
-  labelKey: string;
-  points: number;
-}

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import type { CompatibilityBreakdownItem } from "@/lib/types";
+import type { CompatibilityBreakdownOut } from "@sidequest/types";
 import clsx from "clsx";
 
 export async function CompatibilityBadge({
@@ -8,7 +8,7 @@ export async function CompatibilityBadge({
   size = "lg",
 }: {
   score: number;
-  breakdown?: CompatibilityBreakdownItem[];
+  breakdown?: CompatibilityBreakdownOut[];
   size?: "sm" | "lg";
 }) {
   const t = await getTranslations();
@@ -43,8 +43,8 @@ export async function CompatibilityBadge({
           {breakdown && (
             <div className="mt-4 flex w-full flex-col gap-1.5 text-left">
               {breakdown.map((item) => (
-                <div key={item.labelKey} className="flex justify-between text-[13px] text-ink-muted">
-                  <span>{t(item.labelKey)}</span>
+                <div key={item.label_key} className="flex justify-between text-[13px] text-ink-muted">
+                  <span>{t(item.label_key)}</span>
                   <b className="font-mono font-medium text-lime">+{item.points}</b>
                 </div>
               ))}

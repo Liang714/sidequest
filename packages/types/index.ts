@@ -28,3 +28,7 @@ export type AchievementOut = Schemas["AchievementOut"];
 export type QuestDifficulty = QuestOut["difficulty"];
 export type QuestStatus = QuestOut["status"];
 export type QuestVisibility = QuestOut["visibility"];
+
+export type CompatibilityOut = Schemas["CompatibilityOut"];
+export type CompatibilityBreakdownOut = Schemas["CompatibilityBreakdownOut"];
+export type GeneratedQuestOut = Schemas["GeneratedQuestOut"];

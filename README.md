@@ -4,15 +4,15 @@
 that turns free time into real-world experiences with other people: discover a
 spontaneous activity, form a temporary group, do it, and level up.
 
-> **Status: Phase 2 (MVP) done.** Phase 0 (product foundation), Phase 1
-> (clickable prototype), and the Phase 2 backend (`services/api` — auth,
-> quests, friends, quest rooms over WebSocket, gamification) are complete.
-> `apps/web` is now wired to the real API end to end — no mock data left
-> in the app. Verified with a real two-browser run through the actual UI
-> (register → onboard → create a quest → a second user discovers it nearby,
-> joins, both complete it in the live quest room → XP and an achievement
-> show up on both profiles), not just backend-level tests. See
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status: Phase 3 (AI) done.** Phase 0 (product foundation), Phase 1
+> (clickable prototype), Phase 2 (MVP — auth, quests, friends, quest rooms
+> over WebSocket, gamification, `apps/web` wired to the real API end to
+> end), and Phase 3 (AI quest generation, compatibility scoring,
+> content-based "For You" recommendations) are all complete. AI runs on a
+> local Ollama model by default — free, no API key — swappable to Claude
+> via one env var (see [docs/AI.md](docs/AI.md)). Verified with real
+> two-browser runs through the actual UI against the actual backend, not
+> just API-level tests. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Start here
 
@@ -55,7 +55,7 @@ documented target shape for anyone who *does* have Docker (staging/prod use
 managed equivalents regardless — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
 ```bash
-./scripts/setup-local-infra.sh   # Node+pnpm, Python 3.13+uv, Postgres 18, Valkey — idempotent
+./scripts/setup-local-infra.sh   # Node+pnpm, Python 3.13+uv, Postgres 18, Valkey, Ollama+qwen3:8b — idempotent
 export PATH="$PWD/.tools/node/bin:$PWD/.tools/uv/bin:$PWD/.tools/gh/bin:$PATH"
 export XDG_CONFIG_HOME="$PWD/.tools/uv-config" XDG_DATA_HOME="$PWD/.tools/uv-data" XDG_CACHE_HOME="$PWD/.tools/uv-cache"
 export GH_CONFIG_DIR="$PWD/.tools/gh-config"   # gh CLI — same no-sudo pattern, ~/.config is root-owned here

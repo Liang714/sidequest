@@ -111,3 +111,13 @@ class QuestSummaryOut(BaseModel):
     status: QuestStatus
     xp_reward: int
     distance_km: float | None = None
+
+
+class CompatibilityBreakdownOut(BaseModel):
+    label_key: str
+    points: int
+
+
+class CompatibilityOut(BaseModel):
+    score: int
+    breakdown: list[CompatibilityBreakdownOut]

@@ -198,6 +198,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/quests/recommended": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recommended Quests
+         * @description "For You" — open quests ranked by compute_compatibility, the same
+         *     scoring GET /quests/{id}/compatibility exposes per-quest. This is the
+         *     "content-based" step from docs/AI.md's recommendation ladder — real
+         *     ranking logic, just not embedding/pgvector-backed (see docs/DATABASE.md
+         *     for why pgvector isn't available on this dev machine yet). No LLM call
+         *     is on this path, deliberately — see docs/AI.md §Recommendations.
+         */
+        get: operations["recommended_quests_quests_recommended_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/quests/{quest_id}": {
         parameters: {
             query?: never;
@@ -215,6 +240,23 @@ export interface paths {
         head?: never;
         /** Update Quest */
         patch: operations["update_quest_quests__quest_id__patch"];
+        trace?: never;
+    };
+    "/quests/{quest_id}/compatibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Compatibility */
+        get: operations["get_compatibility_quests__quest_id__compatibility_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/quests/{quest_id}/join": {
@@ -506,6 +548,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ai/generate-quest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Quest */
+        post: operations["generate_quest_ai_generate_quest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -547,6 +606,20 @@ export interface components {
              */
             blocked_id: string;
         };
+        /** CompatibilityBreakdownOut */
+        CompatibilityBreakdownOut: {
+            /** Label Key */
+            label_key: string;
+            /** Points */
+            points: number;
+        };
+        /** CompatibilityOut */
+        CompatibilityOut: {
+            /** Score */
+            score: number;
+            /** Breakdown */
+            breakdown: components["schemas"]["CompatibilityBreakdownOut"][];
+        };
         /** FriendOut */
         FriendOut: {
             /**
@@ -578,6 +651,43 @@ export interface components {
          * @enum {string}
          */
         FriendStatus: "pending" | "accepted" | "blocked";
+        /** GenerateQuestRequest */
+        GenerateQuestRequest: {
+            /** Free Text */
+            free_text: string;
+            /**
+             * City
+             * @default Seoul
+             */
+            city: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+        };
+        /** GeneratedQuestOut */
+        GeneratedQuestOut: {
+            /** Generation Id */
+            generation_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Category Key */
+            category_key: string;
+            /** Difficulty */
+            difficulty: string;
+            /** Duration Minutes */
+            duration_minutes: number;
+            /** Budget Amount */
+            budget_amount: number | null;
+            /** Xp Reward */
+            xp_reward: number;
+            /** Objectives */
+            objectives: string[];
+            /** Provider */
+            provider: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1390,6 +1500,39 @@ export interface operations {
             };
         };
     };
+    recommended_quests_quests_recommended_get: {
+        parameters: {
+            query?: {
+                lat?: number | null;
+                lng?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestSummaryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_quest_quests__quest_id__get: {
         parameters: {
             query?: never;
@@ -1472,6 +1615,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_compatibility_quests__quest_id__compatibility_get: {
+        parameters: {
+            query?: {
+                lat?: number | null;
+                lng?: number | null;
+            };
+            header?: never;
+            path: {
+                quest_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompatibilityOut"];
                 };
             };
             /** @description Validation Error */
@@ -1966,6 +2143,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_quest_ai_generate_quest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateQuestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedQuestOut"];
                 };
             };
             /** @description Validation Error */

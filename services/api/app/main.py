@@ -7,7 +7,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, chat, friends, gamification, moderation, notifications, quests, users
+from app.routers import (
+    ai,
+    auth,
+    chat,
+    friends,
+    gamification,
+    moderation,
+    notifications,
+    quests,
+    users,
+)
 
 settings = get_settings()
 
@@ -33,6 +43,7 @@ app.include_router(chat.router)
 app.include_router(notifications.router)
 app.include_router(gamification.router)
 app.include_router(moderation.router)
+app.include_router(ai.router)
 
 
 @app.get("/health", tags=["health"])

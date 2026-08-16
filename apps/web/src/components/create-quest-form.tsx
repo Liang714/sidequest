@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import clsx from "clsx";
 import { useRouter } from "@/i18n/navigation";
 import { categoryEmoji, type Category, type Difficulty } from "@/lib/types";
+import { categoryShortKey } from "@/lib/format";
 import { SEOUL_NEIGHBORHOODS } from "@/lib/seoul-neighborhoods";
 import { createQuestAction } from "@/app/actions/quests";
+import { generateQuestDraftAction } from "@/app/actions/ai";
 import { CategoryChip } from "./category-chip";
 import { Field, inputClass } from "./form-field";
 
@@ -14,11 +16,20 @@ const CATEGORIES = Object.keys(categoryEmoji) as Category[];
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "epic"];
 const VISIBILITIES = ["public", "friends", "private"] as const;
 
-export function CreateQuestForm() {
+export function CreateQuestForm({
+  initialCoords,
+}: {
+  initialCoords?: { lat: number; lng: number } | null;
+}) {
   const t = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiPending, startAiTransition] = useTransition();
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiApplied, setAiApplied] = useState(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -35,6 +46,29 @@ export function CreateQuestForm() {
 
   const setObjective = (i: number, value: string) =>
     setObjectives((prev) => prev.map((o, idx) => (idx === i ? value : o)));
+
+  const generate = () => {
+    if (!aiPrompt.trim()) return;
+    setAiError(null);
+    setAiApplied(false);
+    startAiTransition(async () => {
+      const result = await generateQuestDraftAction(aiPrompt.trim(), initialCoords ?? null);
+      if (result.error || !result.draft) {
+        setAiError(result.error ?? "Something went wrong.");
+        return;
+      }
+      const draft = result.draft;
+      setTitle(draft.title);
+      setDescription(draft.description);
+      const shortCategory = categoryShortKey(draft.category_key);
+      if (CATEGORIES.includes(shortCategory)) setCategory(shortCategory);
+      if (DIFFICULTIES.includes(draft.difficulty as Difficulty)) setDifficulty(draft.difficulty as Difficulty);
+      setDuration(draft.duration_minutes);
+      setBudget(draft.budget_amount ? String(draft.budget_amount) : "");
+      setObjectives(draft.objectives.length > 0 ? draft.objectives : [""]);
+      setAiApplied(true);
+    });
+  };
 
   const submit = () => {
     setError(null);
@@ -72,6 +106,30 @@ export function CreateQuestForm() {
         submit();
       }}
     >
+      <div className="rounded-card border border-violet/30 bg-violet-soft p-4">
+        <p className="mb-2.5 font-display text-[13px] font-semibold text-ink">
+          {t("createQuest.aiTitle")}
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            placeholder={t("createQuest.aiPromptPlaceholder")}
+            className={inputClass}
+          />
+          <button
+            type="button"
+            disabled={aiPending || !aiPrompt.trim()}
+            onClick={generate}
+            className="flex-none rounded-button bg-violet px-4 py-2.5 font-display text-[12.5px] font-semibold text-white disabled:opacity-60"
+          >
+            {aiPending ? t("createQuest.aiGenerating") : t("createQuest.aiGenerate")}
+          </button>
+        </div>
+        {aiError && <p className="mt-2 text-[12px] text-coral">{aiError}</p>}
+        {aiApplied && <p className="mt-2 text-[12px] text-lime">{t("createQuest.aiFilledIn")}</p>}
+      </div>
+
       <Field label={t("createQuest.fieldTitle")}>
         <input
           required

@@ -91,14 +91,14 @@ Message frames (JSON):
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/ai/generate-quest` | `{ free_text, location, budget?, duration? }` → draft quest (Claude) — Phase 3 |
-| POST | `/ai/recommend-quests` | pgvector + Voyage embeddings similarity — Phase 3 |
+| POST | `/ai/generate-quest` | `{ free_text, city, lat?, lng? }` → editable draft quest. Ollama (`qwen3:8b`) by default, Claude if `AI_PROVIDER=anthropic` — see docs/AI.md. Logs an `ai_generations` row. |
 
 ## Matching
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/matches` | Ranked candidate users/quests by compatibility (Phase 3) |
+| GET | `/quests/{id}/compatibility?lat?&lng?` | Score (0–100) + breakdown — conventional algorithm, not LLM. See docs/AI.md §Implementation status for what the formula actually weighs today. |
+| GET | `/quests/recommended?lat?&lng?&limit?` | "For You" — open quests ranked by the same compatibility score |
 
 ## Businesses *(Phase 5)*
 

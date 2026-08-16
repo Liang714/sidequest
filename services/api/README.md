@@ -1,6 +1,7 @@
 # services/api
 
-FastAPI modular monolith — the Phase 2 MVP backend. See
+FastAPI modular monolith — the Phase 2 MVP backend plus Phase 3 AI (quest
+generation, compatibility scoring, recommendations). See
 [../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) for the module map
 and technology rationale, [../../docs/DATABASE.md](../../docs/DATABASE.md)
 for the schema, and [../../docs/API.md](../../docs/API.md) for the endpoint
@@ -17,12 +18,14 @@ app/
 ├── deps.py                     # get_db, get_current_user, get_valkey, rate_limit
 ├── storage.py                    # StorageProvider abstraction (local disk for now — see below)
 ├── seed.py                         # reference data: categories, interests, achievements
-├── models/                          # SQLAlchemy models, one module per domain
-├── schemas/                          # Pydantic request/response shapes
-├── services/                          # xp_service (level curve, XP ledger), quest_service (nearby search)
-└── routers/                            # one module per API resource — auth, users, quests,
-                                          friends, chat (incl. WebSocket), notifications,
-                                          gamification, moderation
+├── ai/                               # AIService, provider interface, Ollama/Anthropic adapters, prompt/parsing
+├── models/                            # SQLAlchemy models, one module per domain
+├── schemas/                            # Pydantic request/response shapes
+├── services/                            # xp_service (level curve, XP ledger), quest_service (nearby search),
+│                                          compatibility_service (interest/proximity/fill-ratio scoring)
+└── routers/                              # one module per API resource — auth, users, quests,
+                                            friends, chat (incl. WebSocket), notifications,
+                                            gamification, moderation, ai
 ```
 
 ## Local setup
@@ -40,10 +43,15 @@ uv run uvicorn app.main:app --reload   # docs at /api/v1/docs
 ## Testing
 
 ```bash
-uv run pytest              # 20 tests against a real Postgres (sidequest_test db)
+uv run pytest              # 36 tests against a real Postgres (sidequest_test db)
 uv run ruff check .
 uv run mypy app             # strict mode
 ```
+
+AI generation tests use a `FakeProvider` via `app.dependency_overrides` —
+they don't call Ollama/Anthropic, so the suite stays fast and deterministic.
+`tests/test_ai.py`'s `parse_quest_json` tests are what actually exercise the
+clamping/validation logic a real model's output goes through.
 
 Runs against real Postgres, not SQLite — see the note at the top of
 `tests/conftest.py` for why (and for a real gotcha: async SQLAlchemy engines
@@ -69,3 +77,17 @@ and complete a quest together and earn XP.
 - **Supabase Auth**: not wired up (would require creating an external
   account). Auth is self-issued JWTs against the same `users` table
   Supabase Auth would populate — see the docstring in `app/security.py`.
+- **AI provider**: `AI_PROVIDER=ollama` (local `qwen3:8b`) by default — free,
+  no key. `AnthropicProvider` is fully implemented (tool-use for structured
+  output) but untested against a real key; set `AI_PROVIDER=anthropic` +
+  `ANTHROPIC_API_KEY` to use it instead, no other code changes. This dev
+  machine happened to already have a personal Ollama install running for an
+  unrelated project — `scripts/setup-local-infra.sh` detects and reuses
+  whatever's already on port 11434 rather than starting a second server;
+  see docs/AI.md §Implementation status.
+- **Recommendations**: `GET /quests/recommended` ranks by interest-tag
+  overlap + proximity + fill-ratio (`app/services/compatibility_service.py`),
+  not embedding similarity — pgvector isn't installed (same root cause as
+  the PostGIS gap above). The `quest_embeddings`/`user_preference_embeddings`
+  columns in docs/DATABASE.md exist for when it is; swapping the ranking
+  function is additive.

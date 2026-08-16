@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbSession
 from app.models.gamification import Achievement, UserAchievement
-from app.models.identity import User
+from app.models.identity import Interest, User, UserInterest
 from app.models.quests import (
     Location,
     ParticipantStatus,
@@ -21,6 +21,8 @@ from app.models.quests import (
     QuestStatus,
 )
 from app.schemas.quests import (
+    CompatibilityBreakdownOut,
+    CompatibilityOut,
     LocationOut,
     ObjectiveOut,
     ParticipantOut,
@@ -30,6 +32,7 @@ from app.schemas.quests import (
     QuestUpdate,
 )
 from app.services import quest_service
+from app.services.compatibility_service import compute_compatibility
 from app.services.xp_service import award_xp
 
 router = APIRouter(prefix="/quests", tags=["quests"])
@@ -301,10 +304,107 @@ async def nearby_quests(
     ]
 
 
+@router.get("/recommended", response_model=list[QuestSummaryOut])
+async def recommended_quests(
+    current_user: CurrentUser,
+    db: DbSession,
+    lat: float | None = Query(default=None, ge=-90, le=90),
+    lng: float | None = Query(default=None, ge=-180, le=180),
+    limit: int = Query(default=10, le=30, ge=1),
+) -> list[QuestSummaryOut]:
+    """"For You" — open quests ranked by compute_compatibility, the same
+    scoring GET /quests/{id}/compatibility exposes per-quest. This is the
+    "content-based" step from docs/AI.md's recommendation ladder — real
+    ranking logic, just not embedding/pgvector-backed (see docs/DATABASE.md
+    for why pgvector isn't available on this dev machine yet). No LLM call
+    is on this path, deliberately — see docs/AI.md §Recommendations.
+    """
+    interest_rows = await db.scalars(
+        select(Interest.category).join(UserInterest, UserInterest.interest_id == Interest.id).where(
+            UserInterest.user_id == current_user.id
+        )
+    )
+    user_interest_categories = set(interest_rows.all())
+
+    stmt = (
+        select(Quest)
+        .options(selectinload(Quest.location), selectinload(Quest.category), selectinload(Quest.participants))
+        .where(Quest.deleted_at.is_(None), Quest.status == QuestStatus.open)
+        .order_by(Quest.start_time.asc())
+        .limit(200)  # candidate pool — fine at MVP scale, see docs/AI.md
+    )
+    candidates = (await db.scalars(stmt)).all()
+
+    scored = []
+    for q in candidates:
+        joined = len([p for p in q.participants if p.status != ParticipantStatus.left])
+        result = compute_compatibility(
+            user_interest_category_keys=user_interest_categories,
+            quest_category_key=q.category.key.removeprefix("category."),
+            user_lat=lat,
+            user_lng=lng,
+            quest_lat=q.location.lat,
+            quest_lng=q.location.lng,
+            joined_count=joined,
+            max_participants=q.max_participants,
+        )
+        scored.append((result.score, joined, q))
+    scored.sort(key=lambda triple: triple[0], reverse=True)
+
+    return [
+        QuestSummaryOut(
+            id=q.id,
+            title=q.title,
+            category_key=q.category.key,
+            location_city=q.location.city,
+            start_time=q.start_time,
+            budget_amount=q.budget_amount,
+            currency=q.currency,
+            max_participants=q.max_participants,
+            joined_count=joined,
+            difficulty=q.difficulty,
+            status=q.status,
+            xp_reward=q.xp_reward,
+        )
+        for _, joined, q in scored[:limit]
+    ]
+
+
 @router.get("/{quest_id}", response_model=QuestOut)
 async def get_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestOut:
     quest = await _get_quest_or_404(db, quest_id)
     return await _to_quest_out(db, quest, current_user_id=current_user.id)
+
+
+@router.get("/{quest_id}/compatibility", response_model=CompatibilityOut)
+async def get_compatibility(
+    quest_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    lat: float | None = Query(default=None, ge=-90, le=90),
+    lng: float | None = Query(default=None, ge=-180, le=180),
+) -> CompatibilityOut:
+    quest = await _get_quest_or_404(db, quest_id)
+    interest_rows = await db.scalars(
+        select(Interest.category).join(UserInterest, UserInterest.interest_id == Interest.id).where(
+            UserInterest.user_id == current_user.id
+        )
+    )
+    joined = len([p for p in quest.participants if p.status != ParticipantStatus.left])
+    result = compute_compatibility(
+        user_interest_category_keys=set(interest_rows.all()),
+        quest_category_key=quest.category.key.removeprefix("category."),
+        user_lat=lat,
+        user_lng=lng,
+        quest_lat=quest.location.lat,
+        quest_lng=quest.location.lng,
+        joined_count=joined,
+        max_participants=quest.max_participants,
+    )
+    return CompatibilityOut(
+        score=result.score,
+        breakdown=[CompatibilityBreakdownOut(label_key=b.label_key, points=b.points) for b in result.breakdown],
+    )
 
 
 @router.patch("/{quest_id}", response_model=QuestOut)
