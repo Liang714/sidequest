@@ -64,6 +64,14 @@ export function isStartingSoon(startTimeIso: string): boolean {
   return diffMs > -30 * 60 * 1000 && diffMs <= 3 * 60 * 60 * 1000;
 }
 
+/** A plain calendar date ("Aug 20, 2026") — unlike formatStartLabel, this
+ * never collapses to "starts in Xmin"/a bare clock time, which reads fine
+ * for an upcoming quest but is ambiguous for a quest completed months ago
+ * (see profile.questHistory). */
+export function formatQuestDate(startTimeIso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(startTimeIso));
+}
+
 export function initialFromUsername(username: string): string {
   return username.charAt(0).toUpperCase();
 }

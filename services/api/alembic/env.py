@@ -7,7 +7,14 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.config import get_settings
 from app.db import Base
-from app.models import gamification, identity, quests, social  # noqa: F401  (registers tables)
+from app.models import (  # noqa: F401  (registers tables)
+    ai,
+    analytics,
+    gamification,
+    identity,
+    quests,
+    social,
+)
 
 config = context.config
 if config.config_file_name is not None:

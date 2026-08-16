@@ -39,7 +39,7 @@ generated schema is the contract `packages/types` is built from.
 | PATCH | `/users/me` | Partial update |
 | GET | `/users/{id}` | Public view, respects `visibility_settings` |
 | GET | `/users/me/xp` | XP total + level + recent `xp_transactions` |
-| GET | `/users/me/achievements` | Unlocked achievements |
+| GET | `/users/me/achievements` | Full achievement gallery — locked *and* unlocked (Phase 4), sorted unlocked-first |
 
 ## Friends
 
@@ -65,7 +65,7 @@ generated schema is the contract `packages/types` is built from.
 | POST | `/quests/{id}/join` | 409 if full or visibility-restricted |
 | POST | `/quests/{id}/leave` | No-op if not a participant |
 | POST | `/quests/{id}/checkin` | Marks `quest_participants.checked_in_at` |
-| POST | `/quests/{id}/complete` | Verifies required objectives, awards XP, writes `quest_completions` |
+| POST | `/quests/{id}/complete` | Verifies required objectives, awards XP, writes `quest_completions`. Returns `{ quest, xp_awarded, new_level, new_achievements }` (Phase 4) — `new_level`/`new_achievements` are only populated the one time completion actually happens, so the client can show a level-up/unlock moment; a repeat call is a no-op returning `xp_awarded: 0` |
 | POST | `/quests/{id}/objectives/{objective_id}/complete` | Per-user objective completion — no "uncomplete" |
 | GET | `/quests/{id}/compatibility` | Current user's compatibility score + breakdown (Phase 3) |
 

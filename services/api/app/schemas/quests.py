@@ -11,6 +11,7 @@ from app.models.quests import (
     QuestVisibility,
     VerificationType,
 )
+from app.schemas.gamification import AchievementOut
 
 
 class LocationIn(BaseModel):
@@ -95,6 +96,19 @@ class QuestOut(BaseModel):
     objectives: list[ObjectiveOut]
     participants: list[ParticipantOut]
     distance_km: float | None = None
+
+
+class QuestCompleteOut(BaseModel):
+    """Response for POST /quests/{id}/complete — wraps the quest plus
+    whatever gamification happened this call, so the client can show a
+    completion moment (XP, level-up, new achievements) instead of a flat
+    quest object. `xp_awarded`/`new_level`/`new_achievements` are all
+    zero/None/empty on an idempotent repeat call (already completed)."""
+
+    quest: QuestOut
+    xp_awarded: int
+    new_level: int | None = None
+    new_achievements: list[AchievementOut] = Field(default_factory=list)
 
 
 class QuestSummaryOut(BaseModel):

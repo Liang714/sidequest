@@ -139,15 +139,20 @@
     "checkedIn": "체크인 완료",
     "objectivesTitle": "목표",
     "completeQuest": "퀘스트 완료",
-    "archived": "이 퀘스트는 히스토리에 보관됐어요."
+    "archived": "이 퀘스트는 히스토리에 보관됐어요.",
+    "leveledUp": "레벨 {level}!",
+    "newAchievements": "새 업적"
   },
   "profile": {
     "level": "레벨 {level}",
     "xpProgress": "{current} / {next} XP",
-    "achievements": "업적 {count}개",
+    "achievements": "업적",
+    "achievementsProgress": "{unlocked}/{total}개 달성",
     "questsCompleted": "완료한 퀘스트",
     "questsCompletedCount": "{count}개",
     "favoriteCategories": "자주 하는 카테고리",
+    "questHistory": "퀘스트 히스토리",
+    "seeAll": "전체 보기",
     "editProfile": "프로필 편집",
     "friendsCount": "친구 {count}명",
     "realNameHidden": "실명은 친구가 아닌 사람에게 보이지 않아요"

@@ -139,15 +139,20 @@
     "checkedIn": "Checked in",
     "objectivesTitle": "Objectives",
     "completeQuest": "Complete Quest",
-    "archived": "This quest is archived in your history."
+    "archived": "This quest is archived in your history.",
+    "leveledUp": "Level {level}!",
+    "newAchievements": "New Achievements"
   },
   "profile": {
     "level": "Level {level}",
     "xpProgress": "{current} / {next} XP",
-    "achievements": "{count} Achievements",
+    "achievements": "Achievements",
+    "achievementsProgress": "{unlocked}/{total} unlocked",
     "questsCompleted": "Completed",
     "questsCompletedCount": "{count} quests",
     "favoriteCategories": "Favorite categories",
+    "questHistory": "Quest History",
+    "seeAll": "See all",
     "editProfile": "Edit Profile",
     "friendsCount": "{count} friends",
     "realNameHidden": "Real name hidden from non-friends"

@@ -79,7 +79,10 @@ async def test_two_users_create_discover_join_complete_and_earn_xp(client, seed_
         xp = (await client.get("/users/me/xp", headers=auth_headers(tokens))).json()
         assert xp["xp"] == 250
         achievements = (await client.get("/users/me/achievements", headers=auth_headers(tokens))).json()
-        assert any(a["key"] == "achievement.firstQuest" for a in achievements)
+        first_quest = next(a for a in achievements if a["key"] == "achievement.firstQuest")
+        assert first_quest["unlocked"] is True
+        # the gallery includes locked achievements too, not just what's unlocked
+        assert any(a["unlocked"] is False for a in achievements)
 
 
 async def test_completion_blocked_until_required_objectives_done(client, seed_reference_data):

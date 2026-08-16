@@ -3,12 +3,11 @@ from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import func, select, tuple_
+from sqlalchemy import select, tuple_
 from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbSession
-from app.models.gamification import Achievement, UserAchievement
-from app.models.identity import Interest, User, UserInterest
+from app.models.identity import Interest, Profile, User, UserInterest
 from app.models.quests import (
     Location,
     ParticipantStatus,
@@ -20,24 +19,25 @@ from app.models.quests import (
     QuestParticipant,
     QuestStatus,
 )
+from app.schemas.gamification import AchievementOut
 from app.schemas.quests import (
     CompatibilityBreakdownOut,
     CompatibilityOut,
     LocationOut,
     ObjectiveOut,
     ParticipantOut,
+    QuestCompleteOut,
     QuestCreate,
     QuestOut,
     QuestSummaryOut,
     QuestUpdate,
 )
 from app.services import quest_service
+from app.services.achievement_service import evaluate_and_unlock_achievements
 from app.services.compatibility_service import compute_compatibility
 from app.services.xp_service import award_xp
 
 router = APIRouter(prefix="/quests", tags=["quests"])
-
-DEFAULT_XP_COMPLETION_BONUS = {"first_quest": 50}
 
 
 async def _get_quest_or_404(db: DbSession, quest_id: UUID) -> Quest:
@@ -522,8 +522,8 @@ async def complete_objective(
     return await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
 
 
-@router.post("/{quest_id}/complete", response_model=QuestOut)
-async def complete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestOut:
+@router.post("/{quest_id}/complete", response_model=QuestCompleteOut)
+async def complete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestCompleteOut:
     quest = await _get_quest_or_404(db, quest_id)
     participant = next((p for p in quest.participants if p.user_id == current_user.id), None)
     if participant is None or participant.status == ParticipantStatus.left:
@@ -545,6 +545,9 @@ async def complete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSessio
             QuestCompletion.quest_id == quest_id, QuestCompletion.user_id == current_user.id
         )
     )
+    xp_awarded = 0
+    new_level: int | None = None
+    new_achievements: list[AchievementOut] = []
     if already is None:
         participant.status = ParticipantStatus.completed
         participant.completed_at = datetime.now(UTC)
@@ -556,8 +559,25 @@ async def complete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSessio
                 xp_awarded=quest.xp_reward,
             )
         )
+
+        profile_before = await db.get(Profile, current_user.id)
+        assert profile_before is not None
+        level_before = profile_before.level
+
         await award_xp(db, user_id=current_user.id, delta=quest.xp_reward, reason="quest_completion", related_quest_id=quest_id)
-        await _maybe_unlock_first_quest_achievement(db, current_user.id)
+        xp_awarded = quest.xp_reward
+
+        # Flush so the achievement engine's query sees this QuestCompletion row.
+        await db.flush()
+        unlocked = await evaluate_and_unlock_achievements(db, current_user.id)
+        new_achievements = [
+            AchievementOut(key=a.key, icon=a.icon, unlocked=True, unlocked_at=ts) for a, ts in unlocked
+        ]
+
+        profile_after = await db.get(Profile, current_user.id)
+        assert profile_after is not None
+        if profile_after.level > level_before:
+            new_level = profile_after.level
 
         remaining_active = [
             p for p in quest.participants if p.status not in (ParticipantStatus.left, ParticipantStatus.completed)
@@ -566,21 +586,7 @@ async def complete_quest(quest_id: UUID, current_user: CurrentUser, db: DbSessio
             quest.status = QuestStatus.completed
         await db.commit()
 
-    return await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
-
-
-async def _maybe_unlock_first_quest_achievement(db: DbSession, user_id: UUID) -> None:
-    achievement = await db.scalar(select(Achievement).where(Achievement.key == "achievement.firstQuest"))
-    if achievement is None:
-        return
-    already = await db.scalar(
-        select(UserAchievement).where(
-            UserAchievement.user_id == user_id, UserAchievement.achievement_id == achievement.id
-        )
+    quest_out = await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
+    return QuestCompleteOut(
+        quest=quest_out, xp_awarded=xp_awarded, new_level=new_level, new_achievements=new_achievements
     )
-    if already is None:
-        completed_count = await db.scalar(
-            select(func.count()).select_from(QuestCompletion).where(QuestCompletion.user_id == user_id)
-        )
-        if completed_count and completed_count >= 1:
-            db.add(UserAchievement(user_id=user_id, achievement_id=achievement.id))

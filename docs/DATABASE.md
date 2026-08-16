@@ -389,6 +389,19 @@ CREATE TABLE recommendations (
     shown_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     action      TEXT  -- shown|clicked|joined|dismissed
 );
+
+-- Added in Phase 4 (gamification polish) — the local/dev stand-in for the
+-- PostHog integration documented in ARCHITECTURE.md/DEPLOYMENT.md, so the
+-- Phase 4 exit criteria (achievement unlock rate, profile-stats engagement
+-- — see ROADMAP.md and SECURITY.md §Healthy engagement) is measurable
+-- without a real PostHog account. Not in the original Phase 0 ERD.
+CREATE TABLE analytics_events (
+    id          UUID PRIMARY KEY,
+    user_id     UUID REFERENCES users(id),   -- nullable: some future event types may be pre-auth
+    event_type  TEXT NOT NULL,   -- "achievement_unlocked" | "profile_stats_viewed" | ...
+    payload     JSONB NOT NULL DEFAULT '{}',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
 ## Recommendation embeddings *(columns exist now, populated starting Phase 3)*

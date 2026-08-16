@@ -521,7 +521,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get My Achievements */
+        /**
+         * Get My Achievements
+         * @description Returns the full achievement gallery — locked and unlocked — so the
+         *     profile page can show what's still to earn, not just a trophy case.
+         *     Unlocked achievements sort first (most recent unlock first); locked
+         *     ones follow in a stable alphabetical order.
+         */
         get: operations["get_my_achievements_users_me_achievements_get"];
         put?: never;
         post?: never;
@@ -592,11 +598,10 @@ export interface components {
             key: string;
             /** Icon */
             icon: string;
-            /**
-             * Unlocked At
-             * Format: date-time
-             */
-            unlocked_at: string;
+            /** Unlocked */
+            unlocked: boolean;
+            /** Unlocked At */
+            unlocked_at?: string | null;
         };
         /** BlockCreate */
         BlockCreate: {
@@ -916,6 +921,23 @@ export interface components {
             visibility_settings?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /**
+         * QuestCompleteOut
+         * @description Response for POST /quests/{id}/complete — wraps the quest plus
+         *     whatever gamification happened this call, so the client can show a
+         *     completion moment (XP, level-up, new achievements) instead of a flat
+         *     quest object. `xp_awarded`/`new_level`/`new_achievements` are all
+         *     zero/None/empty on an idempotent repeat call (already completed).
+         */
+        QuestCompleteOut: {
+            quest: components["schemas"]["QuestOut"];
+            /** Xp Awarded */
+            xp_awarded: number;
+            /** New Level */
+            new_level?: number | null;
+            /** New Achievements */
+            new_achievements?: components["schemas"]["AchievementOut"][];
         };
         /** QuestCreate */
         QuestCreate: {
@@ -1804,7 +1826,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QuestOut"];
+                    "application/json": components["schemas"]["QuestCompleteOut"];
                 };
             };
             /** @description Validation Error */

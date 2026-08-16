@@ -18,6 +18,7 @@ export type ObjectiveOut = Schemas["ObjectiveOut"];
 export type ParticipantOut = Schemas["ParticipantOut"];
 export type QuestOut = Schemas["QuestOut"];
 export type QuestSummaryOut = Schemas["QuestSummaryOut"];
+export type QuestCompleteOut = Schemas["QuestCompleteOut"];
 
 export type FriendOut = Schemas["FriendOut"];
 export type MessageOut = Schemas["MessageOut"];

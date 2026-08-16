@@ -82,6 +82,27 @@ cadence. Gamification (XP, achievements) rewards actions already worth
 doing — it doesn't manufacture urgency to keep someone in the app longer
 than the real-world activity itself warrants.
 
+**Phase 4 audit (2026-08-16):** the gamification polish pass (XP/level-up
+surfacing, the achievement engine, the profile achievement gallery and
+quest history — see docs/ROADMAP.md Phase 4) was checked against this
+constraint before shipping:
+
+- Achievement criteria (`app/services/achievement_service.py`) are all
+  based on *quests actually completed* — real-world activity that already
+  happened — never on login frequency, consecutive-day streaks, or time
+  spent in-app. There is no streak field anywhere in the schema.
+- Locked achievements are shown in the profile gallery (grayed out, icon +
+  name only) so progress is visible, but their unlock criteria are never
+  surfaced as a countdown, a "X away!" nudge, or any other urgency framing
+  — just present/absent.
+- The level-up and new-achievement moment is shown once, synchronously, in
+  the completion card the user is already looking at (no push
+  notification, no re-engagement prompt to come back and check).
+- `analytics_events` (see docs/DATABASE.md) exists to measure achievement
+  unlock rate and profile-stats engagement per the Phase 4 exit criteria —
+  it's an internal event log, not a growth/manipulation tool; nothing
+  reads it to trigger notifications or engagement loops today.
+
 ## Auth & API security
 
 - JWT-based auth (Supabase-issued, verified server-side on every protected

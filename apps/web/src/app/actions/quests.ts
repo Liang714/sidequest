@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { apiFetch, ApiError } from "@/lib/api-client";
-import type { QuestOut } from "@sidequest/types";
+import type { AchievementOut, QuestCompleteOut, QuestOut } from "@sidequest/types";
 
 export interface QuestActionResult {
   quest?: QuestOut;
@@ -28,9 +28,30 @@ export async function leaveQuestAction(questId: string): Promise<QuestActionResu
 export async function checkinQuestAction(questId: string): Promise<QuestActionResult> {
   return callQuestAction(`/quests/${questId}/checkin`);
 }
-export async function completeQuestAction(questId: string): Promise<QuestActionResult> {
-  return callQuestAction(`/quests/${questId}/complete`);
+
+export interface CompleteQuestActionResult {
+  quest?: QuestOut;
+  xpAwarded?: number;
+  newLevel?: number | null;
+  newAchievements?: AchievementOut[];
+  error?: string;
 }
+
+export async function completeQuestAction(questId: string): Promise<CompleteQuestActionResult> {
+  try {
+    const result = await apiFetch<QuestCompleteOut>(`/quests/${questId}/complete`, { method: "POST" });
+    revalidatePath("/", "layout");
+    return {
+      quest: result.quest,
+      xpAwarded: result.xp_awarded,
+      newLevel: result.new_level,
+      newAchievements: result.new_achievements,
+    };
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "Something went wrong." };
+  }
+}
+
 export async function completeObjectiveAction(
   questId: string,
   objectiveId: string,

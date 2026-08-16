@@ -10,7 +10,13 @@ import {
   completeObjectiveAction,
   completeQuestAction,
 } from "@/app/actions/quests";
-import type { MessageOut, QuestOut } from "@sidequest/types";
+import type { AchievementOut, MessageOut, QuestOut } from "@sidequest/types";
+
+interface CompletionResult {
+  xpAwarded: number;
+  newLevel: number | null;
+  newAchievements: AchievementOut[];
+}
 
 interface LiveMessage {
   id: string;
@@ -48,6 +54,7 @@ export function QuestRoomClient({
   const [draft, setDraft] = useState("");
   const [connected, setConnected] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [completionResult, setCompletionResult] = useState<CompletionResult | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -105,12 +112,54 @@ export function QuestRoomClient({
     });
   };
 
+  const handleCompleteQuest = () => {
+    setActionError(null);
+    startTransition(async () => {
+      const result = await completeQuestAction(quest.id);
+      if (result.error) {
+        setActionError(result.error);
+        return;
+      }
+      setCompletionResult({
+        xpAwarded: result.xpAwarded ?? 0,
+        newLevel: result.newLevel ?? null,
+        newAchievements: result.newAchievements ?? [],
+      });
+      router.refresh();
+    });
+  };
+
   if (alreadyCompleted) {
+    // completionResult only exists right after *this* client completed the
+    // quest in this session — a fresh visit to an already-archived room
+    // falls back to the quest's flat xp_reward, same as before this feature.
+    const xp = completionResult?.xpAwarded ?? quest.xp_reward;
     return (
-      <div className="flex flex-col items-center gap-3 rounded-card border border-line bg-surface p-8 text-center">
-        <span className="font-mono text-[32px] font-medium text-lime">
-          {t("quest.xpReward", { xp: quest.xp_reward })}
-        </span>
+      <div className="flex flex-col items-center gap-4 rounded-card border border-line bg-surface p-8 text-center">
+        <span className="font-mono text-[32px] font-medium text-lime">{t("quest.xpReward", { xp })}</span>
+        {completionResult?.newLevel != null && (
+          <p className="font-display text-[15px] font-semibold text-ink">
+            🎉 {t("questRoom.leveledUp", { level: completionResult.newLevel })}
+          </p>
+        )}
+        {completionResult && completionResult.newAchievements.length > 0 && (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+              {t("questRoom.newAchievements")}
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {completionResult.newAchievements.map((a) => (
+                <span
+                  key={a.key}
+                  className="inline-flex items-center gap-1.5 rounded-chip border border-lime/40 bg-lime-soft px-3 py-1.5 text-[13px] font-medium text-ink shadow-glow-lime"
+                >
+                  <span>{a.icon}</span>
+                  {t(a.key)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <p className="text-[13px] text-ink-muted">{t("questRoom.archived")}</p>
       </div>
     );
@@ -224,7 +273,7 @@ export function QuestRoomClient({
       <button
         type="button"
         disabled={!requiredDone || pending}
-        onClick={() => runAction(() => completeQuestAction(quest.id))}
+        onClick={handleCompleteQuest}
         className={clsx(
           "rounded-button py-3.5 font-display text-[14px] font-semibold transition-colors",
           requiredDone

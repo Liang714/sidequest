@@ -60,8 +60,27 @@ async def seed_reference_data():
     async with db_module.SessionLocal() as session:
         session.add(QuestCategory(key="category.photography", icon="📸", sort_order=0))
         session.add(QuestCategory(key="category.dance", icon="💃", sort_order=1))
+        session.add(QuestCategory(key="category.food", icon="🍜", sort_order=2))
         session.add(Interest(key="category.photography", category="photography"))
         session.add(Achievement(key="achievement.firstQuest", icon="🏆", criteria={"quests_completed": 1}))
+        session.add(
+            Achievement(
+                key="achievement.nightOwl", icon="🌙", criteria={"quest_started_after_hour": 21}
+            )
+        )
+        session.add(
+            Achievement(
+                key="achievement.photographer",
+                icon="📸",
+                criteria={"category": "photography", "quests_completed": 1},
+            )
+        )
+        session.add(
+            Achievement(
+                key="achievement.foodHunter", icon="🍜", criteria={"category": "food", "quests_completed": 1}
+            )
+        )
+        session.add(Achievement(key="achievement.explorer", icon="🗺️", criteria={"unique_locations": 5}))
         await session.commit()
 
 

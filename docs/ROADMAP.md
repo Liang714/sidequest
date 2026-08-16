@@ -37,13 +37,29 @@ personalized discovery — see [AI.md](AI.md).
 click-through beats the Phase 2 rule-based baseline), quest generation
 conversion (draft → published) is tracked as a KPI.
 
-## Phase 4 — Gamification
+## Phase 4 — Gamification *(done 2026-08-16)*
 
 **Scope:** XP, levels, achievements, statistics, quest history — polished
 presentation, not just the backend ledger from Phase 2.
 **Exit criteria:** achievement unlock rate and profile-stats engagement
 tracked; explicitly audited against the anti-manipulation constraints in
 [SECURITY.md](SECURITY.md) §Healthy engagement before shipping.
+
+Shipped: a generic achievement-unlock engine (all 5 seeded achievements,
+not just the Phase 2 firstQuest special-case) evaluated on quest
+completion; `POST /quests/{id}/complete` now surfaces the level-up/new-
+achievement moment directly in its response instead of the client having
+to infer it; the profile page gained a locked+unlocked achievement
+gallery and a quest history list; `analytics_events` (see
+[DATABASE.md](DATABASE.md)) logs `achievement_unlocked` and
+`profile_stats_viewed` as the local stand-in for the documented PostHog
+integration, satisfying the "tracked" half of the exit criteria without a
+real PostHog account. Audit note against the anti-manipulation
+constraints is in [SECURITY.md](SECURITY.md) §Healthy engagement. Verified
+with a real Playwright browser run against the live stack: XP, a level-up,
+and three newly-unlocked achievements all rendered correctly from a real
+`complete` response, and the profile page correctly showed 3/5 unlocked
+with the other two visibly locked.
 
 ## Phase 5 — Business
 
