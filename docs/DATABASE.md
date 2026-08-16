@@ -226,17 +226,25 @@ CREATE TABLE quest_photos (
 
 ## Business & creator
 
+Built in Phase 5 (docs/ROADMAP.md). `users` also gained a Phase-5 column
+not in the original Phase 0 ERD: `is_admin BOOLEAN NOT NULL DEFAULT false`
+— there's no admin signup flow; it's flipped via
+`uv run python -m app.make_admin <email>` (see services/api/README.md).
+It gates `POST /admin/businesses/{id}/verify` and `GET /admin/businesses`
+today (app/deps.py::CurrentAdmin).
+
 ```sql
 CREATE TABLE businesses (
     id                   UUID PRIMARY KEY,
     owner_user_id        UUID NOT NULL REFERENCES users(id),
     name                 TEXT NOT NULL,
     category             TEXT NOT NULL,
-    verification_status  verification_status NOT NULL DEFAULT 'pending',
+    verification_status  business_verification_status NOT NULL DEFAULT 'pending',
                          -- pending|verified|rejected
     location_id          UUID NOT NULL REFERENCES locations(id),
     description           TEXT,
-    created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE business_quests (
@@ -244,7 +252,7 @@ CREATE TABLE business_quests (
     business_id        UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
     quest_id           UUID NOT NULL UNIQUE REFERENCES quests(id) ON DELETE CASCADE,
     sponsorship_type   sponsorship_type NOT NULL, -- sponsored|discount|challenge
-    discount_details   JSONB
+    discount_details   JSONB   -- free-form: {"description": "..."} today, shown verbatim on the quest detail page
 );
 
 CREATE TABLE creators (

@@ -91,6 +91,7 @@
     "compatGroup": "Group fit",
     "meetingPoint": "Meeting Point",
     "createdBy": "Hosted by {name}",
+    "sponsoredBy": "Sponsored by {name}",
     "visibility": {
       "public": "Public",
       "friends": "Friends only",
@@ -208,5 +209,48 @@
     "save": "Save",
     "loading": "Loading…",
     "prototypeBadge": "Phase 1 prototype — mock data, no backend"
+  },
+  "business": {
+    "title": "Business Account",
+    "dashboardLink": "Business Dashboard",
+    "registerIntro": "Register your business to sponsor a quest — discounts, challenges, or plain sponsorship. An admin reviews new businesses before sponsorship goes live.",
+    "fieldName": "Business name",
+    "fieldNamePlaceholder": "ABC Dance Studio",
+    "fieldCategory": "Category",
+    "fieldCategoryPlaceholder": "Dance studio",
+    "fieldDescription": "Description",
+    "fieldDescriptionPlaceholder": "What does your business do?",
+    "register": "Register Business",
+    "pendingNotice": "Your business is awaiting verification. You'll be able to sponsor quests once an admin approves it.",
+    "rejectedNotice": "This business wasn't approved for sponsorship.",
+    "status": {
+      "pending": "Pending review",
+      "verified": "Verified",
+      "rejected": "Rejected"
+    },
+    "analyticsViews": "Views",
+    "analyticsJoins": "Joins",
+    "analyticsCompletions": "Completions",
+    "analyticsRedemptions": "Redemptions",
+    "createSponsoredQuest": "Create Sponsored Quest",
+    "sponsoredQuests": "Sponsored Quests",
+    "quickStats": "{views} views · {joins} joins · {completions} done",
+    "sponsorshipType": {
+      "sponsored": "Sponsored",
+      "discount": "Discount",
+      "challenge": "Challenge"
+    },
+    "fieldSponsorshipType": "Sponsorship type",
+    "fieldDiscountDetails": "Discount details",
+    "fieldDiscountDetailsPlaceholder": "e.g. 20% off, free first class",
+    "publishSponsoredQuest": "Publish Sponsored Quest",
+    "mustBeVerifiedNotice": "Your business needs to be verified before you can sponsor a quest."
+  },
+  "admin": {
+    "pendingBusinesses": "Pending Businesses",
+    "pendingBusinessesSubline": "Verify a business before it can sponsor quests.",
+    "noPendingBusinesses": "No businesses waiting for review.",
+    "verify": "Verify",
+    "reject": "Reject"
   }
 }

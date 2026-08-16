@@ -32,6 +32,10 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     password_hash: Mapped[str]
     locale: Mapped[str] = mapped_column(default="en")
     status: Mapped[UserStatus] = mapped_column(default=UserStatus.active)
+    # No admin signup flow, on purpose — flipped via `uv run python -m
+    # app.make_admin <email>` (see that script's docstring). Gates
+    # app/deps.py::CurrentAdmin, used by business verification today.
+    is_admin: Mapped[bool] = mapped_column(default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(default=None)
 
     profile: Mapped["Profile"] = relationship(back_populates="user", uselist=False)

@@ -57,7 +57,7 @@ generated schema is the contract `packages/types` is built from.
 |---|---|---|
 | GET | `/quests` | Filterable: `category, distance_km, budget_max, group_size, difficulty, indoor_outdoor` |
 | POST | `/quests` | Create; `status` starts `draft` or `open` |
-| GET | `/quests/{id}` | Full detail incl. objectives, participant count |
+| GET | `/quests/{id}` | Full detail incl. objectives, participant count, `sponsor` if it's a business-sponsored quest (Phase 5). Logs a `quest_viewed` analytics event — see §Businesses below |
 | PATCH | `/quests/{id}` | Creator/admin only |
 | DELETE | `/quests/{id}` | Soft delete; creator/admin only |
 | GET | `/quests/nearby` | `?lat&lng&radius_km` — bounding-box + haversine today, not PostGIS (see docs/DATABASE.md and docs/DEPLOYMENT.md §Local dev without Docker for why) |
@@ -100,13 +100,27 @@ Message frames (JSON):
 | GET | `/quests/{id}/compatibility?lat?&lng?` | Score (0–100) + breakdown — conventional algorithm, not LLM. See docs/AI.md §Implementation status for what the formula actually weighs today. |
 | GET | `/quests/recommended?lat?&lng?&limit?` | "For You" — open quests ranked by the same compatibility score |
 
-## Businesses *(Phase 5)*
+## Businesses
 
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/businesses` | Registration, starts `verification_status=pending` |
-| POST | `/businesses/{id}/quests` | Create sponsored/discount/challenge quest |
-| GET | `/businesses/{id}/analytics` | Views, joins, completions, redemptions |
+| GET | `/businesses/mine` | Businesses the current user owns |
+| GET | `/businesses/{id}` | Public view |
+| POST | `/businesses/{id}/quests` | Create a sponsored/discount/challenge quest — 403 unless the caller owns the business *and* it's `verified` (see docs/SECURITY.md's Phase 4 audit note for the general anti-manipulation stance; verification itself is the anti-spam gate here) |
+| GET | `/businesses/{id}/quests` | Owner/admin only — every quest this business has sponsored |
+| GET | `/businesses/{id}/analytics` | Owner/admin only. Views, joins, completions, redemptions — see app/services/business_service.py for exactly what each counts (views = `quest_viewed` analytics events; redemptions = completions on `discount`-type quests only, a documented simplification, not a real in-person redemption flow) |
+| GET | `/admin/businesses?status=` | Admin-only. Defaults to the `pending` moderation queue |
+| POST | `/admin/businesses/{id}/verify` | Admin-only. `{ action: "verify" \| "reject" }` |
+
+Quests created this way carry a `sponsor` object (business name, sponsorship
+type, discount details) in `GET /quests/{id}`'s response — see
+`QuestOut.sponsor` in `app/schemas/quests.py`. Discovery list endpoints
+(`GET /quests`, `/quests/nearby`, `/quests/mine`) don't include it; the
+sponsor badge is a detail-page/quest-room concern only.
+
+There's no admin signup flow — `is_admin` is set via
+`uv run python -m app.make_admin <email>` (services/api/README.md).
 
 ## Marketplace *(Phase 6)*
 

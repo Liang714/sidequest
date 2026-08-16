@@ -70,6 +70,7 @@ async def get_me(current_user: CurrentUser, db: DbSession) -> MeOut:
         email=current_user.email,
         username=current_user.username,
         locale=current_user.locale,
+        is_admin=current_user.is_admin,
         display_name=profile.display_name,
         real_name=profile.real_name,
         bio=profile.bio,

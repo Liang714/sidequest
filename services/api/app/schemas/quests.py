@@ -1,9 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.models.business import SponsorshipType
 from app.models.quests import (
     ParticipantStatus,
     QuestDifficulty,
@@ -76,6 +78,19 @@ class ParticipantOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SponsorInfoOut(BaseModel):
+    """Present only on quests created via POST /businesses/{id}/quests
+    (Phase 5) — see app/routers/business.py. Populated in QuestOut only
+    (not QuestSummaryOut/discovery list cards) since that's where "why is
+    this quest special" actually matters; discovery listings stay
+    unchanged."""
+
+    business_id: UUID
+    business_name: str
+    sponsorship_type: SponsorshipType
+    discount_details: dict[str, Any] | None = None
+
+
 class QuestOut(BaseModel):
     id: UUID
     creator_id: UUID
@@ -95,6 +110,7 @@ class QuestOut(BaseModel):
     joined_count: int
     objectives: list[ObjectiveOut]
     participants: list[ParticipantOut]
+    sponsor: SponsorInfoOut | None = None
     distance_km: float | None = None
 
 

@@ -15,17 +15,20 @@ app/
 ├── config.py             # Settings (pydantic-settings, reads .env)
 ├── db.py                   # async engine/session, Base, UUIDv7 PKs, timestamp mixin
 ├── security.py               # Argon2id password hashing, JWT issue/verify
-├── deps.py                     # get_db, get_current_user, get_valkey, rate_limit
+├── deps.py                     # get_db, get_current_user, get_current_admin, get_valkey, rate_limit
 ├── storage.py                    # StorageProvider abstraction (local disk for now — see below)
 ├── seed.py                         # reference data: categories, interests, achievements
-├── ai/                               # AIService, provider interface, Ollama/Anthropic adapters, prompt/parsing
-├── models/                            # SQLAlchemy models, one module per domain
-├── schemas/                            # Pydantic request/response shapes
-├── services/                            # xp_service (level curve, XP ledger), quest_service (nearby search),
-│                                          compatibility_service (interest/proximity/fill-ratio scoring)
-└── routers/                              # one module per API resource — auth, users, quests,
-                                            friends, chat (incl. WebSocket), notifications,
-                                            gamification, moderation, ai
+├── make_admin.py                     # CLI: grant is_admin to a user by email (no signup flow for it)
+├── ai/                                 # AIService, provider interface, Ollama/Anthropic adapters, prompt/parsing
+├── models/                              # SQLAlchemy models, one module per domain
+├── schemas/                              # Pydantic request/response shapes
+├── services/                              # xp_service (level curve, XP ledger), quest_service (nearby search),
+│                                            compatibility_service (interest/proximity/fill-ratio scoring),
+│                                            achievement_service (unlock engine), analytics_service (event log),
+│                                            business_service (sponsored-quest analytics)
+└── routers/                                # one module per API resource — auth, users, quests,
+                                              friends, chat (incl. WebSocket), notifications,
+                                              gamification, moderation, ai, business
 ```
 
 ## Local setup
@@ -43,9 +46,19 @@ uv run uvicorn app.main:app --reload   # docs at /api/v1/docs
 ## Testing
 
 ```bash
-uv run pytest              # 36 tests against a real Postgres (sidequest_test db)
+uv run pytest              # 54 tests against a real Postgres (sidequest_test db)
 uv run ruff check .
 uv run mypy app             # strict mode
+```
+
+## Admin access
+
+There's no admin signup flow, on purpose (`app/deps.py::CurrentAdmin` gates
+`GET /admin/businesses` and `POST /admin/businesses/{id}/verify` — the
+Phase 5 business-verification queue). Grant it to an existing user:
+
+```bash
+uv run python -m app.make_admin someone@example.com
 ```
 
 AI generation tests use a `FakeProvider` via `app.dependency_overrides` —

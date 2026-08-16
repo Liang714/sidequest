@@ -75,6 +75,15 @@ export default async function QuestDetailPage({
           {t("quest.createdBy", { name: creator.username })}
         </p>
       )}
+      {quest.sponsor && (
+        <div className="mt-2 inline-flex flex-wrap items-center gap-1.5 rounded-chip border border-violet/40 bg-violet-soft px-3 py-1.5 text-[12px] font-medium text-violet">
+          <span>🏢 {t("quest.sponsoredBy", { name: quest.sponsor.business_name })}</span>
+          {quest.sponsor.sponsorship_type === "discount" &&
+            typeof quest.sponsor.discount_details?.description === "string" && (
+              <span className="text-ink-muted">· {quest.sponsor.discount_details.description}</span>
+            )}
+        </div>
+      )}
       <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">{quest.description}</p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 text-[13px]">

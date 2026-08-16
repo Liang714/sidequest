@@ -4,19 +4,19 @@
 that turns free time into real-world experiences with other people: discover a
 spontaneous activity, form a temporary group, do it, and level up.
 
-> **Status: Phase 4 (Gamification) done.** Phase 0 (product foundation),
-> Phase 1 (clickable prototype), Phase 2 (MVP — auth, quests, friends,
-> quest rooms over WebSocket, gamification, `apps/web` wired to the real
-> API end to end), Phase 3 (AI quest generation, compatibility scoring,
-> content-based "For You" recommendations), and Phase 4 (a real achievement
-> engine covering all seeded achievements, level-up/new-achievement
-> moments surfaced on quest completion, a locked/unlocked achievement
-> gallery + quest history on the profile page, and local engagement-event
-> logging) are all complete. AI runs on a local Ollama model by default —
-> free, no API key — swappable to Claude via one env var (see
-> [docs/AI.md](docs/AI.md)). Verified with real browser runs through the
-> actual UI against the actual backend, not just API-level tests. See
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status: Phase 5 (Business) done.** Phase 0 (product foundation), Phase 1
+> (clickable prototype), Phase 2 (MVP — auth, quests, friends, quest rooms
+> over WebSocket, gamification, `apps/web` wired to the real API end to
+> end), Phase 3 (AI quest generation, compatibility scoring, content-based
+> "For You" recommendations), Phase 4 (a real achievement engine, level-up/
+> new-achievement moments, a locked/unlocked achievement gallery + quest
+> history on the profile page, local engagement-event logging), and Phase 5
+> (business accounts with an admin verification gate, sponsored/discount
+> quests, and a business analytics dashboard) are all complete. AI runs on
+> a local Ollama model by default — free, no API key — swappable to Claude
+> via one env var (see [docs/AI.md](docs/AI.md)). Verified with real
+> browser runs through the actual UI against the actual backend, not just
+> API-level tests. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Start here
 

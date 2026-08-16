@@ -125,6 +125,23 @@ export default async function ProfilePage() {
           </div>
         </div>
       )}
+
+      <div className="mt-6 flex flex-col gap-2">
+        <Link
+          href="/business"
+          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
+        >
+          🏢 {t("business.dashboardLink")}
+        </Link>
+        {session.is_admin && (
+          <Link
+            href="/admin/businesses"
+            className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
+          >
+            🛡️ {t("admin.pendingBusinesses")}
+          </Link>
+        )}
+      </div>
     </AppShell>
   );
 }

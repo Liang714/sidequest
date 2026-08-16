@@ -33,3 +33,11 @@ export type QuestVisibility = QuestOut["visibility"];
 export type CompatibilityOut = Schemas["CompatibilityOut"];
 export type CompatibilityBreakdownOut = Schemas["CompatibilityBreakdownOut"];
 export type GeneratedQuestOut = Schemas["GeneratedQuestOut"];
+
+export type SponsorInfoOut = Schemas["SponsorInfoOut"];
+export type BusinessOut = Schemas["BusinessOut"];
+export type SponsoredQuestOut = Schemas["SponsoredQuestOut"];
+export type BusinessAnalyticsOut = Schemas["BusinessAnalyticsOut"];
+export type QuestAnalyticsOut = Schemas["QuestAnalyticsOut"];
+export type BusinessVerificationStatus = BusinessOut["verification_status"];
+export type SponsorshipType = SponsorInfoOut["sponsorship_type"];

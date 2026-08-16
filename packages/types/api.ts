@@ -571,6 +571,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Business */
+        post: operations["create_business_businesses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/businesses/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Businesses */
+        get: operations["my_businesses_businesses_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/businesses/{business_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Business */
+        get: operations["get_business_businesses__business_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/businesses/{business_id}/quests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sponsored Quests */
+        get: operations["list_sponsored_quests_businesses__business_id__quests_get"];
+        put?: never;
+        /** Create Sponsored Quest */
+        post: operations["create_sponsored_quest_businesses__business_id__quests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/businesses/{business_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business Analytics */
+        get: operations["business_analytics_businesses__business_id__analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin List Businesses
+         * @description Defaults to the pending queue (the actual moderation work) —
+         *     pass ?status=verified or ?status=rejected to see the rest.
+         */
+        get: operations["admin_list_businesses_admin_businesses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/businesses/{business_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Verify Business */
+        post: operations["admin_verify_business_admin_businesses__business_id__verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -610,6 +734,70 @@ export interface components {
              * Format: uuid
              */
             blocked_id: string;
+        };
+        /** BusinessAnalyticsOut */
+        BusinessAnalyticsOut: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /** Total Views */
+            total_views: number;
+            /** Total Joins */
+            total_joins: number;
+            /** Total Completions */
+            total_completions: number;
+            /** Total Redemptions */
+            total_redemptions: number;
+            /** Quests */
+            quests: components["schemas"]["QuestAnalyticsOut"][];
+        };
+        /** BusinessCreate */
+        BusinessCreate: {
+            /** Name */
+            name: string;
+            /** Category */
+            category: string;
+            location: components["schemas"]["LocationIn"];
+            /** Description */
+            description?: string | null;
+        };
+        /** BusinessOut */
+        BusinessOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Owner User Id
+             * Format: uuid
+             */
+            owner_user_id: string;
+            /** Name */
+            name: string;
+            /** Category */
+            category: string;
+            verification_status: components["schemas"]["BusinessVerificationStatus"];
+            location: components["schemas"]["LocationOut"];
+            /** Description */
+            description: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * BusinessVerificationStatus
+         * @enum {string}
+         */
+        BusinessVerificationStatus: "pending" | "verified" | "rejected";
+        /** BusinessVerifyAction */
+        BusinessVerifyAction: {
+            /** Action */
+            action: string;
         };
         /** CompatibilityBreakdownOut */
         CompatibilityBreakdownOut: {
@@ -786,6 +974,11 @@ export interface components {
             email: string;
             /** Locale */
             locale: string;
+            /**
+             * Is Admin
+             * @default false
+             */
+            is_admin: boolean;
         };
         /** MessageOut */
         MessageOut: {
@@ -922,6 +1115,24 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** QuestAnalyticsOut */
+        QuestAnalyticsOut: {
+            /**
+             * Quest Id
+             * Format: uuid
+             */
+            quest_id: string;
+            /** Title */
+            title: string;
+            /** Views */
+            views: number;
+            /** Joins */
+            joins: number;
+            /** Completions */
+            completions: number;
+            /** Redemptions */
+            redemptions: number;
+        };
         /**
          * QuestCompleteOut
          * @description Response for POST /quests/{id}/complete — wraps the quest plus
@@ -1020,6 +1231,7 @@ export interface components {
             objectives: components["schemas"]["ObjectiveOut"][];
             /** Participants */
             participants: components["schemas"]["ParticipantOut"][];
+            sponsor?: components["schemas"]["SponsorInfoOut"] | null;
             /** Distance Km */
             distance_km?: number | null;
         };
@@ -1114,6 +1326,61 @@ export interface components {
             /** Interest Ids */
             interest_ids: string[];
         };
+        /**
+         * SponsorInfoOut
+         * @description Present only on quests created via POST /businesses/{id}/quests
+         *     (Phase 5) — see app/routers/business.py. Populated in QuestOut only
+         *     (not QuestSummaryOut/discovery list cards) since that's where "why is
+         *     this quest special" actually matters; discovery listings stay
+         *     unchanged.
+         */
+        SponsorInfoOut: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /** Business Name */
+            business_name: string;
+            sponsorship_type: components["schemas"]["SponsorshipType"];
+            /** Discount Details */
+            discount_details?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** SponsoredQuestCreate */
+        SponsoredQuestCreate: {
+            quest: components["schemas"]["QuestCreate"];
+            sponsorship_type: components["schemas"]["SponsorshipType"];
+            /** Discount Details */
+            discount_details?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** SponsoredQuestOut */
+        SponsoredQuestOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            quest: components["schemas"]["QuestOut"];
+            sponsorship_type: components["schemas"]["SponsorshipType"];
+            /** Discount Details */
+            discount_details: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * SponsorshipType
+         * @enum {string}
+         */
+        SponsorshipType: "sponsored" | "discount" | "challenge";
         /** TokenPair */
         TokenPair: {
             /** Access Token */
@@ -2198,6 +2465,253 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeneratedQuestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_business_businesses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_businesses_businesses_mine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessOut"][];
+                };
+            };
+        };
+    };
+    get_business_businesses__business_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sponsored_quests_businesses__business_id__quests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsoredQuestOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_sponsored_quest_businesses__business_id__quests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SponsoredQuestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsoredQuestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    business_analytics_businesses__business_id__analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessAnalyticsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_businesses_admin_businesses_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["BusinessVerificationStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_verify_business_admin_businesses__business_id__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessVerifyAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessOut"];
                 };
             };
             /** @description Validation Error */

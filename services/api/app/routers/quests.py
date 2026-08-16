@@ -7,6 +7,7 @@ from sqlalchemy import select, tuple_
 from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbSession
+from app.models.business import Business, BusinessQuest
 from app.models.identity import Interest, Profile, User, UserInterest
 from app.models.quests import (
     Location,
@@ -31,8 +32,9 @@ from app.schemas.quests import (
     QuestOut,
     QuestSummaryOut,
     QuestUpdate,
+    SponsorInfoOut,
 )
-from app.services import quest_service
+from app.services import analytics_service, quest_service
 from app.services.achievement_service import evaluate_and_unlock_achievements
 from app.services.compatibility_service import compute_compatibility
 from app.services.xp_service import award_xp
@@ -71,6 +73,23 @@ async def _participant_usernames(db: DbSession, quest: Quest) -> list[Participan
         for p in quest.participants
         if p.user_id in users
     ]
+
+
+async def _sponsor_info(db: DbSession, quest_id: UUID) -> SponsorInfoOut | None:
+    """Populated only for quests created via POST /businesses/{id}/quests
+    (Phase 5) — see app/routers/business.py and SponsorInfoOut's docstring."""
+    bq = await db.scalar(select(BusinessQuest).where(BusinessQuest.quest_id == quest_id))
+    if bq is None:
+        return None
+    business = await db.get(Business, bq.business_id)
+    if business is None:
+        return None
+    return SponsorInfoOut(
+        business_id=business.id,
+        business_name=business.name,
+        sponsorship_type=bq.sponsorship_type,
+        discount_details=bq.discount_details,
+    )
 
 
 async def _to_quest_out(db: DbSession, quest: Quest, *, current_user_id: UUID | None = None) -> QuestOut:
@@ -113,6 +132,7 @@ async def _to_quest_out(db: DbSession, quest: Quest, *, current_user_id: UUID | 
             for o in quest.objectives
         ],
         participants=await _participant_usernames(db, quest),
+        sponsor=await _sponsor_info(db, quest.id),
     )
 
 
@@ -373,6 +393,12 @@ async def recommended_quests(
 @router.get("/{quest_id}", response_model=QuestOut)
 async def get_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession) -> QuestOut:
     quest = await _get_quest_or_404(db, quest_id)
+    # The "views" half of business analytics (app/services/business_service.py)
+    # reads this — logged here specifically (not inside _to_quest_out, which
+    # every mutation handler also calls internally to build its response)
+    # so it only counts an actual detail-page open, not every post-mutation refetch.
+    analytics_service.log_event(db, event_type="quest_viewed", user_id=current_user.id, payload={"quest_id": str(quest_id)})
+    await db.commit()
     return await _to_quest_out(db, quest, current_user_id=current_user.id)
 
 

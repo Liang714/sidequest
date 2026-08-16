@@ -61,12 +61,32 @@ and three newly-unlocked achievements all rendered correctly from a real
 `complete` response, and the profile page correctly showed 3/5 unlocked
 with the other two visibly locked.
 
-## Phase 5 — Business
+## Phase 5 — Business *(done 2026-08-16)*
 
 **Scope:** business accounts, verification, sponsored quests, discounts,
 business analytics.
 **Exit criteria:** one real local business runs a sponsored quest end to
 end and receives a usable analytics report.
+
+Shipped: business registration (`POST /businesses`, starts `pending`), an
+admin verification gate (`app/deps.py::CurrentAdmin` — no signup flow,
+granted via `uv run python -m app.make_admin <email>`) that
+`POST /businesses/{id}/quests` enforces before sponsorship goes live,
+sponsored/discount/challenge quest creation that behaves exactly like a
+normal quest (joinable, completable, shows up in discovery) plus carries
+a `sponsor` badge on its detail page, and `GET /businesses/{id}/analytics`
+(views via the Phase 4 `analytics_events` table, joins/completions from
+existing quest tables, redemptions defined as completions on
+discount-type quests — a documented simplification, see
+app/services/business_service.py). 8 new backend tests (54/54 total),
+ruff/mypy/tsc/eslint/next-build all clean. Verified with a real end-to-end
+Playwright run through the actual UI, not API calls standing in for it: a
+business owner registered "ABC Dance Studio" through the real form, an
+admin verified it through a real (admin-gated) queue page, the owner
+published a real sponsored discount quest through the real form, a third
+user viewed/joined/completed it through the real quest room, and the
+owner's dashboard showed the exact resulting analytics (1 join, 1
+completion, 1 redemption) — zero console errors across the whole chain.
 
 ## Phase 6 — Monetization
 

@@ -91,6 +91,7 @@
     "compatGroup": "그룹 성향",
     "meetingPoint": "만나는 장소",
     "createdBy": "{name} 님이 주최",
+    "sponsoredBy": "{name} 후원",
     "visibility": {
       "public": "공개",
       "friends": "친구 공개",
@@ -208,5 +209,48 @@
     "save": "저장",
     "loading": "불러오는 중…",
     "prototypeBadge": "Phase 1 프로토타입 — 목업 데이터, 백엔드 없음"
+  },
+  "business": {
+    "title": "비즈니스 계정",
+    "dashboardLink": "비즈니스 대시보드",
+    "registerIntro": "비즈니스를 등록하면 퀘스트를 후원할 수 있어요 — 할인, 챌린지, 또는 일반 후원. 후원이 시작되려면 관리자의 검토가 필요해요.",
+    "fieldName": "비즈니스 이름",
+    "fieldNamePlaceholder": "ABC 댄스 스튜디오",
+    "fieldCategory": "카테고리",
+    "fieldCategoryPlaceholder": "댄스 스튜디오",
+    "fieldDescription": "소개",
+    "fieldDescriptionPlaceholder": "어떤 비즈니스인가요?",
+    "register": "비즈니스 등록",
+    "pendingNotice": "비즈니스 검토가 진행 중이에요. 관리자가 승인하면 퀘스트를 후원할 수 있어요.",
+    "rejectedNotice": "이 비즈니스는 후원 승인을 받지 못했어요.",
+    "status": {
+      "pending": "검토 중",
+      "verified": "인증됨",
+      "rejected": "거절됨"
+    },
+    "analyticsViews": "조회수",
+    "analyticsJoins": "참여",
+    "analyticsCompletions": "완료",
+    "analyticsRedemptions": "혜택 사용",
+    "createSponsoredQuest": "후원 퀘스트 만들기",
+    "sponsoredQuests": "후원 퀘스트",
+    "quickStats": "조회 {views} · 참여 {joins} · 완료 {completions}",
+    "sponsorshipType": {
+      "sponsored": "후원",
+      "discount": "할인",
+      "challenge": "챌린지"
+    },
+    "fieldSponsorshipType": "후원 유형",
+    "fieldDiscountDetails": "할인 내용",
+    "fieldDiscountDetailsPlaceholder": "예: 20% 할인, 첫 수업 무료",
+    "publishSponsoredQuest": "후원 퀘스트 게시",
+    "mustBeVerifiedNotice": "퀘스트를 후원하려면 먼저 비즈니스 인증이 필요해요."
+  },
+  "admin": {
+    "pendingBusinesses": "검토 대기 중인 비즈니스",
+    "pendingBusinessesSubline": "비즈니스를 인증해야 퀘스트를 후원할 수 있어요.",
+    "noPendingBusinesses": "검토 대기 중인 비즈니스가 없어요.",
+    "verify": "인증",
+    "reject": "거절"
   }
 }

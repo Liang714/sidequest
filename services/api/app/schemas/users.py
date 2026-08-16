@@ -21,6 +21,7 @@ class ProfileOut(BaseModel):
 class MeOut(ProfileOut):
     email: str
     locale: str
+    is_admin: bool = False
 
 
 class ProfileUpdate(BaseModel):

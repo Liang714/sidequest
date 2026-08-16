@@ -51,6 +51,18 @@ async def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
+async def get_current_admin(current_user: CurrentUser) -> User:
+    """Gate for the small `/admin/*` surface (business verification today —
+    see app/routers/business.py). There's no admin signup flow; the flag is
+    set via `uv run python -m app.make_admin <email>`."""
+    if not current_user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
+    return current_user
+
+
+CurrentAdmin = Annotated[User, Depends(get_current_admin)]
+
+
 async def rate_limit(request: Request, key_suffix: str, limit_per_minute: int) -> None:
     """Fixed-window limiter keyed by user (if authenticated) or client IP.
 
