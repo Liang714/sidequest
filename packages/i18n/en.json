@@ -11,6 +11,23 @@
     "profile": "Profile",
     "map": "Map"
   },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSub": "Log in to pick up where you left off.",
+    "registerTitle": "Create your account",
+    "registerSub": "Takes a minute. Real name is never required.",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "displayName": "Display name",
+    "logIn": "Log in",
+    "signUp": "Create account",
+    "noAccount": "New here?",
+    "haveAccount": "Already have an account?",
+    "createOne": "Create an account",
+    "logInInstead": "Log in instead",
+    "logOut": "Log out"
+  },
   "onboarding": {
     "step1Title": "What are you into?",
     "step1Sub": "Pick a few — you can change these anytime.",
@@ -25,6 +42,8 @@
     "step4Sub": "SIDEQUEST uses your approximate area to show nearby quests. We never share your exact location with other users — see how in Privacy.",
     "step4Allow": "Allow location",
     "step4Skip": "Not now",
+    "locationSaved": "Location saved",
+    "locationDenied": "Couldn't get your location — you can still browse with a default city view.",
     "back": "Back",
     "next": "Next",
     "finish": "Let's go",
@@ -40,7 +59,7 @@
   "home": {
     "greeting": "Friday night.",
     "greetingAccent": "What's your sidequest?",
-    "subline": "{count} quests near you, starting soon",
+    "subline": "{count, plural, =0 {No quests near you yet} one {# quest near you, starting soon} other {# quests near you, starting soon}}",
     "sectionNow": "Now",
     "sectionNowDesc": "Starting soon",
     "sectionNear": "Near You",
@@ -51,6 +70,7 @@
     "seeAll": "See all",
     "filters": "Filters",
     "emptyFriends": "No friend activity right now — invite someone to a quest.",
+    "emptyNearby": "No quests near you yet — be the first.",
     "friendJoined": "{names} joined <link>{quest}</link>"
   },
   "quest": {
@@ -100,12 +120,14 @@
     "fieldVisibility": "Who can see this?",
     "fieldDifficulty": "Difficulty",
     "budgetFree": "Free",
+    "addObjective": "Add objective",
     "publish": "Publish Quest",
     "publishHint": "This is a Phase 1 prototype — publishing shows you the quest detail screen with what you entered, nothing is saved."
   },
   "questRoom": {
     "title": "Quest Room",
     "chatPlaceholder": "Message the group…",
+    "reconnecting": "Reconnecting to the room…",
     "send": "Send",
     "checkIn": "Check In",
     "checkedIn": "Checked in",

@@ -15,7 +15,7 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   title: "SIDEQUEST — What's your sidequest?",
   description:
-    "Discover a spontaneous real-world activity, form a temporary group, and level up. Phase 1 clickable prototype.",
+    "Discover a spontaneous real-world activity, form a temporary group, and level up.",
 };
 
 export default async function LocaleLayout({

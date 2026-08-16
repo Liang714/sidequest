@@ -92,9 +92,9 @@ class QuestOut(BaseModel):
     visibility: QuestVisibility
     xp_reward: int
     joined_count: int
+    objectives: list[ObjectiveOut]
+    participants: list[ParticipantOut]
     distance_km: float | None = None
-    objectives: list[ObjectiveOut] = Field(default_factory=list)
-    participants: list[ParticipantOut] = Field(default_factory=list)
 
 
 class QuestSummaryOut(BaseModel):

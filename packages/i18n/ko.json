@@ -11,6 +11,23 @@
     "profile": "프로필",
     "map": "지도"
   },
+  "auth": {
+    "loginTitle": "다시 오셨네요",
+    "loginSub": "로그인하고 이어서 시작하세요.",
+    "registerTitle": "계정 만들기",
+    "registerSub": "1분이면 충분해요. 실명은 필요 없어요.",
+    "email": "이메일",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "displayName": "표시 이름",
+    "logIn": "로그인",
+    "signUp": "계정 만들기",
+    "noAccount": "처음이신가요?",
+    "haveAccount": "이미 계정이 있으신가요?",
+    "createOne": "계정 만들기",
+    "logInInstead": "로그인하기",
+    "logOut": "로그아웃"
+  },
   "onboarding": {
     "step1Title": "관심사가 뭐예요?",
     "step1Sub": "몇 개 골라보세요 — 나중에 언제든 바꿀 수 있어요.",
@@ -25,6 +42,8 @@
     "step4Sub": "대략적인 위치로 근처 퀘스트를 보여드려요. 정확한 위치는 다른 사용자에게 절대 공유되지 않아요 — 자세한 내용은 개인정보 설정에서 확인하세요.",
     "step4Allow": "위치 허용",
     "step4Skip": "나중에",
+    "locationSaved": "위치가 저장됐어요",
+    "locationDenied": "위치를 가져오지 못했어요 — 기본 도시 보기로도 둘러볼 수 있어요.",
     "back": "뒤로",
     "next": "다음",
     "finish": "시작하기",
@@ -51,6 +70,7 @@
     "seeAll": "전체 보기",
     "filters": "필터",
     "emptyFriends": "아직 친구 활동이 없어요 — 퀘스트에 친구를 초대해보세요.",
+    "emptyNearby": "아직 근처에 퀘스트가 없어요 — 첫 퀘스트를 만들어보세요.",
     "friendJoined": "{names}님이 <link>{quest}</link>에 참가했어요"
   },
   "quest": {
@@ -100,12 +120,14 @@
     "fieldVisibility": "누구에게 보여줄까요?",
     "fieldDifficulty": "난이도",
     "budgetFree": "무료",
+    "addObjective": "목표 추가",
     "publish": "퀘스트 게시",
     "publishHint": "지금은 Phase 1 프로토타입이에요 — 게시하면 입력한 내용으로 상세 화면을 보여줄 뿐, 실제로 저장되지는 않아요."
   },
   "questRoom": {
     "title": "퀘스트 룸",
     "chatPlaceholder": "그룹에게 메시지 보내기…",
+    "reconnecting": "룸에 다시 연결하는 중…",
     "send": "보내기",
     "checkIn": "체크인",
     "checkedIn": "체크인 완료",

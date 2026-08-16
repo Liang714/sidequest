@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/app-shell";
 import { CreateQuestForm } from "@/components/create-quest-form";
+import { requireSession } from "@/lib/auth";
 
 export default async function CreateQuestPage() {
+  await requireSession();
   const t = await getTranslations();
 
   return (

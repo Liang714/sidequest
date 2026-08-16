@@ -137,3 +137,33 @@ async def test_unknown_category_rejected(client, seed_reference_data):
         "/quests", json=_quest_payload(category_key="category.does-not-exist"), headers=auth_headers(erh)
     )
     assert resp.status_code == 400
+
+
+async def test_my_quests_includes_created_and_joined_but_not_left(client, seed_reference_data):
+    erh = await register(client, email="erh7@example.com", username="erh7")
+    alex = await register(client, email="alex7@example.com", username="alex7")
+
+    created = await client.post("/quests", json=_quest_payload(max_participants=4), headers=auth_headers(erh))
+    created_id = created.json()["id"]
+
+    joined = await client.post(
+        "/quests", json=_quest_payload(title="Joined Quest", max_participants=4), headers=auth_headers(erh)
+    )
+    joined_id = joined.json()["id"]
+    await client.post(f"/quests/{joined_id}/join", headers=auth_headers(alex))
+
+    left = await client.post(
+        "/quests", json=_quest_payload(title="Left Quest", max_participants=4), headers=auth_headers(erh)
+    )
+    left_id = left.json()["id"]
+    await client.post(f"/quests/{left_id}/join", headers=auth_headers(alex))
+    await client.post(f"/quests/{left_id}/leave", headers=auth_headers(alex))
+
+    mine = (await client.get("/quests/mine", headers=auth_headers(alex))).json()
+    mine_ids = {q["id"] for q in mine}
+    assert joined_id in mine_ids
+    assert left_id not in mine_ids
+    assert created_id not in mine_ids  # alex didn't create or join this one
+
+    erh_mine = {q["id"] for q in (await client.get("/quests/mine", headers=auth_headers(erh))).json()}
+    assert {created_id, joined_id, left_id} <= erh_mine  # erh created all three

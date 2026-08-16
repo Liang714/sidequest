@@ -1,18 +1,23 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import type { Quest } from "@/lib/types";
 import { categoryEmoji, difficultyStars } from "@/lib/types";
+import { categoryShortKey, formatBudget, formatStartLabel, gradientForCategory } from "@/lib/format";
+import type { QuestSummaryOut } from "@sidequest/types";
 import clsx from "clsx";
 
 export async function QuestCard({
   quest,
   variant = "grid",
 }: {
-  quest: Quest;
+  quest: QuestSummaryOut;
   variant?: "grid" | "row";
 }) {
   const t = await getTranslations();
+  const locale = await getLocale();
+  const category = categoryShortKey(quest.category_key);
   const stars = "★".repeat(difficultyStars[quest.difficulty]);
+  const startLabel = formatStartLabel(quest.start_time, locale, (mins) => t("quest.startsIn", { minutes: mins }));
+  const budgetLabel = formatBudget(quest.budget_amount, quest.currency, t("createQuest.budgetFree"));
 
   return (
     <Link
@@ -27,10 +32,10 @@ export async function QuestCard({
           "relative flex items-start justify-between p-3",
           variant === "grid" ? "h-28" : "h-auto w-24 flex-none items-center justify-center",
         )}
-        style={{ background: quest.gradient }}
+        style={{ background: gradientForCategory(quest.category_key) }}
       >
         <span className={clsx(variant === "grid" ? "text-2xl" : "text-xl")}>
-          {categoryEmoji[quest.category]}
+          {categoryEmoji[category] ?? "✨"}
         </span>
         {variant === "grid" && (
           <span className="rounded-chip bg-black/35 px-2 py-1 font-mono text-[11px] text-white backdrop-blur-sm">
@@ -39,11 +44,6 @@ export async function QuestCard({
         )}
       </div>
       <div className={clsx("flex flex-1 flex-col p-4", variant === "row" && "gap-1 p-3")}>
-        {quest.sponsored && (
-          <span className="mb-1 w-fit rounded-chip bg-violet-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-violet">
-            {t("home.sectionSponsored")}
-          </span>
-        )}
         <div className="font-display text-[15px] font-semibold leading-snug text-ink">
           {quest.title}
         </div>
@@ -53,16 +53,20 @@ export async function QuestCard({
             variant === "grid" ? "flex-col gap-1" : "flex-wrap gap-x-3 gap-y-0.5",
           )}
         >
-          <span>📍 {quest.location}</span>
-          <span>🕘 {quest.startLabel}</span>
-          <span>💰 {quest.budgetLabel}</span>
+          <span>📍 {quest.location_city}</span>
+          <span>🕘 {startLabel}</span>
+          <span>💰 {budgetLabel}</span>
           <span>
-            👥 {t("quest.participants", { joined: quest.joinedParticipants.length, max: quest.maxParticipants })}
+            👥{" "}
+            {t("quest.participants", { joined: quest.joined_count, max: quest.max_participants })}
           </span>
+          {quest.distance_km !== undefined && quest.distance_km !== null && (
+            <span>📏 {quest.distance_km} km</span>
+          )}
         </div>
         <div className="mt-3 flex items-center justify-between">
           <span className="font-mono text-[13px] font-medium text-lime">
-            {t("quest.xpReward", { xp: quest.xpReward })}
+            {t("quest.xpReward", { xp: quest.xp_reward })}
           </span>
           {variant === "grid" && (
             <span className="rounded-button bg-blue px-4 py-2 font-display text-[12.5px] font-semibold text-white shadow-glow-blue transition-transform group-hover:scale-[1.03]">

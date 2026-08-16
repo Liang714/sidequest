@@ -1,7 +1,6 @@
-// Prototype-only shapes — a deliberately trimmed mirror of docs/DATABASE.md,
-// just enough to drive the Phase 1 screens off mock data. Real types get
-// generated from the FastAPI OpenAPI schema into packages/types in Phase 2
-// (see docs/ARCHITECTURE.md) — this file does not try to anticipate that.
+// Small display-only vocabulary that isn't worth generating from the API
+// schema (emoji/star lookups have no backend representation) — everything
+// that *does* come from the backend lives in @sidequest/types instead.
 
 export type Category =
   | "food"
@@ -40,62 +39,10 @@ export const difficultyStars: Record<Difficulty, number> = {
   epic: 4,
 };
 
-export type QuestVisibility = "public" | "friends" | "private";
-export type QuestStatus = "open" | "full" | "in_progress" | "completed" | "cancelled";
-
-export interface QuestUser {
-  id: string;
-  username: string;
-  avatarInitial: string;
-  avatarColor: "blue" | "violet" | "coral" | "lime";
-  level: number;
-}
-
-export interface QuestObjective {
-  id: string;
-  label: string;
-  completed: boolean;
-}
-
+/** Still unused post-Phase-2 (no compatibility scoring until Phase 3) but
+ * kept alive for components/compatibility-badge.tsx, which docs/DESIGN_SYSTEM.md
+ * documents as a real future screen element, not dead code to delete. */
 export interface CompatibilityBreakdownItem {
   labelKey: string;
   points: number;
-}
-
-export interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  category: Category;
-  location: string;
-  startLabel: string;
-  startsInMinutes?: number;
-  budgetLabel: string;
-  maxParticipants: number;
-  joinedParticipants: QuestUser[];
-  difficulty: Difficulty;
-  xpReward: number;
-  visibility: QuestVisibility;
-  status: QuestStatus;
-  compatibility?: number;
-  compatibilityBreakdown?: CompatibilityBreakdownItem[];
-  objectives: QuestObjective[];
-  meetingPoint: string;
-  host: QuestUser;
-  gradient: string;
-  mapPosition: { x: number; y: number };
-  sponsored?: { businessName: string };
-}
-
-export interface Achievement {
-  id: string;
-  emoji: string;
-  labelKey: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  sender: QuestUser;
-  content: string;
-  timeLabel: string;
 }

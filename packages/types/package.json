@@ -1,0 +1,14 @@
+{
+  "name": "@sidequest/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "generate": "openapi-typescript http://localhost:8000/api/v1/openapi.json -o api.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.5.0"
+  }
+}

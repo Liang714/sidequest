@@ -1,20 +1,28 @@
 import { getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/app-shell";
 import { QuestCard } from "@/components/quest-card";
-import { AvatarStack } from "@/components/avatar-stack";
-import { CategoryChip } from "@/components/category-chip";
 import { Link } from "@/i18n/navigation";
-import { quests, users } from "@/lib/mock-data";
+import { requireSession } from "@/lib/auth";
+import { apiFetch } from "@/lib/api-client";
+import { getLocationCookie, DEFAULT_SEOUL_CENTER } from "@/lib/location";
+import { isStartingSoon } from "@/lib/format";
+import { CategoryChip } from "@/components/category-chip";
+import type { QuestSummaryOut } from "@sidequest/types";
 import type { Category } from "@/lib/types";
 
 const FILTER_CATEGORIES: Category[] = ["gaming", "photography", "dance", "cafe", "food", "art"];
 
 export default async function HomePage() {
+  await requireSession();
   const t = await getTranslations();
 
-  const now = quests.filter((q) => q.startsInMinutes !== undefined);
-  const nearYou = quests.filter((q) => q.startsInMinutes === undefined).slice(0, 4);
-  const sponsored = quests.filter((q) => q.sponsored);
+  const coords = (await getLocationCookie()) ?? DEFAULT_SEOUL_CENTER;
+  const quests = await apiFetch<QuestSummaryOut[]>(
+    `/quests/nearby?lat=${coords.lat}&lng=${coords.lng}&radius_km=15&limit=20`,
+  );
+
+  const now = quests.filter((q) => isStartingSoon(q.start_time));
+  const rest = quests.filter((q) => !isStartingSoon(q.start_time));
 
   return (
     <AppShell>
@@ -31,15 +39,13 @@ export default async function HomePage() {
 
       <section className="mt-5 -mx-4 overflow-x-auto px-4">
         <div className="flex w-max gap-2">
-          {FILTER_CATEGORIES.map((cat, i) => (
-            <CategoryChip key={cat} category={cat} label={t(`category.${cat}`)} selected={i === 0} />
+          {FILTER_CATEGORIES.map((cat) => (
+            <CategoryChip key={cat} category={cat} label={t(`category.${cat}`)} />
           ))}
         </div>
       </section>
 
-      {now.length > 0 && (
-        <SectionHeading title={t("home.sectionNow")} seeAll={t("home.seeAll")} />
-      )}
+      {now.length > 0 && <SectionHeading title={t("home.sectionNow")} />}
       {now.length > 0 && (
         <div className="grid grid-cols-1 gap-3">
           {now.map((q) => (
@@ -48,58 +54,39 @@ export default async function HomePage() {
         </div>
       )}
 
-      <SectionHeading title={t("home.sectionNear")} seeAll={t("home.seeAll")} />
-      <div className="grid grid-cols-2 gap-3">
-        {nearYou.map((q) => (
-          <QuestCard key={q.id} quest={q} />
-        ))}
-      </div>
-
-      <SectionHeading title={t("home.sectionFriends")} />
-      <div className="flex items-center gap-3 rounded-card border border-line bg-surface p-4">
-        <AvatarStack users={[users.alex, users.jamie]} max={3} />
-        <p className="text-[13px] text-ink-muted">
-          {t.rich("home.friendJoined", {
-            names: "Alex, Jamie",
-            quest: quests[0]!.title,
-            link: (chunks) => (
-              <Link
-                href={`/quests/${quests[0]!.id}`}
-                className="font-medium text-ink underline underline-offset-2"
-              >
-                {chunks}
-              </Link>
-            ),
-          })}
-        </p>
-      </div>
-
-      {sponsored.length > 0 && (
-        <>
-          <SectionHeading title={t("home.sectionSponsored")} />
-          <div className="grid grid-cols-1 gap-3">
-            {sponsored.map((q) => (
-              <QuestCard key={q.id} quest={q} variant="row" />
-            ))}
-          </div>
-        </>
+      <SectionHeading title={t("home.sectionNear")} />
+      {rest.length === 0 && now.length === 0 ? (
+        <EmptyState createHref="/quests/new" label={t("createQuest.title")} empty={t("home.emptyNearby")} />
+      ) : (
+        <div className="grid grid-cols-2 gap-3 pb-2">
+          {rest.map((q) => (
+            <QuestCard key={q.id} quest={q} />
+          ))}
+        </div>
       )}
-
-      <SectionHeading title={t("home.sectionTrending")} />
-      <div className="grid grid-cols-2 gap-3 pb-2">
-        {quests.slice(0, 4).map((q) => (
-          <QuestCard key={`trend-${q.id}`} quest={q} />
-        ))}
-      </div>
     </AppShell>
   );
 }
 
-function SectionHeading({ title, seeAll }: { title: string; seeAll?: string }) {
+function SectionHeading({ title }: { title: string }) {
   return (
     <div className="mb-3 mt-7 flex items-baseline justify-between">
       <h2 className="font-display text-[16px] font-semibold text-ink">{title}</h2>
-      {seeAll && <span className="text-[12px] text-ink-faint">{seeAll}</span>}
+    </div>
+  );
+}
+
+function EmptyState({ createHref, label, empty }: { createHref: string; label: string; empty: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line p-8 text-center">
+      <span className="text-3xl">🗺️</span>
+      <p className="text-[13px] text-ink-muted">{empty}</p>
+      <Link
+        href={createHref}
+        className="rounded-button bg-blue px-4 py-2 font-display text-[12.5px] font-semibold text-white shadow-glow-blue"
+      >
+        {label}
+      </Link>
     </div>
   );
 }

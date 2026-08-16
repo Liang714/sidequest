@@ -209,6 +209,48 @@ async def list_quests(
     ]
 
 
+@router.get("/mine", response_model=list[QuestSummaryOut])
+async def my_quests(current_user: CurrentUser, db: DbSession) -> list[QuestSummaryOut]:
+    """Quests the current user created or is (or was) an active participant
+    in — across every status, not just 'open'. Not in the original
+    docs/API.md endpoint table; added once the web app needed a real
+    "My Quests" listing and there was no way to ask for one.
+    """
+    participant_quest_ids = select(QuestParticipant.quest_id).where(
+        QuestParticipant.user_id == current_user.id,
+        QuestParticipant.status.in_(
+            [ParticipantStatus.joined, ParticipantStatus.checked_in, ParticipantStatus.completed]
+        ),
+    )
+    stmt = (
+        select(Quest)
+        .options(selectinload(Quest.location), selectinload(Quest.category), selectinload(Quest.participants))
+        .where(
+            Quest.deleted_at.is_(None),
+            (Quest.creator_id == current_user.id) | (Quest.id.in_(participant_quest_ids)),
+        )
+        .order_by(Quest.start_time.desc())
+    )
+    quests = (await db.scalars(stmt)).all()
+    return [
+        QuestSummaryOut(
+            id=q.id,
+            title=q.title,
+            category_key=q.category.key,
+            location_city=q.location.city,
+            start_time=q.start_time,
+            budget_amount=q.budget_amount,
+            currency=q.currency,
+            max_participants=q.max_participants,
+            joined_count=len([p for p in q.participants if p.status != ParticipantStatus.left]),
+            difficulty=q.difficulty,
+            status=q.status,
+            xp_reward=q.xp_reward,
+        )
+        for q in quests
+    ]
+
+
 @router.get("/nearby", response_model=list[QuestSummaryOut])
 async def nearby_quests(
     current_user: CurrentUser,

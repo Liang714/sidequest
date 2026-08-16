@@ -60,11 +60,13 @@ generated schema is the contract `packages/types` is built from.
 | GET | `/quests/{id}` | Full detail incl. objectives, participant count |
 | PATCH | `/quests/{id}` | Creator/admin only |
 | DELETE | `/quests/{id}` | Soft delete; creator/admin only |
-| GET | `/quests/nearby` | `?lat&lng&radius_km` — PostGIS-backed |
+| GET | `/quests/nearby` | `?lat&lng&radius_km` — bounding-box + haversine today, not PostGIS (see docs/DATABASE.md and docs/DEPLOYMENT.md §Local dev without Docker for why) |
+| GET | `/quests/mine` | Created or actively-joined quests, any status — added once `apps/web`'s "My Quests" screen needed it; not in the original endpoint list above |
 | POST | `/quests/{id}/join` | 409 if full or visibility-restricted |
 | POST | `/quests/{id}/leave` | No-op if not a participant |
 | POST | `/quests/{id}/checkin` | Marks `quest_participants.checked_in_at` |
 | POST | `/quests/{id}/complete` | Verifies required objectives, awards XP, writes `quest_completions` |
+| POST | `/quests/{id}/objectives/{objective_id}/complete` | Per-user objective completion — no "uncomplete" |
 | GET | `/quests/{id}/compatibility` | Current user's compatibility score + breakdown (Phase 3) |
 
 ## Quest rooms (WebSocket)

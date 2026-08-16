@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { logoutAction } from "@/app/actions/auth";
 import { ThemeToggle } from "./theme-toggle";
 import { LocaleSwitcher } from "./locale-switcher";
 import { TabBar } from "./tab-bar";
@@ -19,12 +20,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             <ThemeToggle />
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="rounded-chip border border-line px-2.5 py-1 font-mono text-[11px] text-ink-muted hover:text-ink"
+              >
+                {t("auth.logOut")}
+              </button>
+            </form>
           </div>
-        </div>
-        <div className="mx-auto max-w-lg px-4 pb-2">
-          <span className="rounded-chip border border-line px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink-faint">
-            {t("common.prototypeBadge")}
-          </span>
         </div>
       </header>
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-5">{children}</main>

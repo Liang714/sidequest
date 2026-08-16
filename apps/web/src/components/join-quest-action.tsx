@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { joinQuestAction, leaveQuestAction } from "@/app/actions/quests";
 import clsx from "clsx";
 
-export function JoinQuestAction({ questId }: { questId: string }) {
+export function JoinQuestAction({ questId, joined }: { questId: string; joined: boolean }) {
   const t = useTranslations();
-  const [joined, setJoined] = useState(false);
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const act = (action: (id: string) => Promise<{ error?: string }>) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await action(questId);
+      if (result.error) setError(result.error);
+      else router.refresh();
+    });
+  };
 
   if (joined) {
     return (
@@ -20,24 +32,30 @@ export function JoinQuestAction({ questId }: { questId: string }) {
         </Link>
         <button
           type="button"
-          onClick={() => setJoined(false)}
-          className="text-center text-[12px] text-ink-faint underline underline-offset-2"
+          disabled={pending}
+          onClick={() => act(leaveQuestAction)}
+          className="text-center text-[12px] text-ink-faint underline underline-offset-2 disabled:opacity-60"
         >
           {t("quest.leaveQuest")}
         </button>
+        {error && <p className="text-center text-[12px] text-coral">{error}</p>}
       </div>
     );
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => setJoined(true)}
-      className={clsx(
-        "w-full rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue transition-transform active:scale-[0.98]",
-      )}
-    >
-      {t("quest.joinQuest")}
-    </button>
+    <div>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => act(joinQuestAction)}
+        className={clsx(
+          "w-full rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue transition-transform active:scale-[0.98] disabled:opacity-60",
+        )}
+      >
+        {t("quest.joinQuest")}
+      </button>
+      {error && <p className="mt-2 text-center text-[12px] text-coral">{error}</p>}
+    </div>
   );
 }

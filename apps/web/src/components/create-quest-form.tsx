@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import clsx from "clsx";
-import { categoryEmoji, difficultyStars, type Category, type Difficulty } from "@/lib/types";
+import { useRouter } from "@/i18n/navigation";
+import { categoryEmoji, type Category, type Difficulty } from "@/lib/types";
+import { SEOUL_NEIGHBORHOODS } from "@/lib/seoul-neighborhoods";
+import { createQuestAction } from "@/app/actions/quests";
 import { CategoryChip } from "./category-chip";
+import { Field, inputClass } from "./form-field";
 
 const CATEGORIES = Object.keys(categoryEmoji) as Category[];
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "epic"];
@@ -12,9 +16,13 @@ const VISIBILITIES = ["public", "friends", "private"] as const;
 
 export function CreateQuestForm() {
   const t = useTranslations();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
+  const [neighborhood, setNeighborhood] = useState<string>(SEOUL_NEIGHBORHOODS[0].label);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState(90);
@@ -23,57 +31,45 @@ export function CreateQuestForm() {
   const [category, setCategory] = useState<Category>("random");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [visibility, setVisibility] = useState<(typeof VISIBILITIES)[number]>("public");
-  const [published, setPublished] = useState(false);
+  const [objectives, setObjectives] = useState<string[]>([""]);
 
-  if (published) {
-    const stars = "★".repeat(difficultyStars[difficulty]) + "☆".repeat(4 - difficultyStars[difficulty]);
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="rounded-card border border-lime/40 bg-lime-soft p-4 text-[13px] text-ink">
-          {t("createQuest.publishHint")}
-        </div>
-        <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
-          <div
-            className="flex h-28 items-start justify-between p-3"
-            style={{ background: "linear-gradient(135deg, #4C6FFF, #9D6BFF)" }}
-          >
-            <span className="text-2xl">{categoryEmoji[category]}</span>
-            <span className="rounded-chip bg-black/35 px-2 py-1 font-mono text-[11px] text-white">
-              {stars}
-            </span>
-          </div>
-          <div className="p-4">
-            <div className="font-display text-[15px] font-semibold text-ink">
-              {title || t("createQuest.fieldTitlePlaceholder")}
-            </div>
-            <div className="mt-2 flex flex-col gap-1 text-[13px] text-ink-muted">
-              <span>📍 {location || "—"}</span>
-              <span>
-                🕘 {date || "—"} {startTime}
-              </span>
-              <span>💰 {budget ? `₩${budget}` : t("createQuest.budgetFree")}</span>
-              <span>👥 0/{maxParticipants}</span>
-            </div>
-            {description && <p className="mt-3 text-[13px] text-ink-muted">{description}</p>}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setPublished(false)}
-          className="text-[12px] text-ink-faint underline underline-offset-2"
-        >
-          {t("common.back")}
-        </button>
-      </div>
-    );
-  }
+  const setObjective = (i: number, value: string) =>
+    setObjectives((prev) => prev.map((o, idx) => (idx === i ? value : o)));
+
+  const submit = () => {
+    setError(null);
+    const spot = SEOUL_NEIGHBORHOODS.find((n) => n.label === neighborhood) ?? SEOUL_NEIGHBORHOODS[0];
+    const startIso = date && startTime ? `${date}T${startTime}:00+09:00` : "";
+
+    startTransition(async () => {
+      const result = await createQuestAction({
+        title,
+        description,
+        category_key: `category.${category}`,
+        location: { lat: spot.lat, lng: spot.lng, city: "Seoul", country: "KR", place_name: spot.label },
+        start_time: startIso,
+        duration_minutes: duration,
+        budget_amount: budget ? Number(budget) : null,
+        max_participants: maxParticipants,
+        difficulty,
+        visibility,
+        xp_reward: { easy: 150, medium: 250, hard: 350, epic: 500 }[difficulty],
+        objectives: objectives.filter((o) => o.trim()).map((description) => ({ description })),
+      });
+      if (result.error) {
+        setError(result.error);
+      } else if (result.quest) {
+        router.push(`/quests/${result.quest.id}`);
+      }
+    });
+  };
 
   return (
     <form
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
-        setPublished(true);
+        submit();
       }}
     >
       <Field label={t("createQuest.fieldTitle")}>
@@ -97,13 +93,17 @@ export function CreateQuestForm() {
       </Field>
 
       <Field label={t("createQuest.fieldLocation")}>
-        <input
-          required
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder={t("createQuest.fieldLocationPlaceholder")}
+        <select
+          value={neighborhood}
+          onChange={(e) => setNeighborhood(e.target.value)}
           className={inputClass}
-        />
+        >
+          {SEOUL_NEIGHBORHOODS.map((n) => (
+            <option key={n.label} value={n.label}>
+              {n.label}
+            </option>
+          ))}
+        </select>
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
@@ -152,14 +152,16 @@ export function CreateQuestForm() {
 
       <Field label={t("createQuest.fieldBudget")}>
         <input
+          type="number"
+          min={0}
           value={budget}
           onChange={(e) => setBudget(e.target.value)}
-          placeholder="15,000"
+          placeholder="15000"
           className={inputClass}
         />
       </Field>
 
-      <Field label={t("createQuest.fieldCategory")}>
+      <Field as="div" label={t("createQuest.fieldCategory")}>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <CategoryChip
@@ -175,7 +177,7 @@ export function CreateQuestForm() {
         </div>
       </Field>
 
-      <Field label={t("createQuest.fieldDifficulty")}>
+      <Field as="div" label={t("createQuest.fieldDifficulty")}>
         <div className="flex gap-2">
           {DIFFICULTIES.map((d) => (
             <button
@@ -195,7 +197,7 @@ export function CreateQuestForm() {
         </div>
       </Field>
 
-      <Field label={t("createQuest.fieldVisibility")}>
+      <Field as="div" label={t("createQuest.fieldVisibility")}>
         <div className="flex gap-2">
           {VISIBILITIES.map((v) => (
             <button
@@ -215,24 +217,46 @@ export function CreateQuestForm() {
         </div>
       </Field>
 
+      <Field as="div" label={t("quest.objectives")}>
+        <div className="flex flex-col gap-2">
+          {objectives.map((o, i) => (
+            <div key={i} className="flex gap-2">
+              <input
+                value={o}
+                onChange={(e) => setObjective(i, e.target.value)}
+                placeholder={`${t("quest.objectives")} ${i + 1}`}
+                className={inputClass}
+              />
+              {objectives.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setObjectives((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="rounded-button border border-line px-3 text-ink-faint"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setObjectives((prev) => [...prev, ""])}
+            className="self-start text-[12px] font-medium text-blue"
+          >
+            + {t("createQuest.addObjective")}
+          </button>
+        </div>
+      </Field>
+
+      {error && <p className="text-[13px] text-coral">{error}</p>}
+
       <button
         type="submit"
-        className="rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue"
+        disabled={pending}
+        className="rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue disabled:opacity-60"
       >
-        {t("createQuest.publish")}
+        {pending ? t("common.loading") : t("createQuest.publish")}
       </button>
     </form>
-  );
-}
-
-const inputClass =
-  "w-full rounded-button border border-line bg-surface-elevated px-3.5 py-2.5 text-[13px] text-ink outline-none placeholder:text-ink-faint focus:border-blue";
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] uppercase tracking-wide text-ink-faint">{label}</span>
-      {children}
-    </label>
   );
 }

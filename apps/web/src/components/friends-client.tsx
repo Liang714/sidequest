@@ -1,44 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import type { QuestUser } from "@/lib/types";
+import { acceptFriendRequestAction, removeFriendAction } from "@/app/actions/friends";
+import { avatarColorFor, initialFromUsername } from "@/lib/format";
+import type { FriendOut } from "@sidequest/types";
 
-const avatarBg: Record<QuestUser["avatarColor"], string> = {
+const avatarBg: Record<string, string> = {
   blue: "var(--accent-blue)",
   violet: "var(--accent-violet)",
   coral: "var(--accent-coral)",
   lime: "var(--accent-lime)",
 };
 
-function Avatar({ user }: { user: QuestUser }) {
+function Avatar({ id, username }: { id: string; username: string }) {
   return (
     <div
       className="flex h-11 w-11 items-center justify-center rounded-full font-display text-[14px] font-semibold text-white"
-      style={{ background: avatarBg[user.avatarColor] }}
+      style={{ background: avatarBg[avatarColorFor(id)] }}
     >
-      {user.avatarInitial}
+      {initialFromUsername(username)}
     </div>
   );
 }
 
 export function FriendsClient({
-  initialFriends,
-  initialRequests,
+  friends,
+  requests,
 }: {
-  initialFriends: QuestUser[];
-  initialRequests: QuestUser[];
+  friends: FriendOut[];
+  requests: FriendOut[];
 }) {
   const t = useTranslations();
-  const [friends, setFriends] = useState(initialFriends);
-  const [requests, setRequests] = useState(initialRequests);
+  const [pending, startTransition] = useTransition();
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const accept = (user: QuestUser) => {
-    setRequests((prev) => prev.filter((u) => u.id !== user.id));
-    setFriends((prev) => [...prev, user]);
+  const run = (id: string, action: (id: string) => Promise<{ error?: string }>) => {
+    setBusyId(id);
+    startTransition(async () => {
+      await action(id);
+      setBusyId(null);
+    });
   };
-  const decline = (user: QuestUser) => setRequests((prev) => prev.filter((u) => u.id !== user.id));
-  const remove = (user: QuestUser) => setFriends((prev) => prev.filter((u) => u.id !== user.id));
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,25 +51,27 @@ export function FriendsClient({
           <p className="text-[13px] text-ink-faint">{t("friends.noRequests")}</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {requests.map((u) => (
+            {requests.map((f) => (
               <div
-                key={u.id}
+                key={f.id}
                 className="flex items-center justify-between rounded-card border border-line bg-surface p-3"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar user={u} />
-                  <span className="font-display text-[14px] font-medium text-ink">{u.username}</span>
+                  <Avatar id={f.user_id} username={f.username} />
+                  <span className="font-display text-[14px] font-medium text-ink">{f.username}</span>
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => accept(u)}
-                    className="rounded-button bg-blue px-3 py-1.5 font-display text-[12px] font-semibold text-white"
+                    disabled={pending && busyId === f.id}
+                    onClick={() => run(f.id, acceptFriendRequestAction)}
+                    className="rounded-button bg-blue px-3 py-1.5 font-display text-[12px] font-semibold text-white disabled:opacity-60"
                   >
                     {t("friends.accept")}
                   </button>
                   <button
-                    onClick={() => decline(u)}
-                    className="rounded-button border border-line px-3 py-1.5 font-display text-[12px] font-semibold text-ink-muted"
+                    disabled={pending && busyId === f.id}
+                    onClick={() => run(f.id, removeFriendAction)}
+                    className="rounded-button border border-line px-3 py-1.5 font-display text-[12px] font-semibold text-ink-muted disabled:opacity-60"
                   >
                     {t("friends.decline")}
                   </button>
@@ -81,28 +86,30 @@ export function FriendsClient({
         <h2 className="mb-3 font-display text-[14px] font-semibold text-ink">
           {t("profile.friendsCount", { count: friends.length })}
         </h2>
-        <div className="flex flex-col gap-2">
-          {friends.map((u) => (
-            <div
-              key={u.id}
-              className="flex items-center justify-between rounded-card border border-line bg-surface p-3"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar user={u} />
-                <div>
-                  <div className="font-display text-[14px] font-medium text-ink">{u.username}</div>
-                  <div className="text-[12px] text-ink-faint">Lv. {u.level}</div>
-                </div>
-              </div>
-              <button
-                onClick={() => remove(u)}
-                className="text-[12px] text-ink-faint underline underline-offset-2"
+        {friends.length === 0 ? (
+          <p className="text-[13px] text-ink-faint">{t("friends.noRequests")}</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {friends.map((f) => (
+              <div
+                key={f.id}
+                className="flex items-center justify-between rounded-card border border-line bg-surface p-3"
               >
-                {t("friends.remove")}
-              </button>
-            </div>
-          ))}
-        </div>
+                <div className="flex items-center gap-3">
+                  <Avatar id={f.user_id} username={f.username} />
+                  <div className="font-display text-[14px] font-medium text-ink">{f.username}</div>
+                </div>
+                <button
+                  disabled={pending && busyId === f.id}
+                  onClick={() => run(f.id, removeFriendAction)}
+                  className="text-[12px] text-ink-faint underline underline-offset-2 disabled:opacity-60"
+                >
+                  {t("friends.remove")}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
