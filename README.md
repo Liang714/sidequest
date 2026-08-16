@@ -53,8 +53,9 @@ managed equivalents regardless — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md))
 
 ```bash
 ./scripts/setup-local-infra.sh   # Node+pnpm, Python 3.13+uv, Postgres 18, Valkey — idempotent
-export PATH="$PWD/.tools/node/bin:$PWD/.tools/uv/bin:$PATH"
+export PATH="$PWD/.tools/node/bin:$PWD/.tools/uv/bin:$PWD/.tools/gh/bin:$PATH"
 export XDG_CONFIG_HOME="$PWD/.tools/uv-config" XDG_DATA_HOME="$PWD/.tools/uv-data" XDG_CACHE_HOME="$PWD/.tools/uv-cache"
+export GH_CONFIG_DIR="$PWD/.tools/gh-config"   # gh CLI — same no-sudo pattern, ~/.config is root-owned here
 
 cp .env.example .env             # defaults already match the script's setup
 
