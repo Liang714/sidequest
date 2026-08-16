@@ -62,6 +62,13 @@ class Settings(BaseSettings):
     stripe_secret_key: str | None = None
     toss_secret_key: str | None = None
 
+    # Bookings — see docs/ROADMAP.md Phase 7 and app/bookings/. "fake" is
+    # both the dev default and, today, the only implementation — no real
+    # vendor was ever named in Phase 0. Kept env-var-driven anyway so a
+    # real one is a config change later, same promise as ai_provider/
+    # payment_provider above.
+    booking_provider: str = "fake"
+
 
 @lru_cache
 def get_settings() -> Settings:

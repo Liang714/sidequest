@@ -302,5 +302,28 @@
     "byCreator": "by {name}",
     "purchase": "Purchase",
     "viewQuest": "View Quest"
+  },
+  "booking": {
+    "title": "Book an Activity",
+    "activity": {
+      "bowling": "Bowling",
+      "karaoke": "Karaoke",
+      "restaurant_table": "Restaurant Table",
+      "escape_room": "Escape Room"
+    },
+    "fieldPartySize": "Party size",
+    "checkAvailability": "Check Availability",
+    "noSlots": "No slots available for that date.",
+    "book": "Book",
+    "confirmed": "Booked! Confirmation sent.",
+    "myBookings": "My Bookings",
+    "myBookingsSubline": "Activities booked directly through a quest.",
+    "empty": "No bookings yet.",
+    "status": {
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "commissionLabel": "{amount} platform fee",
+    "cancel": "Cancel Booking"
   }
 }

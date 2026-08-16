@@ -2,6 +2,16 @@
 Alembic autogenerate and for `Base.metadata.create_all` in tests.
 """
 
-from app.models import ai, analytics, business, commerce, gamification, identity, quests, social
+from app.models import (
+    ai,
+    analytics,
+    booking,
+    business,
+    commerce,
+    gamification,
+    identity,
+    quests,
+    social,
+)
 
-__all__ = ["ai", "analytics", "business", "commerce", "gamification", "identity", "quests", "social"]
+__all__ = ["ai", "analytics", "booking", "business", "commerce", "gamification", "identity", "quests", "social"]

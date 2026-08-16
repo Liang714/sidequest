@@ -302,5 +302,28 @@
     "byCreator": "{name} 제작",
     "purchase": "구매",
     "viewQuest": "퀘스트 보기"
+  },
+  "booking": {
+    "title": "활동 예약",
+    "activity": {
+      "bowling": "볼링",
+      "karaoke": "노래방",
+      "restaurant_table": "레스토랑 테이블",
+      "escape_room": "방탈출"
+    },
+    "fieldPartySize": "인원 수",
+    "checkAvailability": "예약 가능 시간 확인",
+    "noSlots": "해당 날짜에 가능한 시간이 없어요.",
+    "book": "예약",
+    "confirmed": "예약 완료! 확인서가 발급됐어요.",
+    "myBookings": "내 예약",
+    "myBookingsSubline": "퀘스트를 통해 직접 예약한 활동들.",
+    "empty": "아직 예약이 없어요.",
+    "status": {
+      "confirmed": "확정",
+      "cancelled": "취소됨"
+    },
+    "commissionLabel": "{amount} 플랫폼 수수료",
+    "cancel": "예약 취소"
   }
 }

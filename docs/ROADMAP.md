@@ -138,12 +138,49 @@ real marketplace page and was auto-joined, and a non-buyer hitting the
 quest URL directly saw the real paywall notice (not a crash) — zero
 console errors.
 
-## Phase 7 — Booking
+## Phase 7 — Booking *(foundation done 2026-08-17 — real-provider half of the exit criteria intentionally not met, see below)*
 
 **Scope:** `BookingProvider` abstraction, activity discovery, booking,
 commission tracking, booking confirmation.
 **Exit criteria:** one real provider integration live; commission correctly
 recorded against `bookings.commission_amount`.
+
+**What "not met" means and why:** unlike Phase 6 (which at least *named*
+Toss and Stripe as real targets), Phase 0 never named a real booking
+vendor — there's no OpenTable/Viator/Naver-Reservation equivalent picked
+anywhere in the product spec, and the one user story that mentions
+booking (USER_STORIES.md "see availability and book an activity... tied
+to a quest") is tagged **Could**, the lowest priority tier. Asked
+directly, given both facts, the user chose the same shape of answer as
+Phase 6: build the foundation now, skip picking (and integrating) a real
+vendor.
+
+Shipped: `app/bookings/` — a `BookingProvider` abstraction
+(`check_availability` + `book`) mirroring `app/ai/` and `app/payments/`
+exactly, with `FakeBookingProvider` as both the dev/test default *and*,
+today, the only implementation (env-var-selectable anyway, so a real one
+later is a config change, same promise the other two abstractions make).
+`GET /bookings/availability` returns synthetic slots for a free-form
+`activity_key` (bowling/karaoke/restaurant table/escape room in the UI,
+though the backend accepts any string — there's no fixed catalog);
+`POST /bookings` books a slot, charges the user for it through the same
+`PaymentProvider` Phase 6 built, and records a fixed 15% platform
+commission against `bookings.commission_amount` — computed from the
+*provider's* confirmed price (parsed back out of `slot_ref`), never a
+client-supplied amount, closing off a trivial price-tampering vector.
+Bookings can be tied to a quest (`quest_id`) or stand alone, and can be
+cancelled. 7 new backend tests (79/79 total), ruff/mypy/tsc/eslint/
+next-build all clean. Verified live via a real end-to-end Playwright run
+through the actual UI: opened a quest, picked "Bowling" in the real
+widget, checked real availability, booked a real slot and got a real
+confirmation, saw it on `/bookings` with the correct amount and a
+"₩2,850 platform fee" line, cancelled it via the real button — the API
+independently confirmed the commission was exactly 15% of the amount.
+That run also caught and fixed a real bug: the date picker's "tomorrow"
+default used `toISOString()`, which converts to UTC first and can
+silently show *today's* date instead near midnight depending on the
+browser's timezone offset — fixed to build the date from local Y/M/D
+components instead.
 
 ## Phase 8 — Advanced AI
 

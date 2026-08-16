@@ -48,3 +48,7 @@ export type AiQuotaOut = Schemas["AiQuotaOut"];
 export type CreatorOut = Schemas["CreatorOut"];
 export type CreatorQuestOut = Schemas["CreatorQuestOut"];
 export type MarketplaceQuestOut = Schemas["MarketplaceQuestOut"];
+
+export type AvailabilitySlotOut = Schemas["AvailabilitySlotOut"];
+export type BookingOut = Schemas["BookingOut"];
+export type BookingStatus = BookingOut["status"];

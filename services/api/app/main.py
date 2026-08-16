@@ -10,6 +10,7 @@ from app.config import get_settings
 from app.routers import (
     ai,
     auth,
+    bookings,
     business,
     chat,
     creators,
@@ -50,6 +51,7 @@ app.include_router(ai.router)
 app.include_router(business.router)
 app.include_router(subscriptions.router)
 app.include_router(creators.router)
+app.include_router(bookings.router)
 
 
 @app.get("/health", tags=["health"])

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/app-shell";
 import { AvatarStack } from "@/components/avatar-stack";
+import { BookActivityWidget } from "@/components/book-activity-widget";
 import { CompatibilityBadge } from "@/components/compatibility-badge";
 import { JoinQuestAction } from "@/components/join-quest-action";
 import { Link } from "@/i18n/navigation";
@@ -148,6 +149,10 @@ export default async function QuestDetailPage({
         <p className="text-[13px] text-ink-muted">
           {quest.location.address ?? quest.location.place_name ?? quest.location.city}
         </p>
+      </div>
+
+      <div className="mt-5">
+        <BookActivityWidget questId={quest.id} />
       </div>
 
       <div className="mt-6 pb-2">

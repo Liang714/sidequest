@@ -164,12 +164,19 @@ can and can't do without a real key. **The Phase 6 exit criteria's "a
 real payment completes end to end in both providers" is explicitly not
 met** — see docs/ROADMAP.md Phase 6.
 
-## Bookings *(Phase 7)*
+## Bookings
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/bookings/availability` | Delegates to a `BookingProvider` adapter |
-| POST | `/bookings` | Creates booking + commission record |
+| GET | `/bookings/availability?activity_key=&on_date=&party_size=` | Delegates to `BookingProvider.check_availability` — `FakeBookingProvider` today (no real vendor named, see docs/ROADMAP.md Phase 7), returns synthetic slots for any `activity_key` string |
+| POST | `/bookings` | `{ quest_id?, activity_key, slot_ref, party_size }` — books via `BookingProvider.book`, charges the confirmed price via `PaymentProvider`, records a fixed 15% commission against `commission_amount`. `slot_ref` comes from a prior availability call; price is never taken from the client |
+| GET | `/bookings/mine` | The current user's bookings, most recent first |
+| POST | `/bookings/{id}/cancel` | 404 if not yours, 409 if already cancelled |
+
+`amount`/`commission_amount` are computed from the provider's own
+confirmed price (`BookingResult.price_amount`), not whatever price the
+client last saw in an availability response — see
+`app/services/booking_service.py`.
 
 ## Trust & safety
 

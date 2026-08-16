@@ -21,16 +21,18 @@ app/
 ├── make_admin.py                     # CLI: grant is_admin to a user by email (no signup flow for it)
 ├── ai/                                 # AIService, provider interface, Ollama/Anthropic adapters, prompt/parsing
 ├── payments/                            # PaymentProvider abstraction, Fake/Stripe/Toss adapters (see Known gaps)
-├── models/                                # SQLAlchemy models, one module per domain
-├── schemas/                                # Pydantic request/response shapes
-├── services/                                # xp_service (level curve, XP ledger), quest_service (nearby search),
-│                                              compatibility_service (interest/proximity/fill-ratio scoring),
-│                                              achievement_service (unlock engine), analytics_service (event log),
-│                                              business_service (sponsored-quest analytics), subscription_service,
-│                                              ai_quota_service (free/Pro AI generation limits + credits)
-└── routers/                                  # one module per API resource — auth, users, quests,
-                                                friends, chat (incl. WebSocket), notifications, gamification,
-                                                moderation, ai, business, subscriptions, creators
+├── bookings/                              # BookingProvider abstraction, Fake adapter (see Known gaps)
+├── models/                                  # SQLAlchemy models, one module per domain
+├── schemas/                                  # Pydantic request/response shapes
+├── services/                                  # xp_service (level curve, XP ledger), quest_service (nearby search),
+│                                                compatibility_service (interest/proximity/fill-ratio scoring),
+│                                                achievement_service (unlock engine), analytics_service (event log),
+│                                                business_service (sponsored-quest analytics), subscription_service,
+│                                                ai_quota_service (free/Pro AI generation limits + credits),
+│                                                booking_service (commission calculation)
+└── routers/                                    # one module per API resource — auth, users, quests,
+                                                  friends, chat (incl. WebSocket), notifications, gamification,
+                                                  moderation, ai, business, subscriptions, creators, bookings
 ```
 
 ## Local setup
@@ -48,7 +50,7 @@ uv run uvicorn app.main:app --reload   # docs at /api/v1/docs
 ## Testing
 
 ```bash
-uv run pytest              # 72 tests against a real Postgres (sidequest_test db)
+uv run pytest              # 79 tests against a real Postgres (sidequest_test db)
 uv run ruff check .
 uv run mypy app             # strict mode
 ```
@@ -115,3 +117,10 @@ and complete a quest together and earn XP.
   raises rather than pretending; see `app/payments/providers/toss.py`'s
   docstring for the real `confirm` call it does implement. See
   docs/ROADMAP.md Phase 6.
+- **Bookings**: `BOOKING_PROVIDER=fake` by default — and, unlike payments,
+  it's the *only* implementation, since no real booking vendor was ever
+  named (Phase 0 never picked an OpenTable/Viator/Naver-Reservation
+  equivalent, and the one relevant user story is "Could" priority).
+  `FakeBookingProvider` generates synthetic availability and always
+  confirms bookings; the abstraction is still env-var-selectable so a
+  real vendor later is a config change. See docs/ROADMAP.md Phase 7.

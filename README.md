@@ -4,26 +4,29 @@
 that turns free time into real-world experiences with other people: discover a
 spontaneous activity, form a temporary group, do it, and level up.
 
-> **Status: Phase 6 (Monetization) foundation done.** Phase 0 (product
+> **Status: Phase 7 (Booking) foundation done.** Phase 0 (product
 > foundation), Phase 1 (clickable prototype), Phase 2 (MVP — auth, quests,
 > friends, quest rooms over WebSocket, gamification, `apps/web` wired to
 > the real API end to end), Phase 3 (AI quest generation, compatibility
 > scoring, content-based "For You" recommendations), Phase 4 (a real
 > achievement engine, level-up/new-achievement moments, an achievement
 > gallery + quest history), Phase 5 (business accounts with an admin
-> verification gate, sponsored/discount quests, business analytics), and
+> verification gate, sponsored/discount quests, business analytics),
 > Phase 6 (Pro subscriptions, a free/Pro AI generation quota with
-> purchasable credit packs, and a creator marketplace with a real paywall)
-> are all complete — **except** the one piece that genuinely can't be
-> without a real account: an actual Stripe/Toss charge. Payments run
-> behind a `PaymentProvider` abstraction defaulting to a fake provider
-> that always succeeds, same $0-to-develop posture as everything else
-> here; real Stripe/Toss adapters are implemented but unverified (see
-> [docs/ROADMAP.md](docs/ROADMAP.md) Phase 6 for exactly what that means
-> for each). AI runs on a local Ollama model by default — free, no API key
-> — swappable to Claude via one env var (see [docs/AI.md](docs/AI.md)).
-> Verified with real browser runs through the actual UI against the
-> actual backend, not just API-level tests. See
+> purchasable credit packs, and a creator marketplace with a real
+> paywall), and Phase 7 (activity booking tied to a quest, with commission
+> tracking) are all complete — **except** the pieces that genuinely can't
+> be without a real vendor account: an actual Stripe/Toss charge, and a
+> real booking provider integration (Phase 0 never named one, and the
+> product spec tags booking "Could" priority anyway). Payments and
+> bookings both run behind provider abstractions defaulting to a fake
+> provider that always succeeds, same $0-to-develop posture as everything
+> else here; real Stripe/Toss adapters are implemented but unverified
+> (see [docs/ROADMAP.md](docs/ROADMAP.md) Phase 6 and Phase 7 for exactly
+> what that means). AI runs on a local Ollama model by default — free, no
+> API key — swappable to Claude via one env var (see
+> [docs/AI.md](docs/AI.md)). Verified with real browser runs through the
+> actual UI against the actual backend, not just API-level tests. See
 > [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Start here

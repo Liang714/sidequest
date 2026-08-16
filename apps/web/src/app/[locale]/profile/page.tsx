@@ -128,6 +128,12 @@ export default async function ProfilePage() {
 
       <div className="mt-6 flex flex-col gap-2">
         <Link
+          href="/bookings"
+          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
+        >
+          🎳 {t("booking.myBookings")}
+        </Link>
+        <Link
           href="/subscription"
           className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
         >

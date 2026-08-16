@@ -305,13 +305,17 @@ CREATE TABLE payments (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Built in Phase 7 (docs/ROADMAP.md). provider is "fake" today (no real
+-- booking vendor was ever named — see app/bookings/); commission_amount
+-- is a fixed 15% of amount, computed server-side from the provider's own
+-- confirmed price, never a client-supplied one.
 CREATE TABLE bookings (
     id                   UUID PRIMARY KEY,
-    quest_id             UUID REFERENCES quests(id),
+    quest_id             UUID REFERENCES quests(id),  -- nullable: a booking can stand alone, not every one is quest-tied
     user_id              UUID NOT NULL REFERENCES users(id),
-    provider             TEXT NOT NULL,   -- booking provider adapter name
+    provider             TEXT NOT NULL,   -- booking provider adapter name — "fake" today
     provider_booking_ref TEXT NOT NULL,
-    status               booking_status NOT NULL,
+    status               booking_status NOT NULL, -- confirmed|cancelled
     amount               NUMERIC(12,2) NOT NULL,
     commission_amount    NUMERIC(12,2) NOT NULL,
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
