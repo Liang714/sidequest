@@ -5,7 +5,7 @@
 # `fly launch` will likely ask you to pick a different one the first time.
 # Whatever you land on, use the same name everywhere `fly -a <name>` shows
 # up in docs/DEPLOYMENT.md.
-app = "sidequest-api"
+app = "sidequest-liang714-api"
 primary_region = "icn" # Seoul — Seoul-first product, closest region to
                         # real users. Run `fly platform regions` and swap
                         # this if `icn` isn't available on your account.
@@ -28,7 +28,7 @@ primary_region = "icn" # Seoul — Seoul-first product, closest region to
   # Valkey — see infra/fly-valkey/fly.toml. Fly private networking (6PN)
   # resolves other apps in the same org by <app-name>.internal; no public
   # exposure, no separate Redis vendor account.
-  VALKEY_URL = "redis://sidequest-valkey.internal:6379/0"
+  VALKEY_URL = "redis://sidequest-liang714-valkey.internal:6379/0"
 
 [http_service]
   internal_port = 8000

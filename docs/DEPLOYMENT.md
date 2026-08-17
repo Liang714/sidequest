@@ -25,9 +25,9 @@ exists, the rest is copy-paste.
 
 ### 0. What you'll end up with
 
-- **`sidequest-api`** — a Fly.io app running `services/api`'s Docker image
+- **`sidequest-liang714-api`** — a Fly.io app running `services/api`'s Docker image
   (`services/api/Dockerfile`), Fly Postgres, and a self-hosted Valkey
-  Fly Machine (`sidequest-valkey`, `infra/fly-valkey/fly.toml`) — all in
+  Fly Machine (`sidequest-liang714-valkey`, `infra/fly-valkey/fly.toml`) — all in
   one Fly.io org, so this needs exactly **one** new account.
 - **`apps/web` on Vercel** — needs exactly **one** more new account,
   pointed at the Fly API's public URL.
@@ -50,33 +50,33 @@ fly auth login
 cd services/api
 
 # Creates the app on Fly (may ask you to rename it — Fly app names are
-# globally unique; if "sidequest-api" is taken, pick another and use that
+# globally unique; if "sidequest-liang714-api" is taken, pick another and use that
 # name in every command below and in fly.toml's `app =` line)
-fly apps create sidequest-api
+fly apps create sidequest-liang714-api
 
 # Fly Postgres — an unmanaged Postgres cluster running as Fly Machines in
 # your own org, no separate vendor account. Pick the smallest/dev config
 # when prompted (this is a small app).
-fly postgres create --name sidequest-api-db --region icn
-fly postgres attach sidequest-api-db -a sidequest-api
+fly postgres create --name sidequest-liang714-api-db --region icn
+fly postgres attach sidequest-liang714-api-db -a sidequest-liang714-api
 # ^ this sets a DATABASE_URL secret automatically, but as postgres://
 # (psycopg-style) — SQLAlchemy needs the asyncpg driver prefix, so fix it:
-fly secrets list -a sidequest-api   # confirm DATABASE_URL is set, then:
-fly secrets set -a sidequest-api \
-  DATABASE_URL="$(fly secrets list -a sidequest-api --json | python3 -c 'import json,sys; print([s for s in json.load(sys.stdin) if s["Name"]=="DATABASE_URL"][0].get("Value",""))' 2>/dev/null | sed 's/^postgres:/postgresql+asyncpg:/')"
+fly secrets list -a sidequest-liang714-api   # confirm DATABASE_URL is set, then:
+fly secrets set -a sidequest-liang714-api \
+  DATABASE_URL="$(fly secrets list -a sidequest-liang714-api --json | python3 -c 'import json,sys; print([s for s in json.load(sys.stdin) if s["Name"]=="DATABASE_URL"][0].get("Value",""))' 2>/dev/null | sed 's/^postgres:/postgresql+asyncpg:/')"
 # (If that one-liner doesn't resolve on your machine, just run
-# `fly ssh console -a sidequest-api -C 'printenv DATABASE_URL'` after the
+# `fly ssh console -a sidequest-liang714-api -C 'printenv DATABASE_URL'` after the
 # attach step, copy the value, replace its `postgres://` prefix with
-# `postgresql+asyncpg://`, and `fly secrets set DATABASE_URL=... -a sidequest-api` by hand.)
+# `postgresql+asyncpg://`, and `fly secrets set DATABASE_URL=... -a sidequest-liang714-api` by hand.)
 
 # Volume for photo storage (LocalDiskStorageProvider — see docs/AI.md /
 # app/storage.py; swap for real Cloudflare R2 later, same config-only swap
 # every other provider abstraction here promises)
-fly volumes create sidequest_api_data --region icn --size 1 -a sidequest-api
+fly volumes create sidequest_api_data --region icn --size 1 -a sidequest-liang714-api
 
 # Required secrets with no safe default — generate a real random secret,
 # don't reuse the dev placeholder:
-fly secrets set -a sidequest-api \
+fly secrets set -a sidequest-liang714-api \
   JWT_SIGNING_SECRET="$(openssl rand -hex 32)" \
   CORS_ORIGINS='["https://YOUR-VERCEL-DOMAIN.vercel.app"]'
 # (Come back and update CORS_ORIGINS once you know the real Vercel URL
@@ -93,24 +93,24 @@ fly deploy
 # required for quest creation/gamification to work at all, see
 # app/seed.py's docstring). Not part of release_command since it isn't
 # meant to re-run on every deploy.
-fly ssh console -a sidequest-api -C ".venv/bin/python -m app.seed"
+fly ssh console -a sidequest-liang714-api -C ".venv/bin/python -m app.seed"
 
 # Sanity check
-curl https://sidequest-api.fly.dev/health   # -> {"status":"ok"}
+curl https://sidequest-liang714-api.fly.dev/health   # -> {"status":"ok"}
 ```
 
 ### 2. Valkey — its own tiny Fly Machine
 
 ```sh
 cd ../../infra/fly-valkey
-fly apps create sidequest-valkey
-fly volumes create sidequest_valkey_data --region icn --size 1 -a sidequest-valkey
+fly apps create sidequest-liang714-valkey
+fly volumes create sidequest_valkey_data --region icn --size 1 -a sidequest-liang714-valkey
 fly deploy --image valkey/valkey:8-alpine
 ```
 
 No public ports are declared in `infra/fly-valkey/fly.toml` on purpose —
-`sidequest-api` reaches it over Fly's private 6PN network at
-`sidequest-valkey.internal:6379` (already set as `VALKEY_URL` in
+`sidequest-liang714-api` reaches it over Fly's private 6PN network at
+`sidequest-liang714-valkey.internal:6379` (already set as `VALKEY_URL` in
 `services/api/fly.toml`'s `[env]` block), never exposed to the internet.
 
 ### 3. Frontend — Vercel
@@ -128,9 +128,9 @@ Variables), or via CLI (`vercel env add <NAME> production`), set:
 
 | Variable | Value |
 |---|---|
-| `API_URL` | `https://sidequest-api.fly.dev/api/v1` (server-side only — Server Components/Actions call the API directly) |
-| `NEXT_PUBLIC_WS_URL` | `wss://sidequest-api.fly.dev/api/v1` (client-side — the quest-room WebSocket) |
-| `NEXT_PUBLIC_API_ORIGIN` | `https://sidequest-api.fly.dev` (client-side, no `/api/v1` — renders uploaded quest photos, see `app/main.py`'s `/local-storage` mount) |
+| `API_URL` | `https://sidequest-liang714-api.fly.dev/api/v1` (server-side only — Server Components/Actions call the API directly) |
+| `NEXT_PUBLIC_WS_URL` | `wss://sidequest-liang714-api.fly.dev/api/v1` (client-side — the quest-room WebSocket) |
+| `NEXT_PUBLIC_API_ORIGIN` | `https://sidequest-liang714-api.fly.dev` (client-side, no `/api/v1` — renders uploaded quest photos, see `app/main.py`'s `/local-storage` mount) |
 
 Then deploy:
 
@@ -149,8 +149,8 @@ origins must match exactly (scheme + host), no wildcards.
 ### 4. Verify it's real
 
 ```sh
-curl https://sidequest-api.fly.dev/health
-curl https://sidequest-api.fly.dev/api/v1/openapi.json -o /dev/null -w "%{http_code}\n"
+curl https://sidequest-liang714-api.fly.dev/health
+curl https://sidequest-liang714-api.fly.dev/api/v1/openapi.json -o /dev/null -w "%{http_code}\n"
 open https://your-project.vercel.app
 ```
 
@@ -168,7 +168,7 @@ these repo secrets exist (Settings → Secrets and variables → Actions):
 
 | Secret | Where to get it |
 |---|---|
-| `FLY_API_TOKEN` | `fly tokens create deploy -a sidequest-api` |
+| `FLY_API_TOKEN` | `fly tokens create deploy -a sidequest-liang714-api` |
 | `VERCEL_TOKEN` | Vercel dashboard → Settings → Tokens |
 | `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | `apps/web/.vercel/project.json` after `vercel link` |
 
