@@ -36,3 +36,5 @@ next-env.d.ts
 infra/pgdata/
 infra/minio-data/
 services/api/.local-storage/
+.vercel
+.env*

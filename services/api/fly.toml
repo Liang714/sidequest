@@ -6,9 +6,13 @@
 # Whatever you land on, use the same name everywhere `fly -a <name>` shows
 # up in docs/DEPLOYMENT.md.
 app = "sidequest-liang714-api"
-primary_region = "icn" # Seoul — Seoul-first product, closest region to
-                        # real users. Run `fly platform regions` and swap
-                        # this if `icn` isn't available on your account.
+primary_region = "nrt" # Tokyo — icn (Seoul) isn't available on this
+                        # account (confirmed via `fly platform regions`
+                        # at deploy time); nrt is the closest available
+                        # region, and it's also where the Postgres cluster
+                        # and the sidequest_api_data volume actually landed
+                        # (volumes are region-pinned — the app MUST run in
+                        # the same region as its attached volume).
 
 [build]
 
@@ -38,13 +42,12 @@ primary_region = "icn" # Seoul — Seoul-first product, closest region to
   min_machines_running = 0
   processes = ["app"]
 
-  [http_service.checks]
-    [http_service.checks.health]
-      grace_period = "10s"
-      interval = "15s"
-      method = "GET"
-      timeout = "5s"
-      path = "/health"
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "15s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
 
 [[vm]]
   size = "shared-cpu-1x"

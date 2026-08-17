@@ -11,7 +11,7 @@
 # sequence this file is used with — deployed with `--image`, no
 # Dockerfile needed.
 app = "sidequest-liang714-valkey"
-primary_region = "icn" # match services/api/fly.toml's primary_region
+primary_region = "nrt" # match services/api/fly.toml's primary_region
 
 [build]
   image = "valkey/valkey:8-alpine"

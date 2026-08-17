@@ -1,0 +1,16 @@
+# Vercel's CLI upload walker isn't as forgiving as git's own ignore
+# handling — it broke on a live Unix socket file under .tools/run/ from
+# the local Postgres dev server (Unknown system error -102, opening
+# .s.PGSQL.5432) even though .tools/ is already gitignored. This file
+# exists so the CLI skips these directories during its own walk, not
+# just at the "should I include this in the deploy" filtering step.
+.tools/
+services/api/
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+infra/pgdata/
+infra/minio-data/

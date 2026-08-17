@@ -10,7 +10,17 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_REPO_ROOT_ENV = Path(__file__).resolve().parents[3] / ".env"
+# `parents[3]` from services/api/app/config.py reaches the monorepo root
+# in local dev (app -> api -> services -> sidequest). Found live on the
+# first real Fly.io deploy: the Docker image's directory layout is much
+# shallower (/app/app/config.py has only 2 real parents above it), so a
+# fixed index crashes with IndexError there instead of just harmlessly
+# not finding a repo-root .env to fall back to. Clamp to whatever's
+# actually available — in the container this resolves to "/.env", which
+# simply doesn't exist and gets skipped by pydantic-settings exactly like
+# any other missing optional env_file, no crash either way.
+_config_parents = Path(__file__).resolve().parents
+_REPO_ROOT_ENV = (_config_parents[3] if len(_config_parents) > 3 else _config_parents[-1]) / ".env"
 
 
 class Settings(BaseSettings):

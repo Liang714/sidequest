@@ -57,22 +57,38 @@ fly apps create sidequest-liang714-api
 # Fly Postgres — an unmanaged Postgres cluster running as Fly Machines in
 # your own org, no separate vendor account. Pick the smallest/dev config
 # when prompted (this is a small app).
-fly postgres create --name sidequest-liang714-api-db --region icn
+fly postgres create --name sidequest-liang714-api-db --region nrt
 fly postgres attach sidequest-liang714-api-db -a sidequest-liang714-api
-# ^ this sets a DATABASE_URL secret automatically, but as postgres://
-# (psycopg-style) — SQLAlchemy needs the asyncpg driver prefix, so fix it:
-fly secrets list -a sidequest-liang714-api   # confirm DATABASE_URL is set, then:
+```
+
+`attach` prints the `DATABASE_URL` it just set directly in your terminal —
+copy that value (`fly secrets list` can't show it to you again afterward;
+Fly never exposes secret *values* through that command, only digests, on
+purpose). It'll look like:
+
+```
+postgres://sidequest_liang714_api:PASSWORD@sidequest-liang714-api-db.flycast:5432/sidequest_liang714_api?sslmode=disable
+```
+
+Two things about that value are wrong for this app specifically — fix
+both before setting it as the real secret:
+
+1. `postgres://` → `postgresql+asyncpg://` (SQLAlchemy needs the driver
+   named in the scheme).
+2. `sslmode=disable` → `ssl=disable` (asyncpg's own connect() doesn't
+   accept a `sslmode` kwarg at all — that's psycopg-style query-param
+   naming; asyncpg's equivalent is spelled `ssl`. Found live on the first
+   real deploy: `TypeError: connect() got an unexpected keyword argument
+   'sslmode'`, straight out of `alembic upgrade head`'s release_command.)
+
+```sh
 fly secrets set -a sidequest-liang714-api \
-  DATABASE_URL="$(fly secrets list -a sidequest-liang714-api --json | python3 -c 'import json,sys; print([s for s in json.load(sys.stdin) if s["Name"]=="DATABASE_URL"][0].get("Value",""))' 2>/dev/null | sed 's/^postgres:/postgresql+asyncpg:/')"
-# (If that one-liner doesn't resolve on your machine, just run
-# `fly ssh console -a sidequest-liang714-api -C 'printenv DATABASE_URL'` after the
-# attach step, copy the value, replace its `postgres://` prefix with
-# `postgresql+asyncpg://`, and `fly secrets set DATABASE_URL=... -a sidequest-liang714-api` by hand.)
+  DATABASE_URL="postgresql+asyncpg://sidequest_liang714_api:PASSWORD@sidequest-liang714-api-db.flycast:5432/sidequest_liang714_api?ssl=disable"
 
 # Volume for photo storage (LocalDiskStorageProvider — see docs/AI.md /
 # app/storage.py; swap for real Cloudflare R2 later, same config-only swap
 # every other provider abstraction here promises)
-fly volumes create sidequest_api_data --region icn --size 1 -a sidequest-liang714-api
+fly volumes create sidequest_api_data --region nrt --size 1 -a sidequest-liang714-api
 
 # Required secrets with no safe default — generate a real random secret,
 # don't reuse the dev placeholder:
@@ -104,7 +120,7 @@ curl https://sidequest-liang714-api.fly.dev/health   # -> {"status":"ok"}
 ```sh
 cd ../../infra/fly-valkey
 fly apps create sidequest-liang714-valkey
-fly volumes create sidequest_valkey_data --region icn --size 1 -a sidequest-liang714-valkey
+fly volumes create sidequest_valkey_data --region nrt --size 1 -a sidequest-liang714-valkey
 fly deploy --image valkey/valkey:8-alpine
 ```
 
