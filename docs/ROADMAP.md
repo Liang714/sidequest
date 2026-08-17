@@ -182,7 +182,7 @@ silently show *today's* date instead near midnight depending on the
 browser's timezone offset — fixed to build the date from local Y/M/D
 components instead.
 
-## Phase 8 — Advanced AI
+## Phase 8 — Advanced AI *(done 2026-08-17)*
 
 **Scope:** AI agent (multi-step planning with user confirmation at each
 step, not autonomous action), itinerary planning, multimodal quest
@@ -190,6 +190,58 @@ verification (`VisionVerifier`), predictive recommendations.
 **Exit criteria:** agent actions remain user-confirmed at every step that
 spends money or commits the user to a plan; vision verification measured
 against false-positive/false-negative rate before it gates real XP awards.
+
+Shipped: an **Itinerary Planner** (`POST /ai/plan-itinerary`) — the AI
+agent this phase's exit criteria describes. Given a free-text goal plus
+the user's location, it proposes 2-4 ordered steps, each exactly one of
+`join_quest` (referencing a *real* currently-open candidate quest),
+`create_quest`, or `book_activity`. The model never executes anything: it
+only drafts a plan (`app/ai/itinerary_prompt.py`), and every `join_quest`
+step whose `quest_id` isn't in the real candidate list handed to the model
+is silently dropped server-side before the client ever sees it — an
+anti-hallucination check, not a trust exercise. On the frontend
+(`/plan`, `itinerary-planner-client.tsx`), each step renders as its own
+card with an explicit **Confirm** button; confirming calls the *exact
+same* production endpoint (`joinQuestAction`/`createQuestAction`/
+book-availability-then-book) a manual action would call — there is no
+bypass path, satisfying "user-confirmed at every step that spends money
+or commits to a plan" literally rather than as a design gesture.
+
+Shipped a **VisionVerifier** (`app/vision/`, `POST /quests/{id}/
+objectives/{id}/verify-photo`) for photo-verified quest objectives, via a
+local Ollama vision model (`llava:7b`). Per the exit criteria's explicit
+instruction to *measure* accuracy before deciding whether it gates XP, a
+real accuracy harness was built (`services/api/scripts/
+measure_vision_accuracy.py`, 12 labeled synthetic test cases: shapes,
+text, plain images, true/false claims) and run against the real model:
+**58% correct, 17% false-positive, 25% false-negative.** That result is
+the documented basis for making verification **advisory-only** — it never
+gates objective completion or XP; the AI's `matches`/`confidence`/
+`explanation` verdict is shown to the user alongside the completion, not
+instead of it. A false-negative rate that high would silently block real
+completions if it gated anything, which would be worse than not having
+the feature.
+
+Shipped **AI-explained recommendations** (`POST /ai/explain-recommendation`,
+a "Why recommended?" button on the quest detail page) — a one-sentence,
+natural-language explanation grounded in the *real* `compute_compatibility()`
+breakdown for that user/quest pair (never freeform commentary detached
+from the actual score). All three new AI paths share Phase 6's existing
+free/Pro daily quota pool (`ai_quota_service`'s `_COUNTED_GENERATION_TYPES`
+broadened to include `itinerary_planning` and `recommendation_explanation`
+alongside `quest_generation`) rather than getting their own separate
+limits. 10 new backend tests (100/100 total), ruff/mypy/tsc/eslint/
+next-build all clean; no migration needed this phase (vision verification
+reuses the existing `quest_photos`/`quest_objective_completions` tables).
+Verified live against the real running stack (real Ollama `qwen3:8b` for
+planning/explanation, real `llava:7b` for vision, zero mocks): a real
+free-text goal produced a real validated plan with no hallucinated quest
+IDs, each step confirmed for real through its production action; a real
+photo upload got a real (occasionally wrong, per the measured accuracy
+above) vision verdict while the objective still completed regardless; a
+real "why recommended?" click produced a real one-sentence explanation
+grounded in the real compatibility breakdown — zero browser console
+errors across the run.
 
 ## Phase 9 — Scale
 

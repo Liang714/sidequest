@@ -1,8 +1,11 @@
+import base64
+import binascii
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, tuple_
 from sqlalchemy.orm import selectinload
 
@@ -19,6 +22,7 @@ from app.models.quests import (
     QuestObjective,
     QuestObjectiveCompletion,
     QuestParticipant,
+    QuestPhoto,
     QuestStatus,
 )
 from app.schemas.gamification import AchievementOut
@@ -35,12 +39,19 @@ from app.schemas.quests import (
     QuestUpdate,
     SponsorInfoOut,
 )
+from app.schemas.vision import VerifyPhotoOut, VerifyPhotoRequest, VisionVerificationOut
 from app.services import analytics_service, quest_service
 from app.services.achievement_service import evaluate_and_unlock_achievements
 from app.services.compatibility_service import compute_compatibility
 from app.services.xp_service import award_xp
+from app.storage import StorageProvider, get_storage_provider
+from app.vision.base import VisionVerificationError, VisionVerifier
+from app.vision.service import get_vision_verifier
 
 router = APIRouter(prefix="/quests", tags=["quests"])
+
+StorageProviderDep = Annotated[StorageProvider, Depends(get_storage_provider)]
+VisionVerifierDep = Annotated[VisionVerifier, Depends(get_vision_verifier)]
 
 
 async def _get_quest_or_404(db: DbSession, quest_id: UUID) -> Quest:
@@ -578,6 +589,77 @@ async def complete_objective(
         await db.commit()
 
     return await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
+
+
+@router.post("/{quest_id}/objectives/{objective_id}/verify-photo", response_model=VerifyPhotoOut)
+async def verify_photo_objective(
+    quest_id: UUID,
+    objective_id: UUID,
+    body: VerifyPhotoRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    storage: StorageProviderDep,
+    verifier: VisionVerifierDep,
+) -> VerifyPhotoOut:
+    """The photo-objective equivalent of /complete — completes the
+    objective (self-report, same honor-system baseline every other
+    objective already runs on) *and* attaches an AI opinion on whether the
+    photo actually matches, for transparency. The AI's opinion is
+    advisory only: `ai_verification.matches=False` does NOT block
+    completion or withhold XP — see docs/AI.md §VisionVerifier for why
+    (measured accuracy isn't good enough to safely gate on yet) and
+    docs/ROADMAP.md Phase 8's exit criteria this satisfies.
+    """
+    objective = await db.get(QuestObjective, objective_id)
+    if objective is None or objective.quest_id != quest_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Objective not found")
+
+    try:
+        image_bytes = base64.b64decode(body.image_base64, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid base64 image data") from exc
+    if not image_bytes or len(image_bytes) > 8 * 1024 * 1024:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Image must be non-empty and under 8MB")
+
+    storage_key = await storage.save(content=image_bytes, content_type=body.content_type, key_prefix=f"quest-photos/{quest_id}")
+    photo = QuestPhoto(quest_id=quest_id, user_id=current_user.id, storage_key=storage_key)
+    db.add(photo)
+    await db.flush()
+
+    ai_verification: VisionVerificationOut | None = None
+    try:
+        result = await verifier.verify(image_bytes=image_bytes, objective_description=objective.description)
+        ai_verification = VisionVerificationOut(
+            matches=result.matches, confidence=result.confidence, explanation=result.explanation, provider=verifier.name
+        )
+    except VisionVerificationError:
+        # Advisory feature failing (model unreachable, bad output) doesn't
+        # block completion — the photo's still saved and the objective
+        # still completes; ai_verification is just absent from the response.
+        pass
+
+    existing = await db.scalar(
+        select(QuestObjectiveCompletion).where(
+            QuestObjectiveCompletion.objective_id == objective_id,
+            QuestObjectiveCompletion.user_id == current_user.id,
+        )
+    )
+    if existing is None:
+        db.add(
+            QuestObjectiveCompletion(
+                objective_id=objective_id,
+                user_id=current_user.id,
+                evidence_photo_id=photo.id,
+                verified=True,  # completion is still self-report — see docstring above
+                verified_at=datetime.now(UTC),
+                verification_method="photo",
+            )
+        )
+    await db.commit()
+
+    quest_out = await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
+    updated_objective = next(o for o in quest_out.objectives if o.id == objective_id)
+    return VerifyPhotoOut(objective=updated_objective, ai_verification=ai_verification)
 
 
 @router.post("/{quest_id}/complete", response_model=QuestCompleteOut)

@@ -52,3 +52,9 @@ export type MarketplaceQuestOut = Schemas["MarketplaceQuestOut"];
 export type AvailabilitySlotOut = Schemas["AvailabilitySlotOut"];
 export type BookingOut = Schemas["BookingOut"];
 export type BookingStatus = BookingOut["status"];
+
+export type ItineraryPlanOut = Schemas["ItineraryPlanOut"];
+export type PlanStepOut = Schemas["PlanStepOut"];
+export type ExplainRecommendationOut = Schemas["ExplainRecommendationOut"];
+export type VerifyPhotoOut = Schemas["VerifyPhotoOut"];
+export type VisionVerificationOut = Schemas["VisionVerificationOut"];

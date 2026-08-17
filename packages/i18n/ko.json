@@ -148,7 +148,11 @@
     "completeQuest": "퀘스트 완료",
     "archived": "이 퀘스트는 히스토리에 보관됐어요.",
     "leveledUp": "레벨 {level}!",
-    "newAchievements": "새 업적"
+    "newAchievements": "새 업적",
+    "photoObjective": "사진",
+    "uploadPhoto": "사진 업로드",
+    "aiConfirms": "AI가 확인했어요",
+    "aiUnsure": "AI가 확신하지 못했어요 — 완료는 그대로 인정돼요"
   },
   "profile": {
     "level": "레벨 {level}",
@@ -325,5 +329,22 @@
     },
     "commissionLabel": "{amount} 플랫폼 수수료",
     "cancel": "예약 취소"
+  },
+  "itinerary": {
+    "navLink": "오늘 계획 짜기",
+    "title": "오늘 계획 짜기",
+    "subline": "지금 기분을 설명해보세요 — AI가 여러 단계 계획을 제안하고, 각 단계는 직접 확인 후 진행돼요.",
+    "fieldGoal": "지금 뭐 하고 싶으세요?",
+    "fieldGoalPlaceholder": "오늘 저녁 시간 있어요, 맛있는 거 먹고 볼링도 치고 싶어요, 예산 3만원",
+    "planning": "계획 짜는 중…",
+    "planIt": "계획 짜기",
+    "stepType": {
+      "join_quest": "퀘스트 참가",
+      "create_quest": "퀘스트 만들기",
+      "book_activity": "활동 예약"
+    },
+    "viewResult": "보러 가기 →",
+    "confirmStep": "확인",
+    "whyRecommended": "왜 추천됐나요?"
   }
 }

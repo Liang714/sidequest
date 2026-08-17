@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { AvatarStack } from "@/components/avatar-stack";
 import { BookActivityWidget } from "@/components/book-activity-widget";
 import { CompatibilityBadge } from "@/components/compatibility-badge";
+import { ExplainRecommendationButton } from "@/components/explain-recommendation-button";
 import { JoinQuestAction } from "@/components/join-quest-action";
 import { Link } from "@/i18n/navigation";
 import { requireSession } from "@/lib/auth";
@@ -52,11 +53,12 @@ export default async function QuestDetailPage({
   const alreadyJoined = !!myParticipation && myParticipation.status !== "left";
   const creator = quest.participants.find((p) => p.user_id === quest.creator_id);
 
+  const coords = await getLocationCookie();
+
   // Best-effort — a compatibility-fetch failure shouldn't take down the
   // whole quest page, it just means the badge doesn't render.
   let compatibility: CompatibilityOut | null = null;
   try {
-    const coords = await getLocationCookie();
     const query = coords ? `?lat=${coords.lat}&lng=${coords.lng}` : "";
     compatibility = await apiFetch<CompatibilityOut>(`/quests/${id}/compatibility${query}`);
   } catch {
@@ -122,6 +124,7 @@ export default async function QuestDetailPage({
       {compatibility && (
         <div className="mt-5 rounded-card border border-line bg-surface p-5">
           <CompatibilityBadge score={compatibility.score} breakdown={compatibility.breakdown} />
+          <ExplainRecommendationButton questId={quest.id} coords={coords} />
         </div>
       )}
 

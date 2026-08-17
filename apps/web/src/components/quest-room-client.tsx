@@ -9,8 +9,9 @@ import {
   checkinQuestAction,
   completeObjectiveAction,
   completeQuestAction,
+  verifyPhotoObjectiveAction,
 } from "@/app/actions/quests";
-import type { AchievementOut, MessageOut, QuestOut } from "@sidequest/types";
+import type { AchievementOut, MessageOut, ObjectiveOut, QuestOut, VisionVerificationOut } from "@sidequest/types";
 
 interface CompletionResult {
   xpAwarded: number;
@@ -197,28 +198,32 @@ export function QuestRoomClient({
           {t("questRoom.objectivesTitle")}
         </h2>
         <ul className="flex flex-col gap-2">
-          {quest.objectives.map((o) => (
-            <li key={o.id}>
-              <button
-                type="button"
-                disabled={o.completed_by_me || pending}
-                onClick={() => runAction(() => completeObjectiveAction(quest.id, o.id))}
-                className={clsx(
-                  "flex w-full items-center gap-2.5 rounded-button border px-3.5 py-2.5 text-left text-[13px] transition-colors disabled:cursor-default",
-                  o.completed_by_me
-                    ? "border-lime/40 bg-lime-soft text-ink"
-                    : "border-line bg-surface text-ink-muted",
-                )}
-              >
-                <span className={o.completed_by_me ? "text-lime" : "text-ink-faint"}>
-                  {o.completed_by_me ? "☑" : "☐"}
-                </span>
-                <span className={o.completed_by_me ? "line-through decoration-ink-faint" : ""}>
-                  {o.description}
-                </span>
-              </button>
-            </li>
-          ))}
+          {quest.objectives.map((o) =>
+            o.verification_type === "photo" ? (
+              <PhotoObjectiveItem key={o.id} questId={quest.id} objective={o} onVerified={() => router.refresh()} />
+            ) : (
+              <li key={o.id}>
+                <button
+                  type="button"
+                  disabled={o.completed_by_me || pending}
+                  onClick={() => runAction(() => completeObjectiveAction(quest.id, o.id))}
+                  className={clsx(
+                    "flex w-full items-center gap-2.5 rounded-button border px-3.5 py-2.5 text-left text-[13px] transition-colors disabled:cursor-default",
+                    o.completed_by_me
+                      ? "border-lime/40 bg-lime-soft text-ink"
+                      : "border-line bg-surface text-ink-muted",
+                  )}
+                >
+                  <span className={o.completed_by_me ? "text-lime" : "text-ink-faint"}>
+                    {o.completed_by_me ? "☑" : "☐"}
+                  </span>
+                  <span className={o.completed_by_me ? "line-through decoration-ink-faint" : ""}>
+                    {o.description}
+                  </span>
+                </button>
+              </li>
+            ),
+          )}
         </ul>
       </div>
 
@@ -284,5 +289,94 @@ export function QuestRoomClient({
         {t("questRoom.completeQuest")}
       </button>
     </div>
+  );
+}
+
+function PhotoObjectiveItem({
+  questId,
+  objective,
+  onVerified,
+}: {
+  questId: string;
+  objective: ObjectiveOut;
+  onVerified: () => void;
+}) {
+  const t = useTranslations();
+  const [pending, startTransition] = useTransition();
+  const [aiResult, setAiResult] = useState<VisionVerificationOut | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFile = (file: File) => {
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== "string") return;
+      const [header, base64] = dataUrl.split(",");
+      const contentType = header?.match(/data:(.*);base64/)?.[1] ?? "image/jpeg";
+      if (!base64) return;
+      startTransition(async () => {
+        const res = await verifyPhotoObjectiveAction(questId, objective.id, base64, contentType);
+        if (res.error) {
+          setError(res.error);
+          return;
+        }
+        setAiResult(res.result?.ai_verification ?? null);
+        onVerified();
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <li className="rounded-button border border-line bg-surface px-3.5 py-2.5">
+      <div
+        className={clsx(
+          "flex items-center gap-2.5 text-[13px]",
+          objective.completed_by_me ? "text-ink" : "text-ink-muted",
+        )}
+      >
+        <span className={objective.completed_by_me ? "text-lime" : "text-ink-faint"}>
+          {objective.completed_by_me ? "☑" : "☐"}
+        </span>
+        <span className={objective.completed_by_me ? "line-through decoration-ink-faint" : ""}>
+          {objective.description}
+        </span>
+        <span className="ml-auto flex-none rounded-chip bg-violet-soft px-2 py-0.5 font-mono text-[10px] text-violet">
+          📷 {t("questRoom.photoObjective")}
+        </span>
+      </div>
+
+      {!objective.completed_by_me && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+            }}
+          />
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-2 w-full rounded-button bg-violet py-2 font-display text-[12px] font-semibold text-white disabled:opacity-60"
+          >
+            {pending ? t("common.loading") : t("questRoom.uploadPhoto")}
+          </button>
+        </>
+      )}
+
+      {error && <p className="mt-1.5 text-[11.5px] text-coral">{error}</p>}
+      {aiResult && (
+        <p className={clsx("mt-1.5 text-[11.5px]", aiResult.matches ? "text-lime" : "text-ink-faint")}>
+          🤖 {aiResult.matches ? t("questRoom.aiConfirms") : t("questRoom.aiUnsure")} — {aiResult.explanation}
+        </p>
+      )}
+    </li>
   );
 }

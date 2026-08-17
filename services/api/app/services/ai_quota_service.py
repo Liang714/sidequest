@@ -1,12 +1,15 @@
 """Free/Pro AI generation quota + credit-pack purchases. See
 docs/ROADMAP.md Phase 6 and docs/AI.md.
 
-Free tier: FREE_DAILY_LIMIT quest generations per day, refilled at
-midnight UTC (not local wall-clock time — keeps quota resets independent
-of a user's timezone, consistent with the rest of the app's TIMESTAMPTZ/
-UTC convention). Pro: unlimited. Either tier can spend purchased
-`Profile.ai_credits` once the daily free quota is used up, as an
-alternative to upgrading — a real one-off top-up, not a Pro-only perk.
+Free tier: FREE_DAILY_LIMIT AI generations per day, refilled at midnight
+UTC (not local wall-clock time — keeps quota resets independent of a
+user's timezone, consistent with the rest of the app's TIMESTAMPTZ/UTC
+convention). "A generation" covers both quest drafts (Phase 3) and
+itinerary plans (Phase 8) — one shared daily pool, not a separate quota
+per AI feature; see _COUNTED_GENERATION_TYPES. Pro: unlimited. Either
+tier can spend purchased `Profile.ai_credits` once the daily free quota
+is used up, as an alternative to upgrading — a real one-off top-up, not a
+Pro-only perk.
 """
 
 from datetime import UTC, datetime
@@ -27,6 +30,7 @@ FREE_DAILY_LIMIT = 3
 CREDIT_PACK_SIZE = 10
 CREDIT_PACK_PRICE = Decimal(3900)
 CREDIT_PACK_CURRENCY = "KRW"
+_COUNTED_GENERATION_TYPES = ("quest_generation", "itinerary_planning", "recommendation_explanation")
 
 
 class QuotaExceededError(Exception):
@@ -45,7 +49,7 @@ async def _used_today(db: AsyncSession, user_id: UUID) -> int:
         .select_from(AiGeneration)
         .where(
             AiGeneration.user_id == user_id,
-            AiGeneration.type == "quest_generation",
+            AiGeneration.type.in_(_COUNTED_GENERATION_TYPES),
             AiGeneration.created_at >= since,
         )
     )

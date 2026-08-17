@@ -67,6 +67,7 @@ generated schema is the contract `packages/types` is built from.
 | POST | `/quests/{id}/checkin` | Marks `quest_participants.checked_in_at` |
 | POST | `/quests/{id}/complete` | Verifies required objectives, awards XP, writes `quest_completions`. Returns `{ quest, xp_awarded, new_level, new_achievements }` (Phase 4) — `new_level`/`new_achievements` are only populated the one time completion actually happens, so the client can show a level-up/unlock moment; a repeat call is a no-op returning `xp_awarded: 0` |
 | POST | `/quests/{id}/objectives/{objective_id}/complete` | Per-user objective completion — no "uncomplete" |
+| POST | `/quests/{id}/objectives/{objective_id}/verify-photo` | `{ image_base64, content_type }` (max 8MB) — saves the photo, runs it through `VisionVerifier` (Phase 8, local Ollama `llava:7b`), completes the objective regardless of the AI verdict. Returns `{ objective, ai_verification }`; `ai_verification` (`{ matches, confidence, explanation }`) is advisory-only — see docs/AI.md for the measured accuracy behind that decision |
 | GET | `/quests/{id}/compatibility` | Current user's compatibility score + breakdown (Phase 3) |
 
 ## Quest rooms (WebSocket)
@@ -92,6 +93,8 @@ Message frames (JSON):
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/ai/generate-quest` | `{ free_text, city, lat?, lng? }` → editable draft quest. Ollama (`qwen3:8b`) by default, Claude if `AI_PROVIDER=anthropic` — see docs/AI.md. Logs an `ai_generations` row. |
+| POST | `/ai/plan-itinerary` | `{ free_text, lat?, lng? }` → `{ steps: [...] }` (2-4 ordered `join_quest`/`create_quest`/`book_activity` steps, Phase 8). The model only ever proposes; every step is user-confirmed client-side via the same production action a manual step would call. `join_quest` steps are validated server-side against the real open-candidate list — a hallucinated `quest_id` is dropped, never returned to the client. Shares Phase 6's daily AI quota pool. |
+| POST | `/ai/explain-recommendation` | `{ quest_id, lat?, lng? }` → `{ explanation }`, a one-sentence natural-language explanation grounded in the real `compute_compatibility()` breakdown for that user/quest (Phase 8). Shares the same daily AI quota pool. |
 
 ## Matching
 

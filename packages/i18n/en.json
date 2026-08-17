@@ -148,7 +148,11 @@
     "completeQuest": "Complete Quest",
     "archived": "This quest is archived in your history.",
     "leveledUp": "Level {level}!",
-    "newAchievements": "New Achievements"
+    "newAchievements": "New Achievements",
+    "photoObjective": "Photo",
+    "uploadPhoto": "Upload Photo",
+    "aiConfirms": "AI confirms this looks right",
+    "aiUnsure": "AI isn't sure — completion still counts"
   },
   "profile": {
     "level": "Level {level}",
@@ -325,5 +329,22 @@
     },
     "commissionLabel": "{amount} platform fee",
     "cancel": "Cancel Booking"
+  },
+  "itinerary": {
+    "navLink": "Plan My Day",
+    "title": "Plan My Day",
+    "subline": "Describe what you're in the mood for — AI proposes a multi-step plan, you confirm each step yourself.",
+    "fieldGoal": "What are you in the mood for?",
+    "fieldGoalPlaceholder": "Free tonight, want to eat something good and maybe bowl after, budget ₩30,000",
+    "planning": "Planning…",
+    "planIt": "Plan It",
+    "stepType": {
+      "join_quest": "Join Quest",
+      "create_quest": "Create Quest",
+      "book_activity": "Book Activity"
+    },
+    "viewResult": "View →",
+    "confirmStep": "Confirm",
+    "whyRecommended": "Why recommended?"
   }
 }

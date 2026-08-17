@@ -69,6 +69,14 @@ class Settings(BaseSettings):
     # payment_provider above.
     booking_provider: str = "fake"
 
+    # Vision verification — see docs/ROADMAP.md Phase 8 and app/vision/.
+    # "ollama" (llava:7b, local, free) is both the dev default and, today,
+    # the only implementation. Advisory only — see
+    # services/api/scripts/measure_vision_accuracy.py and docs/AI.md
+    # §VisionVerifier for why it doesn't gate XP awards.
+    vision_provider: str = "ollama"
+    ollama_vision_model: str = "llava:7b"
+
 
 @lru_cache
 def get_settings() -> Settings:

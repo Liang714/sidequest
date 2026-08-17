@@ -327,6 +327,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/quests/{quest_id}/objectives/{objective_id}/verify-photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Photo Objective
+         * @description The photo-objective equivalent of /complete — completes the
+         *     objective (self-report, same honor-system baseline every other
+         *     objective already runs on) *and* attaches an AI opinion on whether the
+         *     photo actually matches, for transparency. The AI's opinion is
+         *     advisory only: `ai_verification.matches=False` does NOT block
+         *     completion or withhold XP — see docs/AI.md §VisionVerifier for why
+         *     (measured accuracy isn't good enough to safely gate on yet) and
+         *     docs/ROADMAP.md Phase 8's exit criteria this satisfies.
+         */
+        post: operations["verify_photo_objective_quests__quest_id__objectives__objective_id__verify_photo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/quests/{quest_id}/complete": {
         parameters: {
             query?: never;
@@ -599,6 +626,55 @@ export interface paths {
         put?: never;
         /** Generate Quest */
         post: operations["generate_quest_ai_generate_quest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/plan-itinerary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Itinerary
+         * @description Proposes a 2-4 step plan — join a real open quest, draft a new one,
+         *     and/or book a real activity. Nothing here executes anything; every
+         *     step the user confirms goes through the exact same endpoint a manual
+         *     action would (POST /quests/{id}/join, POST /quests, POST /bookings).
+         *     See docs/ROADMAP.md Phase 8's "not autonomous action" requirement.
+         */
+        post: operations["plan_itinerary_ai_plan_itinerary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/explain-recommendation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explain Recommendation
+         * @description The "predictive recommendations" piece of Phase 8 (docs/AI.md's
+         *     roadmap step 5: LLM-assisted reasoning for *explaining* a
+         *     recommendation) — grounded in the real compute_compatibility()
+         *     breakdown, so the model explains actual computed signals rather than
+         *     inventing a plausible-sounding but fabricated reason. Shares the same
+         *     daily AI quota as quest generation / itinerary planning.
+         */
+        post: operations["explain_recommendation_ai_explain_recommendation_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1164,6 +1240,27 @@ export interface components {
             /** Revenue Share Pct */
             revenue_share_pct: number;
         };
+        /** ExplainRecommendationOut */
+        ExplainRecommendationOut: {
+            /** Explanation */
+            explanation: string;
+            /** Score */
+            score: number;
+            /** Provider */
+            provider: string;
+        };
+        /** ExplainRecommendationRequest */
+        ExplainRecommendationRequest: {
+            /**
+             * Quest Id
+             * Format: uuid
+             */
+            quest_id: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+        };
         /** FriendOut */
         FriendOut: {
             /**
@@ -1248,6 +1345,15 @@ export interface components {
             key: string;
             /** Category */
             category: string;
+        };
+        /** ItineraryPlanOut */
+        ItineraryPlanOut: {
+            /** Generation Id */
+            generation_id: string;
+            /** Steps */
+            steps: components["schemas"]["PlanStepOut"][];
+            /** Provider */
+            provider: string;
         };
         /** LocationIn */
         LocationIn: {
@@ -1465,6 +1571,58 @@ export interface components {
          * @enum {string}
          */
         ParticipantStatus: "joined" | "checked_in" | "completed" | "left" | "removed";
+        /** PlanItineraryRequest */
+        PlanItineraryRequest: {
+            /** Free Text */
+            free_text: string;
+            /**
+             * City
+             * @default Seoul
+             */
+            city: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+        };
+        /**
+         * PlanStepOut
+         * @description One proposed step — never executed by this response. The client
+         *     confirms a step by calling the normal join/create/book endpoint
+         *     itself; see docs/API.md §AI concierge.
+         */
+        PlanStepOut: {
+            /** Type */
+            type: string;
+            /** Reason */
+            reason: string;
+            /** Quest Id */
+            quest_id?: string | null;
+            /** Quest Title */
+            quest_title?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Category Key */
+            category_key?: string | null;
+            /** Difficulty */
+            difficulty?: string | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
+            /** Budget Amount */
+            budget_amount?: number | null;
+            /** Objectives */
+            objectives?: string[] | null;
+            /** Xp Reward */
+            xp_reward?: number | null;
+            /** Suggested Start Time */
+            suggested_start_time?: string | null;
+            /** Activity Key */
+            activity_key?: string | null;
+            /** Party Size */
+            party_size?: number | null;
+        };
         /** ProfileOut */
         ProfileOut: {
             /**
@@ -1817,6 +1975,32 @@ export interface components {
          * @enum {string}
          */
         VerificationType: "manual" | "photo" | "qr" | "geofence" | "business_confirm";
+        /** VerifyPhotoOut */
+        VerifyPhotoOut: {
+            objective: components["schemas"]["ObjectiveOut"];
+            ai_verification?: components["schemas"]["VisionVerificationOut"] | null;
+        };
+        /** VerifyPhotoRequest */
+        VerifyPhotoRequest: {
+            /** Image Base64 */
+            image_base64: string;
+            /**
+             * Content Type
+             * @default image/jpeg
+             */
+            content_type: string;
+        };
+        /** VisionVerificationOut */
+        VisionVerificationOut: {
+            /** Matches */
+            matches: boolean;
+            /** Confidence */
+            confidence: number;
+            /** Explanation */
+            explanation: string;
+            /** Provider */
+            provider: string;
+        };
         /** XpSummaryOut */
         XpSummaryOut: {
             /** Xp */
@@ -2482,6 +2666,42 @@ export interface operations {
             };
         };
     };
+    verify_photo_objective_quests__quest_id__objectives__objective_id__verify_photo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quest_id: string;
+                objective_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyPhotoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyPhotoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     complete_quest_quests__quest_id__complete_post: {
         parameters: {
             query?: never;
@@ -2911,6 +3131,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeneratedQuestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_itinerary_ai_plan_itinerary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanItineraryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItineraryPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explain_recommendation_ai_explain_recommendation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExplainRecommendationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplainRecommendationOut"];
                 };
             };
             /** @description Validation Error */

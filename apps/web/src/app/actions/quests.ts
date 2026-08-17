@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { apiFetch, ApiError } from "@/lib/api-client";
-import type { AchievementOut, QuestCompleteOut, QuestOut } from "@sidequest/types";
+import type { AchievementOut, QuestCompleteOut, QuestOut, VerifyPhotoOut } from "@sidequest/types";
 
 export interface QuestActionResult {
   quest?: QuestOut;
@@ -57,6 +57,29 @@ export async function completeObjectiveAction(
   objectiveId: string,
 ): Promise<QuestActionResult> {
   return callQuestAction(`/quests/${questId}/objectives/${objectiveId}/complete`);
+}
+
+export interface VerifyPhotoActionResult {
+  result?: VerifyPhotoOut;
+  error?: string;
+}
+
+export async function verifyPhotoObjectiveAction(
+  questId: string,
+  objectiveId: string,
+  imageBase64: string,
+  contentType: string,
+): Promise<VerifyPhotoActionResult> {
+  try {
+    const result = await apiFetch<VerifyPhotoOut>(`/quests/${questId}/objectives/${objectiveId}/verify-photo`, {
+      method: "POST",
+      body: { image_base64: imageBase64, content_type: contentType },
+    });
+    revalidatePath("/", "layout");
+    return { result };
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "Something went wrong." };
+  }
 }
 
 export interface CreateQuestInput {
