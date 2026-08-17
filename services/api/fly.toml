@@ -1,0 +1,58 @@
+# SIDEQUEST API — Fly.io app config. See docs/DEPLOYMENT.md for the full
+# deploy sequence (account creation, `fly launch`, secrets, first deploy).
+#
+# `app` below is a placeholder — Fly app names are globally unique, so
+# `fly launch` will likely ask you to pick a different one the first time.
+# Whatever you land on, use the same name everywhere `fly -a <name>` shows
+# up in docs/DEPLOYMENT.md.
+app = "sidequest-api"
+primary_region = "icn" # Seoul — Seoul-first product, closest region to
+                        # real users. Run `fly platform regions` and swap
+                        # this if `icn` isn't available on your account.
+
+[build]
+
+[env]
+  APP_ENV = "production"
+  API_PORT = "8000"
+  # Provider defaults for a fresh deploy — every one of these is the same
+  # "$0, honestly-labeled placeholder" default this project has used at
+  # every prior external-vendor gate (Payments Phase 6, Bookings Phase 7,
+  # AI/Vision Phase 8). Flip any of them to a real provider by setting the
+  # matching *_PROVIDER var + secret once you're ready — see .env.example.
+  AI_PROVIDER = "fake"
+  VISION_PROVIDER = "fake"
+  PAYMENT_PROVIDER = "fake"
+  BOOKING_PROVIDER = "fake"
+  STORAGE_LOCAL_DIR = "/data/local-storage"
+  # Valkey — see infra/fly-valkey/fly.toml. Fly private networking (6PN)
+  # resolves other apps in the same org by <app-name>.internal; no public
+  # exposure, no separate Redis vendor account.
+  VALKEY_URL = "redis://sidequest-valkey.internal:6379/0"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.checks]
+    [http_service.checks.health]
+      grace_period = "10s"
+      interval = "15s"
+      method = "GET"
+      timeout = "5s"
+      path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[mounts]
+  source = "sidequest_api_data"
+  destination = "/data"
+
+[deploy]
+  release_command = ".venv/bin/alembic upgrade head"

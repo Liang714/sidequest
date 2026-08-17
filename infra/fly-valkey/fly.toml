@@ -1,0 +1,28 @@
+# SIDEQUEST — self-hosted Valkey as its own tiny Fly Machine, in the SAME
+# Fly org as sidequest-api (see ../../services/api/fly.toml). No separate
+# vendor account (e.g. Upstash) — deliberately, to keep this deploy to
+# exactly two accounts total (Fly.io + Vercel), same "minimize new
+# external accounts" instinct as every provider-abstraction default in
+# this app. Not publicly exposed — reachable only via Fly's private
+# 6PN network at sidequest-valkey.internal:6379 from other apps in this
+# org (no [http_service]/public ports declared here on purpose).
+#
+# See docs/DEPLOYMENT.md for the exact `fly apps create`/`fly deploy`
+# sequence this file is used with — deployed with `--image`, no
+# Dockerfile needed.
+app = "sidequest-valkey"
+primary_region = "icn" # match services/api/fly.toml's primary_region
+
+[build]
+  image = "valkey/valkey:8-alpine"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[mounts]
+  source = "sidequest_valkey_data"
+  destination = "/data"
+
+[processes]
+  app = "valkey-server --dir /data --appendonly yes"

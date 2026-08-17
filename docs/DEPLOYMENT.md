@@ -5,23 +5,191 @@
 | Env | Purpose | Infra |
 |---|---|---|
 | **Development** | Local machine | `docker compose -f infra/docker-compose.yml up` — Postgres+pgvector, Valkey, MinIO, all free (see §Local dev without Docker if that's not available) |
-| **Staging** | Pre-production verification | Fly.io/Railway (API) + Vercel preview (web) + EAS preview build (mobile), managed Postgres/Valkey at smallest tier |
-| **Production** | Real users | Fly.io/Railway (API, multi-instance behind health checks) + Vercel (web) + EAS production build + submission, managed Postgres (with PITR backups) + Valkey, Cloudflare R2, Supabase Auth |
+| **Real hosted deployment** *(built 2026-08-17, see §Deploying for real)* | A real reachable URL, not localhost | **Fly.io** (API + Postgres + a self-hosted Valkey machine, all in one Fly org — see `services/api/fly.toml` + `infra/fly-valkey/fly.toml`) + **Vercel** (web). Fly.io picked over Railway for a stronger permanently-free tier for a small app, matching this project's $0-to-develop posture. |
+| **Production (future)** | Real users at scale | Same Fly.io + Vercel setup, scaled up (multi-instance, PITR backups, Cloudflare R2, Supabase Auth) — see Phase 9 in [ROADMAP.md](ROADMAP.md), intentionally not over-specified until there's a real target region/traffic to scale for. |
 
-Promotion path: `feature/*` → `develop` (staging deploys automatically on
-merge) → `main` (production deploys on merge, tagged release).
+[CONTRIBUTING.md](CONTRIBUTING.md) documents a `feature/*` → `develop` →
+`main` promotion path for when there's a team large enough to need a
+staging gate. In practice, solo development so far has gone straight to
+`main` every time (no `develop` branch has actually existed in this repo)
+— every commit on `main` is meant to be deployable, so that's also
+exactly what this section's Fly.io/Vercel setup deploys from. Start using
+`develop` for real once there's more than one person merging to this repo.
+
+## Deploying for real (Fly.io + Vercel)
+
+Everything below is prepared and ready; the account-creation/first-login
+steps need a real human in the loop (an agent can't complete GitHub OAuth
+consent screens or enter a card on file) — that's you. Once each account
+exists, the rest is copy-paste.
+
+### 0. What you'll end up with
+
+- **`sidequest-api`** — a Fly.io app running `services/api`'s Docker image
+  (`services/api/Dockerfile`), Fly Postgres, and a self-hosted Valkey
+  Fly Machine (`sidequest-valkey`, `infra/fly-valkey/fly.toml`) — all in
+  one Fly.io org, so this needs exactly **one** new account.
+- **`apps/web` on Vercel** — needs exactly **one** more new account,
+  pointed at the Fly API's public URL.
+- Everything AI/payments/vision/booking-related deploys with the same
+  `fake` provider default this project has used at every prior
+  external-vendor gate (Payments Phase 6, Bookings Phase 7, AI/Vision
+  Phase 8) — real, honestly-labeled placeholder behavior, $0, no new
+  accounts. Flip any of them to a real provider later by setting its
+  `*_PROVIDER` env var + secret — see `.env.example`.
+
+### 1. Backend — Fly.io
+
+```sh
+# Install flyctl (macOS/Linux; see fly.io/docs/flyctl/install for other OSes)
+curl -L https://fly.io/install.sh | sh
+
+# Create an account / log in — opens a browser
+fly auth login
+
+cd services/api
+
+# Creates the app on Fly (may ask you to rename it — Fly app names are
+# globally unique; if "sidequest-api" is taken, pick another and use that
+# name in every command below and in fly.toml's `app =` line)
+fly apps create sidequest-api
+
+# Fly Postgres — an unmanaged Postgres cluster running as Fly Machines in
+# your own org, no separate vendor account. Pick the smallest/dev config
+# when prompted (this is a small app).
+fly postgres create --name sidequest-api-db --region icn
+fly postgres attach sidequest-api-db -a sidequest-api
+# ^ this sets a DATABASE_URL secret automatically, but as postgres://
+# (psycopg-style) — SQLAlchemy needs the asyncpg driver prefix, so fix it:
+fly secrets list -a sidequest-api   # confirm DATABASE_URL is set, then:
+fly secrets set -a sidequest-api \
+  DATABASE_URL="$(fly secrets list -a sidequest-api --json | python3 -c 'import json,sys; print([s for s in json.load(sys.stdin) if s["Name"]=="DATABASE_URL"][0].get("Value",""))' 2>/dev/null | sed 's/^postgres:/postgresql+asyncpg:/')"
+# (If that one-liner doesn't resolve on your machine, just run
+# `fly ssh console -a sidequest-api -C 'printenv DATABASE_URL'` after the
+# attach step, copy the value, replace its `postgres://` prefix with
+# `postgresql+asyncpg://`, and `fly secrets set DATABASE_URL=... -a sidequest-api` by hand.)
+
+# Volume for photo storage (LocalDiskStorageProvider — see docs/AI.md /
+# app/storage.py; swap for real Cloudflare R2 later, same config-only swap
+# every other provider abstraction here promises)
+fly volumes create sidequest_api_data --region icn --size 1 -a sidequest-api
+
+# Required secrets with no safe default — generate a real random secret,
+# don't reuse the dev placeholder:
+fly secrets set -a sidequest-api \
+  JWT_SIGNING_SECRET="$(openssl rand -hex 32)" \
+  CORS_ORIGINS='["https://YOUR-VERCEL-DOMAIN.vercel.app"]'
+# (Come back and update CORS_ORIGINS once you know the real Vercel URL
+# from step 2 — a mismatch here means the browser's fetches get CORS-
+# blocked, not a 500, so it's an easy thing to forget and notice.)
+
+# First deploy — builds services/api/Dockerfile on Fly's remote builder
+# (this machine has no Docker, so this is genuinely the first time the
+# image actually gets built) and runs the release_command (alembic
+# migrations) before the new version takes traffic.
+fly deploy
+
+# One-time reference-data seed (categories/interests/achievements —
+# required for quest creation/gamification to work at all, see
+# app/seed.py's docstring). Not part of release_command since it isn't
+# meant to re-run on every deploy.
+fly ssh console -a sidequest-api -C ".venv/bin/python -m app.seed"
+
+# Sanity check
+curl https://sidequest-api.fly.dev/health   # -> {"status":"ok"}
+```
+
+### 2. Valkey — its own tiny Fly Machine
+
+```sh
+cd ../../infra/fly-valkey
+fly apps create sidequest-valkey
+fly volumes create sidequest_valkey_data --region icn --size 1 -a sidequest-valkey
+fly deploy --image valkey/valkey:8-alpine
+```
+
+No public ports are declared in `infra/fly-valkey/fly.toml` on purpose —
+`sidequest-api` reaches it over Fly's private 6PN network at
+`sidequest-valkey.internal:6379` (already set as `VALKEY_URL` in
+`services/api/fly.toml`'s `[env]` block), never exposed to the internet.
+
+### 3. Frontend — Vercel
+
+```sh
+npm install -g vercel     # or: pnpm add -g vercel
+vercel login              # opens a browser — creates an account if you don't have one
+
+cd apps/web
+vercel link                # creates a new Vercel project, links this dir to it
+```
+
+In the Vercel dashboard for the new project (Settings → Environment
+Variables), or via CLI (`vercel env add <NAME> production`), set:
+
+| Variable | Value |
+|---|---|
+| `API_URL` | `https://sidequest-api.fly.dev/api/v1` (server-side only — Server Components/Actions call the API directly) |
+| `NEXT_PUBLIC_WS_URL` | `wss://sidequest-api.fly.dev/api/v1` (client-side — the quest-room WebSocket) |
+
+Then deploy:
+
+```sh
+vercel --prod
+```
+
+Vercel auto-detects the pnpm workspace (`pnpm-workspace.yaml` +
+`packageManager` in the root `package.json`) once Root Directory is set
+to `apps/web` in the project's Settings → General — `vercel link` from
+inside `apps/web` sets this automatically. Take the resulting
+`https://your-project.vercel.app` URL and update `CORS_ORIGINS` on the
+Fly side (step 1) to match it exactly, then `fly deploy` again — CORS
+origins must match exactly (scheme + host), no wildcards.
+
+### 4. Verify it's real
+
+```sh
+curl https://sidequest-api.fly.dev/health
+curl https://sidequest-api.fly.dev/api/v1/openapi.json -o /dev/null -w "%{http_code}\n"
+open https://your-project.vercel.app
+```
+
+Register a real account through the real deployed UI, create a quest,
+confirm it shows up. AI features will show the honest "running in demo
+mode" placeholder text (see `app/ai/providers/fake.py`) until you add a
+real `ANTHROPIC_API_KEY` and flip `AI_PROVIDER=anthropic` via `fly secrets
+set` — that's expected, not a bug.
+
+### 5. Turning on continuous deploy (optional, once you're ready)
+
+`.github/workflows/deploy.yml` exists and is fully written, but is
+`workflow_dispatch`-only (manual trigger from the Actions tab) until
+these repo secrets exist (Settings → Secrets and variables → Actions):
+
+| Secret | Where to get it |
+|---|---|
+| `FLY_API_TOKEN` | `fly tokens create deploy -a sidequest-api` |
+| `VERCEL_TOKEN` | Vercel dashboard → Settings → Tokens |
+| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | `apps/web/.vercel/project.json` after `vercel link` |
+
+Once those exist, change `.github/workflows/deploy.yml`'s trigger from
+`workflow_dispatch` to `push: branches: [main]` for real continuous
+deploy on every merge.
 
 ## CI/CD
 
-GitHub Actions, one workflow per app plus a shared quality gate:
+`.github/workflows/ci.yml` is real and runs today (no secrets needed) —
+on every push to `main` and every PR:
 
-- **On every PR:** lint + typecheck (`tsc --noEmit`, `ruff`/`mypy`), unit
-  tests (`pytest`, `vitest`), build check for `apps/web` and `services/api`.
-- **On merge to `develop`:** deploy to staging, run Playwright/Maestro
-  smoke tests against it.
-- **On merge to `main`:** deploy to production, tag a release
-  (`vX.Y.Z`), run the same smoke suite against production as a post-deploy
-  gate — a failure here pages, it doesn't just log.
+- **backend job:** spins up a real Postgres 18 service container, creates
+  the `sidequest_test` database, runs `ruff check .`, `mypy app`, and the
+  full `pytest` suite against it — the same real-Postgres-not-SQLite
+  stance as local dev (see conftest.py).
+- **frontend job:** `pnpm typecheck` / `pnpm lint` / `pnpm build` at the
+  repo root via Turborepo — scoped automatically to whichever workspace
+  packages define each script.
+
+`.github/workflows/deploy.yml` is the CD half — see §Deploying for real
+step 5 above for what's blocking it from running automatically today.
 
 ## Secrets
 
@@ -83,7 +251,15 @@ architecture rather than silently ignored:
 - **No MinIO** (`dl.min.io` was unreachable from this network). Quest photo
   storage uses a `LocalDiskStorageProvider` behind the same
   `StorageProvider` interface a real S3/R2 adapter would implement
-  (`services/api/app/storage.py`).
+  (`services/api/app/storage.py`). Noticed while preparing the Fly.io
+  deploy and worth flagging honestly: `LocalDiskStorageProvider.
+  public_url()` generates a `/local-storage/{key}` URL, but nothing in
+  `app/main.py` actually mounts that path as a static route yet — no
+  endpoint currently returns this URL to a client, so it's a latent gap,
+  not a live bug, but it means photos aren't actually viewable via HTTP
+  today in *any* environment (dev or hosted). Fix is small (a
+  `StaticFiles` mount, or skip straight to R2) — flagged here rather than
+  silently left for someone to discover later.
 
 See [services/api/README.md](../services/api/README.md) for the exact
 commands.
