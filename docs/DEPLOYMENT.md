@@ -130,6 +130,7 @@ Variables), or via CLI (`vercel env add <NAME> production`), set:
 |---|---|
 | `API_URL` | `https://sidequest-api.fly.dev/api/v1` (server-side only — Server Components/Actions call the API directly) |
 | `NEXT_PUBLIC_WS_URL` | `wss://sidequest-api.fly.dev/api/v1` (client-side — the quest-room WebSocket) |
+| `NEXT_PUBLIC_API_ORIGIN` | `https://sidequest-api.fly.dev` (client-side, no `/api/v1` — renders uploaded quest photos, see `app/main.py`'s `/local-storage` mount) |
 
 Then deploy:
 
@@ -251,15 +252,29 @@ architecture rather than silently ignored:
 - **No MinIO** (`dl.min.io` was unreachable from this network). Quest photo
   storage uses a `LocalDiskStorageProvider` behind the same
   `StorageProvider` interface a real S3/R2 adapter would implement
-  (`services/api/app/storage.py`). Noticed while preparing the Fly.io
-  deploy and worth flagging honestly: `LocalDiskStorageProvider.
-  public_url()` generates a `/local-storage/{key}` URL, but nothing in
-  `app/main.py` actually mounts that path as a static route yet — no
-  endpoint currently returns this URL to a client, so it's a latent gap,
-  not a live bug, but it means photos aren't actually viewable via HTTP
-  today in *any* environment (dev or hosted). Fix is small (a
-  `StaticFiles` mount, or skip straight to R2) — flagged here rather than
-  silently left for someone to discover later.
+  (`services/api/app/storage.py`).
+
+**Fixed while preparing the Fly.io deploy, worth recording since it was a
+genuinely non-obvious bug:** `LocalDiskStorageProvider.public_url()`
+generated a `/local-storage/{key}` URL, and nothing served it — no
+endpoint returned this URL to a client either, so it was fully latent
+until Phase 8's photo-objective UI actually needed to render one. Fixing
+both surfaced a second, subtler bug: `app.mount("/local-storage", ...)`
+in `app/main.py` (a raw Starlette `Mount`) does **not** get FastAPI's
+`root_path="/api/v1"` prefix-stripping applied to it the same way
+`include_router()`-registered routes do — confirmed empirically, not
+assumed: on the real running server, bare `/local-storage/{key}` 404s
+while `/api/v1/local-storage/{key}` 200s, and (surprisingly) the
+opposite was true through the pytest ASGI test client, because httpx's
+`AsyncClient` concatenates rather than replaces a leading-slash path
+against a `base_url` that itself has a path component. `public_url()`
+now returns the `/api/v1/local-storage/{key}` form; `tests/
+test_vision.py`'s regression check fetches it as an **absolute** URL
+specifically to avoid httpx's path-merging quirk masking the bug again —
+see that test's comment for the full explanation. Verified live with a
+real Playwright browser round-trip (upload → real `<img>` → confirmed
+`naturalWidth > 0`, i.e. the browser actually decoded real image bytes,
+not a broken-image icon).
 
 See [services/api/README.md](../services/api/README.md) for the exact
 commands.

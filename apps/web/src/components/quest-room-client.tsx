@@ -32,12 +32,14 @@ export function QuestRoomClient({
   initialMessages,
   accessToken,
   wsBaseUrl,
+  apiOrigin,
   currentUserId,
 }: {
   quest: QuestOut;
   initialMessages: MessageOut[];
   accessToken: string;
   wsBaseUrl: string;
+  apiOrigin: string;
   currentUserId: string;
 }) {
   const t = useTranslations();
@@ -200,7 +202,13 @@ export function QuestRoomClient({
         <ul className="flex flex-col gap-2">
           {quest.objectives.map((o) =>
             o.verification_type === "photo" ? (
-              <PhotoObjectiveItem key={o.id} questId={quest.id} objective={o} onVerified={() => router.refresh()} />
+              <PhotoObjectiveItem
+                key={o.id}
+                questId={quest.id}
+                objective={o}
+                apiOrigin={apiOrigin}
+                onVerified={() => router.refresh()}
+              />
             ) : (
               <li key={o.id}>
                 <button
@@ -295,15 +303,18 @@ export function QuestRoomClient({
 function PhotoObjectiveItem({
   questId,
   objective,
+  apiOrigin,
   onVerified,
 }: {
   questId: string;
   objective: ObjectiveOut;
+  apiOrigin: string;
   onVerified: () => void;
 }) {
   const t = useTranslations();
   const [pending, startTransition] = useTransition();
   const [aiResult, setAiResult] = useState<VisionVerificationOut | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -323,6 +334,7 @@ function PhotoObjectiveItem({
           return;
         }
         setAiResult(res.result?.ai_verification ?? null);
+        setPhotoUrl(res.result?.photo_url ?? null);
         onVerified();
       });
     };
@@ -372,6 +384,17 @@ function PhotoObjectiveItem({
       )}
 
       {error && <p className="mt-1.5 text-[11.5px] text-coral">{error}</p>}
+      {photoUrl && (
+        // Small user-uploaded thumbnail from our own API origin — not a
+        // case next/image's remote-domain optimization pipeline is worth
+        // configuring for.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`${apiOrigin}${photoUrl}`}
+          alt={objective.description}
+          className="mt-2 h-32 w-full rounded-button object-cover"
+        />
+      )}
       {aiResult && (
         <p className={clsx("mt-1.5 text-[11.5px]", aiResult.matches ? "text-lime" : "text-ink-faint")}>
           🤖 {aiResult.matches ? t("questRoom.aiConfirms") : t("questRoom.aiUnsure")} — {aiResult.explanation}

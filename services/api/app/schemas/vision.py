@@ -17,6 +17,10 @@ class VisionVerificationOut(BaseModel):
 
 class VerifyPhotoOut(BaseModel):
     objective: ObjectiveOut
+    # Relative to the API's own origin, not apps/web's — the browser
+    # combines this with NEXT_PUBLIC_API_ORIGIN to render the photo
+    # directly (see app/main.py's StaticFiles mount for LocalDiskStorageProvider).
+    photo_url: str
     # None only if the vision call itself failed (provider unreachable,
     # bad output) — the photo/objective completion still goes through
     # either way, since this is advisory, never a gate. See

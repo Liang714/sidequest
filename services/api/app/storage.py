@@ -40,7 +40,18 @@ class LocalDiskStorageProvider:
         return key
 
     def public_url(self, storage_key: str) -> str:
-        return f"/local-storage/{storage_key}"
+        # Must include /api/v1: app.mount() in app/main.py registers this
+        # route on the same FastAPI app as everything else, and FastAPI's
+        # root_path="/api/v1" only gets applied to APIRouter-registered
+        # routes automatically, not to a raw Starlette Mount — a bare
+        # `/local-storage/...` request 404s against the real running
+        # server even though the mount itself is correctly configured
+        # (confirmed live while prepping the Fly.io deploy: /api/v1/
+        # local-storage/... -> 200, bare /local-storage/... -> 404). See
+        # tests/test_vision.py's photo_url regression check for the
+        # up-to-date empirical proof, since this is exactly the kind of
+        # thing that's easy to get backwards again later.
+        return f"/api/v1/local-storage/{storage_key}"
 
 
 def get_storage_provider() -> StorageProvider:

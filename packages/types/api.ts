@@ -1978,6 +1978,8 @@ export interface components {
         /** VerifyPhotoOut */
         VerifyPhotoOut: {
             objective: components["schemas"]["ObjectiveOut"];
+            /** Photo Url */
+            photo_url: string;
             ai_verification?: components["schemas"]["VisionVerificationOut"] | null;
         };
         /** VerifyPhotoRequest */

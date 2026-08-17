@@ -50,6 +50,7 @@ export default async function QuestRoomPage({
         initialMessages={messages}
         accessToken={accessToken}
         wsBaseUrl={process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000/api/v1"}
+        apiOrigin={process.env.NEXT_PUBLIC_API_ORIGIN ?? "http://localhost:8000"}
         currentUserId={session.user_id}
       />
     </AppShell>

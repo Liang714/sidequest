@@ -659,7 +659,11 @@ async def verify_photo_objective(
 
     quest_out = await _to_quest_out(db, await _get_quest_or_404(db, quest_id), current_user_id=current_user.id)
     updated_objective = next(o for o in quest_out.objectives if o.id == objective_id)
-    return VerifyPhotoOut(objective=updated_objective, ai_verification=ai_verification)
+    return VerifyPhotoOut(
+        objective=updated_objective,
+        photo_url=storage.public_url(storage_key),
+        ai_verification=ai_verification,
+    )
 
 
 @router.post("/{quest_id}/complete", response_model=QuestCompleteOut)

@@ -90,6 +90,20 @@ async def test_verify_photo_completes_objective_even_when_ai_says_no_match(clien
     assert body["ai_verification"]["matches"] is False
     assert body["ai_verification"]["confidence"] == 0.95
 
+    # photo_url must actually resolve, not just be a plausible-looking
+    # string — regression check for the gap noticed while prepping the
+    # Fly.io deploy (see docs/DEPLOYMENT.md): public_url() used to point
+    # at a path nothing served. Requested as an ABSOLUTE url on purpose:
+    # `client`'s base_url has a path component ("http://test/api/v1"),
+    # and httpx concatenates rather than replaces for relative
+    # leading-slash paths — a plain `client.get(body["photo_url"])` would
+    # silently double-prefix and mask exactly the bug this test exists to
+    # catch. An absolute URL is what a real browser's <img src> actually
+    # sends, so it's also the more honest simulation.
+    photo_resp = await client.get(f"http://test{body['photo_url']}")
+    assert photo_resp.status_code == 200
+    assert photo_resp.content == base64.b64decode(_TINY_PNG_B64)
+
 
 @pytest.mark.asyncio
 async def test_verify_photo_still_completes_when_provider_errors(client, seed_reference_data):
