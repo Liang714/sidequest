@@ -31,8 +31,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.13"
+        # No python-version input here — services/api/.python-version (3.13)
+        # already pins it, uv reads that automatically.
 
       - run: uv sync --all-extras --dev
 
