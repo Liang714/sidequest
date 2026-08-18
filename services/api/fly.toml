@@ -46,7 +46,7 @@ primary_region = "nrt" # Tokyo — icn (Seoul) isn't available on this
   auto_start_machines = true
   # 1, not 0: real users hitting a cold-started machine (multi-second
   # delay on the first request after idle) is a worse trade than the
-  # small always-on cost of a single shared-cpu-1x/256mb machine — cheap
+  # small always-on cost of a single shared-cpu-1x/512mb machine — cheap
   # enough that "no cold starts for real users" wins here. Revisit if
   # cost ever actually matters more than latency.
   min_machines_running = 1
@@ -61,7 +61,16 @@ primary_region = "nrt" # Tokyo — icn (Seoul) isn't available on this
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "256mb"
+  # 512mb, not 256mb: 256mb was already tight (Argon2id password hashing
+  # is deliberately memory-hard — argon2-cffi's PasswordHasher() default
+  # is 64MB *per hash*, and every register/login call does one), and it
+  # tipped into a real OOM crash-loop the moment Sentry's per-request
+  # tracing/breadcrumb overhead got added on top — confirmed live via
+  # `fly logs` (2026-08-18: repeated "Out of memory: Killed process
+  # (uvicorn)" / SIGKILL / restart, correlated exactly with SENTRY_DSN
+  # going from unset to set). Not a config guess — this is the actual
+  # fix for an actual incident.
+  memory = "512mb"
 
 [mounts]
   source = "sidequest_api_data"

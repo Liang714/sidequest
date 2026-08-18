@@ -250,11 +250,15 @@ single Fly volume:**
 ```sh
 # 1. Create a free Cloudflare account, enable R2 (10GB free, zero egress
 #    fees): https://dash.cloudflare.com → R2
-# 2. Create a bucket, then R2 → Manage API Tokens → create one
-#    (Object Read & Write) — note the Account ID, Access Key ID, and
+# 2. Create a bucket, then R2 → Manage API Tokens → create an ACCOUNT API
+#    token (not a user token — this authenticates a long-running backend
+#    service, not an interactive session; see
+#    https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/)
+#    with Object Read & Write — note the Account ID, Access Key ID, and
 #    Secret Access Key it gives you
-# 3. R2 → your bucket → Settings → enable a public bucket URL (or add a
-#    custom domain) — this becomes STORAGE_PUBLIC_BASE_URL
+# 3. R2 → your bucket → Settings → "Public Development URL" → Enable
+#    (Cloudflare renamed this from "Public access" in a May 2025 dashboard
+#    update — same feature) — this becomes STORAGE_PUBLIC_BASE_URL
 fly secrets set -a sidequest-liang714-api \
   STORAGE_PROVIDER=s3 \
   STORAGE_ENDPOINT="https://<account_id>.r2.cloudflarestorage.com" \
@@ -263,6 +267,16 @@ fly secrets set -a sidequest-liang714-api \
   STORAGE_SECRET_ACCESS_KEY="your_secret_access_key" \
   STORAGE_PUBLIC_BASE_URL="https://pub-xxxxx.r2.dev"
 ```
+
+**Gotcha confirmed live (2026-08-18):** having "Object Read & Write"
+selected as the token's *permission level* is not sufficient on its own —
+the token also has a separate "Specify bucket(s)" scope list. If that
+list doesn't explicitly include your bucket (or "Apply to all buckets"
+isn't selected), every request fails with `AccessDenied` even though the
+permission level looks correct and the key itself authenticates fine
+(rules out `InvalidAccessKeyId`/`SignatureDoesNotMatch` — this one's
+specifically a scope gap, not a bad credential). Fix: open the token,
+confirm your bucket is checked in its bucket-scope list.
 
 Existing photos already on the local Fly volume don't migrate
 automatically — this only affects new uploads going forward.
