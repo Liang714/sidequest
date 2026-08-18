@@ -1,14 +1,8 @@
 # SIDEQUEST API — production image. See docs/DEPLOYMENT.md for the full
-# Fly.io deploy sequence this image is built for.
-#
-# NOTE: this Dockerfile has not been build-tested locally — this dev
-# machine has no Docker (see docs/DEPLOYMENT.md §Local dev without
-# Docker). It follows uv's documented Docker pattern and mirrors the exact
-# commands already verified working in local dev (`uv sync`, `uv run
-# uvicorn app.main:app`, `uv run alembic upgrade head`) — but the actual
-# image build only gets verified for real on Fly's remote builder at
-# first deploy. Same "implemented, unverified against the real thing
-# until an account exists" honesty as AnthropicProvider/StripeProvider.
+# Fly.io deploy sequence this image is built for. Verified for real on
+# Fly's remote builder (this dev machine has no Docker of its own — see
+# docs/DEPLOYMENT.md §Local dev without Docker) as of the first live
+# deploy, 2026-08-17.
 
 FROM python:3.13-slim AS builder
 
@@ -50,4 +44,14 @@ EXPOSE 8000
 # traffic — see docs/DEPLOYMENT.md. Never run migrations on container
 # boot: concurrent-instance migration races (see docs/DEPLOYMENT.md
 # §Database).
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+#
+# --proxy-headers --forwarded-allow-ips="*": trust X-Forwarded-For from
+# whoever connects directly, which on Fly is *always* fly-proxy — Fly
+# Machines have no public IP of their own, every request is routed
+# through Fly's edge first (see fly.toml's [http_service]). Without this,
+# app/deps.py's IP-based rate limiting (unauthenticated endpoints —
+# register/login/refresh) would key off fly-proxy's own address for
+# every request, rate-limiting all callers together instead of each
+# other. "*" is safe here specifically because nothing but fly-proxy can
+# ever be the direct peer.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]

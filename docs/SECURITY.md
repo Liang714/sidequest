@@ -123,19 +123,92 @@ criteria's own "additive, not pay-to-win" requirement, before shipping:
 
 ## Auth & API security
 
-- JWT-based auth (Supabase-issued, verified server-side on every protected
-  route); short-lived access tokens + refresh flow.
+- JWT-based auth, self-issued (`app/security.py`) rather than
+  Supabase-issued today — see docs/ARCHITECTURE.md for why that's a
+  deliberately swappable seam, not a permanent choice — verified server-side
+  on every protected route; short-lived (30 min) access tokens + a 30-day
+  refresh flow. Passwords hashed with Argon2id (OWASP's current
+  recommendation), never anything reversible.
+- `POST /auth/login` runs the same Argon2id verification work whether or
+  not the email exists (`_DUMMY_PASSWORD_HASH` in `app/routers/auth.py`) —
+  without this, a nonexistent-email request returns measurably faster
+  than a real-email-wrong-password one, letting an attacker enumerate
+  registered emails by timing alone.
 - Standard injection defenses: parameterized queries via SQLAlchemy (no raw
-  string SQL), Pydantic validation on every request body.
+  string SQL), Pydantic validation (length/range-bounded on every field
+  that matters — XP reward, budget, participant count, etc. — not just
+  type-checked) on every request body.
 - CORS restricted to known app origins; WebSocket connections authenticated
-  with the same JWT as REST.
+  with the same JWT as REST (passed as a query param at connect time — the
+  one deliberate exception to "tokens never leave httpOnly cookies," since
+  browsers don't support custom WebSocket handshake headers; short token
+  TTL bounds the exposure).
+- Rate limiting (`app/deps.py::rate_limit`, Valkey-backed fixed window) on
+  every unauthenticated auth endpoint (register/login/refresh — the classic
+  brute-force/enumeration targets) and every write endpoint with a real
+  abuse incentive: quest creation, objective completion/photo-verification,
+  friend requests, blocks, reports, and quest-room chat messages. Keyed
+  per-user where authenticated, per-IP otherwise (`--proxy-headers` in the
+  Fly deploy so that's the real client IP, not fly-proxy's). Not literally
+  every mutating endpoint (e.g. `PATCH /notifications/{id}/read` has no
+  realistic abuse case) — this list is the actual coverage, not a rounded-up
+  claim.
+- Security headers on both the API (`app/main.py`) and the web app
+  (`apps/web/next.config.ts`): `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, HSTS, plus a real CSP on the
+  web app specifically (the API returns JSON, not HTML — a CSP matters far
+  less there).
+- The API refuses to start in production (`APP_ENV=production`) if
+  `JWT_SIGNING_SECRET` is still the public, documented dev-only default —
+  a real secret is required, not just recommended.
+
+## Security review (2026-08-18)
+
+A dedicated pass, not folded into a feature milestone — asked for
+explicitly ("hard test my application, prevent hacking") once the app was
+actually live. Found and fixed, in order of severity:
+
+- **IDOR**: `POST /quests/{id}/objectives/{id}/complete` and the photo-verify
+  equivalent never checked the caller had actually joined the quest —
+  confirmed exploitable live (a never-joined test account successfully
+  marked a required objective complete). Combined with `/complete`'s own
+  correct participation check, this meant an attacker could pre-stage
+  every required objective as "done" *before* ever joining, then join and
+  instantly claim full XP with zero real participation. Fixed:
+  `app/routers/quests.py::_require_active_participant`, same check
+  `/complete` already had, now applied to both.
+- **Missing rate limiting**: `app/deps.py::rate_limit` existed but was never
+  actually called by anything — confirmed live (20 rapid bad-password
+  login attempts, zero 429s, and a burst large enough to exhaust the DB
+  connection pool and return real 500s instead). Wired in — see §Auth & API
+  security above — and gave the connection pool more headroom
+  (`app/db.py`) as defense-in-depth on top of that.
+- **Login timing side-channel** (user enumeration) — see above.
+- **Spoofable WebSocket event**: the quest-room WebSocket accepted a client
+  `{"type": "objective.complete"}` message and broadcast a fake
+  "objective completed" event to the whole room for *any* `objective_id`,
+  with no check it belonged to the quest or that anything real happened —
+  the frontend never actually sent this message type, so it was a pure
+  liability with no offsetting feature. Removed.
+- **Missing security headers** — see above.
+- Dependency audit: `pnpm audit` (frontend) and `pip-audit` against the
+  real pinned production dependency set (backend, via `uv export`) —
+  zero known vulnerabilities in either as of this review.
+- Corrected two claims in this document that didn't match the actual
+  implementation: "webhook signatures are verified" (there are no webhook
+  endpoints at all — Stripe/Toss integrations are synchronous `charge()`
+  calls, not webhook-confirmed) and "Supabase-issued" JWTs (self-issued
+  since Phase 2, Supabase was always the target-state, swappable seam, not
+  what's actually running).
 
 ## Payment security
 
 Payment provider credentials (Toss, Stripe) never touch application code
-paths that log request bodies; webhook signatures are verified before any
-payment status is trusted; card data itself never transits SIDEQUEST's
-servers — both providers' hosted/tokenized flows are used.
+paths that log request bodies; card data itself never transits SIDEQUEST's
+servers — both providers' hosted/tokenized flows are used. No webhook
+endpoints exist today (payments are synchronous `charge()` calls, not
+webhook-confirmed) — if/when a real async payment flow needs one, it gets
+built with signature verification from the start, not retrofitted.
 
 ## Testing requirement
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, RateLimit
 from app.models.identity import Profile, User
 from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenPair
 from app.schemas.users import MeOut
@@ -16,9 +16,20 @@ from app.security import (
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# A hash of a password nobody will ever guess — verified against on every
+# login attempt for an email that doesn't exist, so that path costs the
+# same Argon2id work as a real wrong-password attempt. Without this, a
+# nonexistent email short-circuits verify_password() entirely and returns
+# measurably faster than a real email + wrong password, letting an
+# attacker enumerate registered emails purely by timing. Generated once,
+# not per-request — hashing at import time keeps the dummy comparison
+# itself cheap; the constant multi-ms Argon2id cost is what matters, not
+# what the dummy hash actually decodes to.
+_DUMMY_PASSWORD_HASH = hash_password("this-hash-exists-only-to-equalize-login-timing")
+
 
 @router.post("/register", response_model=TokenPair, status_code=status.HTTP_201_CREATED)
-async def register(body: RegisterRequest, db: DbSession) -> TokenPair:
+async def register(body: RegisterRequest, db: DbSession, _rl: None = RateLimit("register", 5)) -> TokenPair:
     user = User(
         email=body.email.lower(),
         username=body.username,
@@ -37,18 +48,19 @@ async def register(body: RegisterRequest, db: DbSession) -> TokenPair:
 
 
 @router.post("/login", response_model=TokenPair)
-async def login(body: LoginRequest, db: DbSession) -> TokenPair:
+async def login(body: LoginRequest, db: DbSession, _rl: None = RateLimit("login", 10)) -> TokenPair:
     user = await db.scalar(select(User).where(User.email == body.email.lower()))
-    if user is None or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
-    if user.deleted_at is not None:
+    # Always run password verification, even for a nonexistent user —
+    # see _DUMMY_PASSWORD_HASH's docstring.
+    password_ok = verify_password(body.password, user.password_hash if user else _DUMMY_PASSWORD_HASH)
+    if user is None or not password_ok or user.deleted_at is not None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
 
     return TokenPair(access_token=create_token(user.id, "access"), refresh_token=create_token(user.id, "refresh"))
 
 
 @router.post("/refresh", response_model=TokenPair)
-async def refresh(body: RefreshRequest, db: DbSession) -> TokenPair:
+async def refresh(body: RefreshRequest, db: DbSession, _rl: None = RateLimit("refresh", 20)) -> TokenPair:
     try:
         user_id = decode_token(body.refresh_token, expected_type="refresh")
     except InvalidTokenError as exc:

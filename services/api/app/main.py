@@ -4,7 +4,7 @@ router list mirrors, and docs/API.md for the endpoint reference."""
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
@@ -27,6 +27,17 @@ from app.routers import (
 
 settings = get_settings()
 
+# A deployment that's still running the dev-only placeholder secret would
+# accept/sign JWTs anyone could forge (the value is public — it's right
+# there in .env.example and every doc that quotes it) — refuse to boot
+# rather than silently run a production API with a known signing key.
+_INSECURE_DEV_SECRET = "dev-only-insecure-secret-change-me"
+if settings.app_env == "production" and settings.jwt_signing_secret == _INSECURE_DEV_SECRET:
+    raise RuntimeError(
+        "APP_ENV=production but JWT_SIGNING_SECRET is still the insecure dev default — "
+        "set a real secret (e.g. `openssl rand -hex 32`) via `fly secrets set`, see docs/DEPLOYMENT.md."
+    )
+
 app = FastAPI(
     title="SIDEQUEST API",
     version="0.1.0",
@@ -40,6 +51,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next: Any) -> Response:
+    """Defense-in-depth headers with no real downside for a JSON API (plus
+    the /local-storage static mount and /docs Swagger UI, both of which
+    these still apply to correctly). Not a CSP: this API doesn't serve
+    app HTML — that's apps/web's job, on a separate origin/deploy — and a
+    misconfigured CSP risks breaking the interactive Swagger UI for no
+    real gain here.
+    """
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # Serves whatever LocalDiskStorageProvider.save() writes, at exactly the
 # path LocalDiskStorageProvider.public_url() promises (see app/storage.py).

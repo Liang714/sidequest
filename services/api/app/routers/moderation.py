@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, status
 
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, RateLimit
 from app.models.social import Report
 from app.schemas.moderation import ReportCreate
 
@@ -10,7 +10,9 @@ router = APIRouter(tags=["moderation"])
 
 
 @router.post("/reports", status_code=status.HTTP_201_CREATED)
-async def create_report(body: ReportCreate, current_user: CurrentUser, db: DbSession) -> dict[str, Any]:
+async def create_report(
+    body: ReportCreate, current_user: CurrentUser, db: DbSession, _rl: None = RateLimit("report", 10)
+) -> dict[str, Any]:
     report = Report(
         reporter_id=current_user.id,
         target_type=body.target_type,

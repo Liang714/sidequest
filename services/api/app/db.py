@@ -13,7 +13,18 @@ from app.config import get_settings
 
 settings = get_settings()
 
-engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+# Explicit over SQLAlchemy's defaults (pool_size=5, max_overflow=10,
+# pool_timeout=30s) — found live, via a security review's own rate-limit
+# test: a burst of ~15 concurrent requests against a fresh single-machine
+# deploy produced real 500s from pool checkout timeouts, not just slow
+# responses. A bit more headroom, and failing in 10s with a clear
+# TimeoutError instead of hanging 30s, both help — this doesn't replace
+# app/deps.py's rate limiting (that's what actually bounds how fast one
+# caller can generate load), it just makes legitimate concurrent bursts
+# less likely to 500 in the meantime.
+engine = create_async_engine(
+    settings.database_url, pool_pre_ping=True, pool_size=10, max_overflow=10, pool_timeout=10
+)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 

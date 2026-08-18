@@ -24,8 +24,22 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # Real Valkey, not a mock — same "real Postgres, not SQLite" stance
+      # applied to app/deps.py's rate limiting (added in the 2026-08-18
+      # security review, see docs/SECURITY.md), which is otherwise
+      # untested in CI (it fails open when Valkey's unreachable, so
+      # without this the rate-limit tests would silently never trigger).
+      valkey:
+        image: valkey/valkey:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DATABASE_URL: postgresql+asyncpg://sidequest:sidequest@localhost:5432/sidequest
+      VALKEY_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4
 

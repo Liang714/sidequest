@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, tuple_
 from sqlalchemy.orm import selectinload
 
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, RateLimit
 from app.models.business import Business, BusinessQuest
 from app.models.commerce import CreatorQuest
 from app.models.identity import Interest, Profile, User, UserInterest
@@ -52,6 +52,26 @@ router = APIRouter(prefix="/quests", tags=["quests"])
 
 StorageProviderDep = Annotated[StorageProvider, Depends(get_storage_provider)]
 VisionVerifierDep = Annotated[VisionVerifier, Depends(get_vision_verifier)]
+
+
+async def _require_active_participant(db: DbSession, quest_id: UUID, user_id: UUID) -> None:
+    """Gate for the two per-objective completion endpoints below — mirrors
+    the participation check /complete already had, which those two didn't
+    (found during a security review: without this, anyone authenticated
+    could call either endpoint for ANY quest they'd never joined, writing
+    a QuestObjectiveCompletion row before ever becoming a participant.
+    That row then satisfies /complete's "all required objectives done"
+    check the moment they *do* join — self-report becomes no-report).
+    """
+    participant = await db.scalar(
+        select(QuestParticipant).where(
+            QuestParticipant.quest_id == quest_id,
+            QuestParticipant.user_id == user_id,
+            QuestParticipant.status != ParticipantStatus.left,
+        )
+    )
+    if participant is None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "You haven't joined this quest")
 
 
 async def _get_quest_or_404(db: DbSession, quest_id: UUID) -> Quest:
@@ -149,7 +169,9 @@ async def _to_quest_out(db: DbSession, quest: Quest, *, current_user_id: UUID | 
 
 
 @router.post("", response_model=QuestOut, status_code=status.HTTP_201_CREATED)
-async def create_quest(body: QuestCreate, current_user: CurrentUser, db: DbSession) -> QuestOut:
+async def create_quest(
+    body: QuestCreate, current_user: CurrentUser, db: DbSession, _rl: None = RateLimit("quest-create", 10)
+) -> QuestOut:
     category = await db.scalar(select(QuestCategory).where(QuestCategory.key == body.category_key))
     if category is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Unknown category '{body.category_key}'")
@@ -564,11 +586,16 @@ async def checkin_quest(quest_id: UUID, current_user: CurrentUser, db: DbSession
 
 @router.post("/{quest_id}/objectives/{objective_id}/complete", response_model=QuestOut)
 async def complete_objective(
-    quest_id: UUID, objective_id: UUID, current_user: CurrentUser, db: DbSession
+    quest_id: UUID,
+    objective_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    _rl: None = RateLimit("objective-complete", 30),
 ) -> QuestOut:
     objective = await db.get(QuestObjective, objective_id)
     if objective is None or objective.quest_id != quest_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Objective not found")
+    await _require_active_participant(db, quest_id, current_user.id)
 
     existing = await db.scalar(
         select(QuestObjectiveCompletion).where(
@@ -600,6 +627,7 @@ async def verify_photo_objective(
     db: DbSession,
     storage: StorageProviderDep,
     verifier: VisionVerifierDep,
+    _rl: None = RateLimit("objective-verify-photo", 15),
 ) -> VerifyPhotoOut:
     """The photo-objective equivalent of /complete — completes the
     objective (self-report, same honor-system baseline every other
@@ -613,6 +641,7 @@ async def verify_photo_objective(
     objective = await db.get(QuestObjective, objective_id)
     if objective is None or objective.quest_id != quest_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Objective not found")
+    await _require_active_participant(db, quest_id, current_user.id)
 
     try:
         image_bytes = base64.b64decode(body.image_base64, validate=True)

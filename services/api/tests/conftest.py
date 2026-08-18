@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 import app.db as db_module
 from app.config import get_settings
 from app.db import Base
+from app.deps import get_valkey
 from app.main import app
 from app.models.gamification import Achievement
 from app.models.identity import Interest
@@ -50,6 +51,23 @@ async def _clean_tables():
     async with db_module.engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _clean_rate_limits():
+    """app/deps.py::rate_limit keys every unauthenticated request off
+    request.client.host — and httpx's ASGITransport gives every single
+    test request the *same* fake client address (confirmed directly: two
+    requests through it both report request.client == ["127.0.0.1", 123]).
+    Without this, dozens of unrelated tests calling register()/login()
+    would all share one Valkey bucket and start 429ing each other well
+    before any test that's actually about rate limiting gets to run.
+    Mirrors _clean_tables' pattern, applied to Valkey instead of Postgres.
+    """
+    yield
+    vk = await get_valkey()
+    async for key in vk.scan_iter(match="ratelimit:*"):
+        await vk.delete(key)
 
 
 @pytest_asyncio.fixture

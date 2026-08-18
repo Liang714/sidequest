@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import and_, or_, select
 
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, RateLimit
 from app.models.identity import Block, Friend, FriendStatus, User
 from app.models.social import Notification
 from app.schemas.friends import BlockCreate, FriendOut, FriendRequestCreate
@@ -25,7 +25,9 @@ async def _existing_relationship(db: DbSession, a: UUID, b: UUID) -> Friend | No
 
 
 @router.post("/friends/request", response_model=FriendOut, status_code=status.HTTP_201_CREATED)
-async def send_friend_request(body: FriendRequestCreate, current_user: CurrentUser, db: DbSession) -> FriendOut:
+async def send_friend_request(
+    body: FriendRequestCreate, current_user: CurrentUser, db: DbSession, _rl: None = RateLimit("friend-request", 20)
+) -> FriendOut:
     if body.addressee_id == current_user.id:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Cannot friend yourself")
 
@@ -133,7 +135,9 @@ async def list_incoming_requests(current_user: CurrentUser, db: DbSession) -> li
 
 
 @router.post("/blocks", status_code=status.HTTP_201_CREATED)
-async def block_user(body: BlockCreate, current_user: CurrentUser, db: DbSession) -> dict[str, Any]:
+async def block_user(
+    body: BlockCreate, current_user: CurrentUser, db: DbSession, _rl: None = RateLimit("block", 20)
+) -> dict[str, Any]:
     if body.blocked_id == current_user.id:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Cannot block yourself")
 

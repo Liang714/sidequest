@@ -19,7 +19,7 @@ from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconn
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.deps import CurrentUser, DbSession, get_valkey
+from app.deps import CurrentUser, DbSession, check_rate_limit, get_valkey
 from app.models.identity import User
 from app.models.quests import ParticipantStatus, Quest, QuestParticipant
 from app.models.social import Message
@@ -122,6 +122,13 @@ async def quest_room_ws(websocket: WebSocket, quest_id: UUID, token: str = Query
         while True:
             raw = await websocket.receive_json()
             if raw.get("type") == "message.send":
+                # Same fixed-window limiter every REST mutation uses (see
+                # app/deps.py) — a WebSocket has no Request to key a normal
+                # rate_limit() call off of, so this calls the shared core
+                # directly, keyed per-user same as an authenticated REST call.
+                if not await check_rate_limit(f"ratelimit:chat-message:{user_id}", 30):
+                    await websocket.send_json({"type": "error", "message": "Rate limit exceeded"})
+                    continue
                 content = str(raw.get("content", "")).strip()
                 if not content:
                     continue
@@ -143,11 +150,15 @@ async def quest_room_ws(websocket: WebSocket, quest_id: UUID, token: str = Query
                 }
                 await manager.broadcast(quest_id, payload)
                 await vk.publish(f"quest_room:{quest_id}", json.dumps(payload))
-            elif raw.get("type") == "objective.complete":
-                await manager.broadcast(
-                    quest_id,
-                    {"type": "objective.updated", "objective_id": raw.get("objective_id"), "completed_by": [str(user_id)]},
-                )
+            # No client-triggered "objective.complete" broadcast here on
+            # purpose — a prior version let ANY connected participant
+            # broadcast a fake "objective.updated" event for literally any
+            # objective_id, with no check it belonged to this quest or
+            # that anything was actually completed (found during a
+            # security review; the frontend never sent this message type
+            # either, so removing it costs no real functionality).
+            # Objective completion is server-authoritative only, via
+            # POST /quests/{id}/objectives/{id}/complete.
     except WebSocketDisconnect:
         pass
     finally:
