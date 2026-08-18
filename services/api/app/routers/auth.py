@@ -78,8 +78,14 @@ async def _issue_and_send_token(
 
     try:
         await provider.send(message)
-    except EmailSendError:
-        logger.warning("Failed to send %s email to user_id=%s", purpose.value, user.id)
+    except EmailSendError as exc:
+        # Include the actual provider error (Resend's response body is
+        # inside `exc`, e.g. the sandbox-domain-restriction message) — a
+        # bare "failed to send" with no reason was a real diagnosability
+        # gap, caught live while verifying Resend against production for
+        # the first time (2026-08-18): the send failed silently and the
+        # only way to find out why was to already know what to suspect.
+        logger.warning("Failed to send %s email to user_id=%s: %s", purpose.value, user.id, exc)
 
 
 async def _consume_token(db: DbSession, *, raw_token: str, purpose: EmailTokenPurpose) -> User:
