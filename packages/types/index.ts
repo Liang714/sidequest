@@ -58,3 +58,5 @@ export type PlanStepOut = Schemas["PlanStepOut"];
 export type ExplainRecommendationOut = Schemas["ExplainRecommendationOut"];
 export type VerifyPhotoOut = Schemas["VerifyPhotoOut"];
 export type VisionVerificationOut = Schemas["VisionVerificationOut"];
+
+export type ReportOut = Schemas["ReportOut"];

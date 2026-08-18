@@ -3,6 +3,11 @@ packages:
   - "packages/*"
 
 allowBuilds:
+  # @sentry/cli's postinstall downloads a binary used for source-map
+  # upload / release tracking — not needed here since apps/web's Sentry
+  # integration deliberately skips the next.config.ts webpack wrapper
+  # (see instrumentation.ts's docstring), so there's nothing for it to do.
+  '@sentry/cli': false
   sharp: true
   unrs-resolver: true
 

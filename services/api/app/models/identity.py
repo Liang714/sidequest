@@ -37,8 +37,35 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # app/deps.py::CurrentAdmin, used by business verification today.
     is_admin: Mapped[bool] = mapped_column(default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(default=None)
+    # Non-blocking — see app/routers/auth.py's verify-email endpoint and
+    # docs/SECURITY.md: an unverified account can still fully use the app,
+    # this just tracks whether the email is real (password reset and
+    # future ownership-sensitive actions depend on it being reachable).
+    email_verified_at: Mapped[datetime | None] = mapped_column(default=None)
 
     profile: Mapped["Profile"] = relationship(back_populates="user", uselist=False)
+
+
+class EmailTokenPurpose(str, enum.Enum):
+    verify_email = "verify_email"
+    reset_password = "reset_password"
+
+
+class EmailToken(UUIDPrimaryKeyMixin, Base):
+    """Single-use, short-lived tokens backing email verification and
+    password reset (app/routers/auth.py). Stores a hash of the token, not
+    the raw value — a DB leak alone shouldn't hand out usable tokens,
+    same reasoning as password_hash never storing the real password.
+    """
+
+    __tablename__ = "email_tokens"
+
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    purpose: Mapped[EmailTokenPurpose]
+    token_hash: Mapped[str] = mapped_column(unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
+    expires_at: Mapped[datetime]
+    used_at: Mapped[datetime | None] = mapped_column(default=None)
 
 
 class Profile(Base):

@@ -56,6 +56,15 @@ erDiagram
 
 ## Identity & social
 
+*A few fields below (`phone`, `auth_provider_ref`, `geog` later in this
+file) reflect the original Phase 0 design intent rather than what's
+actually running — auth is self-issued JWT, not Supabase (see
+docs/ARCHITECTURE.md), and there's no PostGIS on this dev setup (see
+docs/DEPLOYMENT.md §Local dev without Docker). Called out here rather
+than silently left for someone to trip over; a full pass reconciling
+this whole file with the real schema is still owed, not done in this
+pass — `email_verified_at` and `email_tokens` below **are** current.*
+
 ```sql
 CREATE TABLE users (
     id                 UUID PRIMARY KEY,
@@ -65,10 +74,24 @@ CREATE TABLE users (
     username           CITEXT UNIQUE NOT NULL,
     locale             TEXT NOT NULL DEFAULT 'en',   -- ko | en | ja | zh
     status             user_status NOT NULL DEFAULT 'active', -- active|suspended|deactivated
+    is_admin           BOOLEAN NOT NULL DEFAULT false,  -- no signup flow, see app/make_admin.py
+    email_verified_at  TIMESTAMPTZ,   -- non-blocking (docs/SECURITY.md) — set via POST /auth/verify-email
     created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-    deleted_at         TIMESTAMPTZ
+    deleted_at         TIMESTAMPTZ   -- self-service via POST /users/me/delete; also mangles email/username to free them for reuse
 );
+
+CREATE TABLE email_tokens (
+    id           UUID PRIMARY KEY,
+    user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    purpose      email_token_purpose NOT NULL,   -- verify_email | reset_password
+    token_hash   TEXT UNIQUE NOT NULL,   -- SHA-256 of the raw token — only the hash is ever stored
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at   TIMESTAMPTZ NOT NULL,   -- 24h for verify_email, 1h for reset_password
+    used_at      TIMESTAMPTZ    -- single-use: NULL until consumed, then never reusable
+);
+-- Backs POST /auth/verify-email and /auth/forgot-password + /auth/reset-password.
+-- See app/security.py::generate_email_token / hash_email_token.
 
 CREATE TABLE profiles (
     user_id             UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

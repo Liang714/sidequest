@@ -164,12 +164,20 @@ export default async function ProfilePage() {
           🏢 {t("business.dashboardLink")}
         </Link>
         {session.is_admin && (
-          <Link
-            href="/admin/businesses"
-            className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
-          >
-            🛡️ {t("admin.pendingBusinesses")}
-          </Link>
+          <>
+            <Link
+              href="/admin/businesses"
+              className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
+            >
+              🛡️ {t("admin.pendingBusinesses")}
+            </Link>
+            <Link
+              href="/admin/reports"
+              className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-coral/40"
+            >
+              🚩 {t("admin.reportsNavLink")}
+            </Link>
+          </>
         )}
       </div>
     </AppShell>

@@ -1,11 +1,20 @@
+import secrets
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
 
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, RateLimit
 from app.models.identity import Interest, Profile, User, UserInterest
-from app.schemas.users import InterestOut, ProfileOut, ProfileUpdate, SetInterestsRequest
+from app.schemas.users import (
+    AccountDeleteRequest,
+    InterestOut,
+    ProfileOut,
+    ProfileUpdate,
+    SetInterestsRequest,
+)
+from app.security import hash_password, verify_password
 
 router = APIRouter(tags=["users"])
 
@@ -75,3 +84,27 @@ async def get_user_profile(user_id: UUID, current_user: CurrentUser, db: DbSessi
         xp=profile.xp,
         level=profile.level,
     )
+
+
+@router.post("/users/me/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_account(
+    body: AccountDeleteRequest, current_user: CurrentUser, db: DbSession, _rl: None = RateLimit("account-delete", 5)
+) -> None:
+    """Self-service account deletion — soft delete, same as every other
+    "deleted" thing in this app (see docs/SECURITY.md: a moderation
+    investigation may still need the record). email/username get mangled
+    to a value nobody could register, freeing the *original* ones up for
+    reuse (both columns are unique-constrained) rather than permanently
+    squatting them on an account nobody can ever log into again.
+    password_hash is overwritten with an unusable random value too — belt
+    and suspenders on top of the deleted_at check every auth path already
+    does, not a substitute for it.
+    """
+    if not verify_password(body.password, current_user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect password")
+
+    current_user.deleted_at = datetime.now(UTC)
+    current_user.email = f"deleted-{current_user.id}@deleted.sidequest.invalid"
+    current_user.username = f"deleted-{current_user.id}"
+    current_user.password_hash = hash_password(secrets.token_urlsafe(32))
+    await db.commit()

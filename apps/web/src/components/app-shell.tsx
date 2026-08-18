@@ -20,6 +20,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             <ThemeToggle />
+            <Link
+              href="/settings"
+              className="rounded-chip border border-line px-2.5 py-1 font-mono text-[11px] text-ink-muted hover:text-ink"
+              aria-label={t("settings.navLink")}
+            >
+              ⚙️
+            </Link>
             <form action={logoutAction}>
               <button
                 type="submit"

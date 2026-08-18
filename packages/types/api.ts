@@ -72,6 +72,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Email */
+        post: operations["verify_email_auth_verify_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Verification */
+        post: operations["resend_verification_auth_resend_verification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgot Password
+         * @description Always returns 204 regardless of whether the email is registered —
+         *     the response never discloses that, so this can't be used to enumerate
+         *     accounts by content. (Response *timing* still differs slightly — the
+         *     registered-email path does a DB write and a provider call, the
+         *     unregistered path doesn't — a smaller and more commonly-accepted
+         *     residual gap than login's, which _DUMMY_PASSWORD_HASH closes
+         *     completely; not worth the complexity of faking equivalent work here.)
+         */
+        post: operations["forgot_password_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Password */
+        post: operations["reset_password_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/interests": {
         parameters: {
             query?: never;
@@ -134,6 +211,34 @@ export interface paths {
         get: operations["get_user_profile_users__user_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete My Account
+         * @description Self-service account deletion — soft delete, same as every other
+         *     "deleted" thing in this app (see docs/SECURITY.md: a moderation
+         *     investigation may still need the record). email/username get mangled
+         *     to a value nobody could register, freeing the *original* ones up for
+         *     reuse (both columns are unique-constrained) rather than permanently
+         *     squatting them on an account nobody can ever log into again.
+         *     password_hash is overwritten with an unusable random value too — belt
+         *     and suspenders on top of the deleted_at check every auth path already
+         *     does, not a substitute for it.
+         */
+        post: operations["delete_my_account_users_me_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -575,6 +680,45 @@ export interface paths {
         put?: never;
         /** Create Report */
         post: operations["create_report_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin List Reports
+         * @description Defaults to the open queue (the actual moderation work) — pass
+         *     ?status=actioned or ?status=dismissed to see resolved history. Mirrors
+         *     GET /admin/businesses' exact shape (app/routers/business.py).
+         */
+        get: operations["admin_list_reports_admin_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/{report_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Resolve Report */
+        post: operations["admin_resolve_report_admin_reports__report_id__resolve_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1030,6 +1174,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountDeleteRequest */
+        AccountDeleteRequest: {
+            /** Password */
+            password: string;
+        };
         /** AchievementOut */
         AchievementOut: {
             /** Key */
@@ -1261,6 +1410,14 @@ export interface components {
             /** Lng */
             lng?: number | null;
         };
+        /** ForgotPasswordRequest */
+        ForgotPasswordRequest: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+        };
         /** FriendOut */
         FriendOut: {
             /**
@@ -1474,6 +1631,11 @@ export interface components {
              * @default false
              */
             is_admin: boolean;
+            /**
+             * Email Verified
+             * @default false
+             */
+            email_verified: boolean;
         };
         /** MessageOut */
         MessageOut: {
@@ -1864,10 +2026,69 @@ export interface components {
             reason: string;
         };
         /**
+         * ReportOut
+         * @description Full target context per docs/SECURITY.md's own promise — an admin
+         *     should never need to go reconstruct what was reported from a bare ID.
+         *     reporter_username/target_label are resolved server-side (see
+         *     app/routers/moderation.py) rather than left as raw UUIDs for exactly
+         *     that reason.
+         */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Reporter Id
+             * Format: uuid
+             */
+            reporter_id: string;
+            /** Reporter Username */
+            reporter_username: string;
+            target_type: components["schemas"]["ReportTargetType"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Target Label */
+            target_label: string;
+            /** Reason */
+            reason: string;
+            status: components["schemas"]["ReportStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Resolved By */
+            resolved_by: string | null;
+        };
+        /** ReportResolveAction */
+        ReportResolveAction: {
+            /** Action */
+            action: string;
+        };
+        /**
+         * ReportStatus
+         * @enum {string}
+         */
+        ReportStatus: "open" | "actioned" | "dismissed";
+        /**
          * ReportTargetType
          * @enum {string}
          */
         ReportTargetType: "user" | "quest" | "business" | "message";
+        /** ResetPasswordRequest */
+        ResetPasswordRequest: {
+            /** Token */
+            token: string;
+            /** New Password */
+            new_password: string;
+        };
         /** SetInterestsRequest */
         SetInterestsRequest: {
             /** Interest Ids */
@@ -1975,6 +2196,11 @@ export interface components {
          * @enum {string}
          */
         VerificationType: "manual" | "photo" | "qr" | "geofence" | "business_confirm";
+        /** VerifyEmailRequest */
+        VerifyEmailRequest: {
+            /** Token */
+            token: string;
+        };
         /** VerifyPhotoOut */
         VerifyPhotoOut: {
             objective: components["schemas"]["ObjectiveOut"];
@@ -2142,6 +2368,117 @@ export interface operations {
             };
         };
     };
+    verify_email_auth_verify_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_verification_auth_resend_verification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    forgot_password_auth_forgot_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_auth_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_interests_interests_get: {
         parameters: {
             query?: never;
@@ -2247,6 +2584,37 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_account_users_me_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -3060,6 +3428,72 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_reports_admin_reports_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ReportStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_resolve_report_admin_reports__report_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportResolveAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
                 };
             };
             /** @description Validation Error */

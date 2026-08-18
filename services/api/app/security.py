@@ -8,6 +8,8 @@ like too — swapping providers later doesn't change any call site, only
 this module. See docs/ARCHITECTURE.md for the target state.
 """
 
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
@@ -68,3 +70,21 @@ def decode_token(token: str, expected_type: TokenType) -> UUID:
         return UUID(payload["sub"])
     except (KeyError, ValueError) as exc:
         raise InvalidTokenError("malformed subject claim") from exc
+
+
+def generate_email_token() -> tuple[str, str]:
+    """Returns (raw_token, token_hash) for email verification / password
+    reset (app/models/identity.py::EmailToken, app/routers/auth.py). The
+    raw value goes in the emailed link and is never stored — only its
+    SHA-256 hash is, so a DB leak alone can't hand out usable tokens
+    (same reasoning as password_hash never storing the real password;
+    SHA-256 rather than Argon2id here since this is a high-entropy random
+    token being looked up by exact hash match, not a low-entropy secret
+    someone could brute-force offline — Argon2id's slow-by-design cost
+    would just be wasted work on every verify/reset request)."""
+    raw_token = secrets.token_urlsafe(32)
+    return raw_token, hash_email_token(raw_token)
+
+
+def hash_email_token(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode()).hexdigest()

@@ -28,7 +28,12 @@ primary_region = "nrt" # Tokyo — icn (Seoul) isn't available on this
   VISION_PROVIDER = "fake"
   PAYMENT_PROVIDER = "fake"
   BOOKING_PROVIDER = "fake"
+  EMAIL_PROVIDER = "fake"
+  STORAGE_PROVIDER = "local"
   STORAGE_LOCAL_DIR = "/data/local-storage"
+  # Update this if the Vercel deployment ever moves to a custom domain —
+  # used to build the links inside verification/reset emails.
+  WEB_BASE_URL = "https://web-three-rosy-91.vercel.app"
   # Valkey — see infra/fly-valkey/fly.toml. Fly private networking (6PN)
   # resolves other apps in the same org by <app-name>.internal; no public
   # exposure, no separate Redis vendor account.
@@ -39,7 +44,12 @@ primary_region = "nrt" # Tokyo — icn (Seoul) isn't available on this
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0
+  # 1, not 0: real users hitting a cold-started machine (multi-second
+  # delay on the first request after idle) is a worse trade than the
+  # small always-on cost of a single shared-cpu-1x/256mb machine — cheap
+  # enough that "no cold starts for real users" wins here. Revisit if
+  # cost ever actually matters more than latency.
+  min_machines_running = 1
   processes = ["app"]
 
   [[http_service.checks]]

@@ -7,8 +7,10 @@ generated schema is the contract `packages/types` is built from.
 
 ## Conventions
 
-- **Auth:** `Authorization: Bearer <jwt>` — a Supabase-issued JWT, verified
-  by FastAPI middleware on every non-public route.
+- **Auth:** `Authorization: Bearer <jwt>` — self-issued (`app/security.py`,
+  Supabase was always the target-state/swappable seam, not what's
+  actually running — see docs/ARCHITECTURE.md), verified on every
+  protected route via `app/deps.py::get_current_user`.
 - **Pagination:** cursor-based on all list endpoints —
   `?cursor=<opaque>&limit=20`, response includes `next_cursor` (null when
   exhausted). No offset pagination (doesn't hold up under concurrent writes
@@ -16,9 +18,13 @@ generated schema is the contract `packages/types` is built from.
 - **Errors:** `{ "error": { "code": "quest_full", "message": "..." } }`,
   HTTP status matches the error class (400 validation, 401/403 auth,
   404 not found, 409 conflict, 429 rate-limited).
-- **Rate limiting:** per-user token bucket in Valkey, default 60 req/min
-  (`RATE_LIMIT_DEFAULT_PER_MINUTE`), tighter on write-heavy endpoints
-  (quest creation, messages, reports) — see [SECURITY.md](SECURITY.md).
+- **Rate limiting:** fixed-window, Valkey-backed (`app/deps.py::rate_limit`),
+  per-user when authenticated, per-IP otherwise — applied to unauthenticated
+  auth endpoints and every write endpoint with a real abuse incentive
+  (quest creation, objective completion/photo-verify, friend requests,
+  blocks, reports, chat messages, account deletion), not literally every
+  endpoint — see [SECURITY.md](SECURITY.md) §Security review for the
+  exact list and why.
 - **Idempotency:** mutating endpoints that can be double-submitted from a
   flaky mobile connection (`join`, `checkin`, `complete`) accept an
   `Idempotency-Key` header.
@@ -27,9 +33,14 @@ generated schema is the contract `packages/types` is built from.
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/auth/register` | Delegates to Supabase Auth; creates the `users` row on first successful auth |
-| POST | `/auth/login` | Delegates to Supabase Auth |
-| POST | `/auth/refresh` | Refresh token → new access token |
+| POST | `/auth/register` | Creates the user + profile, issues a token pair, and sends a verification email (best-effort — never fails registration if the email doesn't go out, see `EmailProvider`). Rate-limited (5/min/IP) |
+| POST | `/auth/login` | Rate-limited (10/min/IP). Runs Argon2id verification even for a nonexistent email (`_DUMMY_PASSWORD_HASH`) so response timing can't be used to enumerate registered emails — see docs/SECURITY.md |
+| POST | `/auth/refresh` | Refresh token → new access token. Rate-limited (20/min/IP) |
+| GET | `/auth/me` | Current user's full profile incl. `email_verified` |
+| POST | `/auth/verify-email` | `{ token }` — consumes a single-use email-verification token (24h TTL) |
+| POST | `/auth/resend-verification` | Authenticated. 409 if already verified. Rate-limited (5/min/user) |
+| POST | `/auth/forgot-password` | `{ email }` — **always** returns 204 regardless of whether the email is registered (enumeration-safe by content; see docs/SECURITY.md for the one residual timing-based gap this doesn't close). Rate-limited (5/min/IP) |
+| POST | `/auth/reset-password` | `{ token, new_password }` — consumes a single-use password-reset token (1h TTL) |
 
 ## Users & profiles
 
@@ -38,6 +49,7 @@ generated schema is the contract `packages/types` is built from.
 | GET | `/users/me` | Full profile incl. private settings |
 | PATCH | `/users/me` | Partial update |
 | GET | `/users/{id}` | Public view, respects `visibility_settings` |
+| POST | `/users/me/delete` | `{ password }` — self-service account deletion. Soft delete (`deleted_at`), same as everything else in this app; `email`/`username` are mangled and freed up for reuse, `password_hash` is overwritten with an unusable random value. Requires re-entering the password. Rate-limited (5/min/user) |
 | GET | `/users/me/xp` | XP total + level + recent `xp_transactions` |
 | GET | `/users/me/achievements` | Full achievement gallery — locked *and* unlocked (Phase 4), sorted unlocked-first |
 
@@ -67,7 +79,7 @@ generated schema is the contract `packages/types` is built from.
 | POST | `/quests/{id}/checkin` | Marks `quest_participants.checked_in_at` |
 | POST | `/quests/{id}/complete` | Verifies required objectives, awards XP, writes `quest_completions`. Returns `{ quest, xp_awarded, new_level, new_achievements }` (Phase 4) — `new_level`/`new_achievements` are only populated the one time completion actually happens, so the client can show a level-up/unlock moment; a repeat call is a no-op returning `xp_awarded: 0` |
 | POST | `/quests/{id}/objectives/{objective_id}/complete` | Per-user objective completion — no "uncomplete" |
-| POST | `/quests/{id}/objectives/{objective_id}/verify-photo` | `{ image_base64, content_type }` (max 8MB) — saves the photo, runs it through `VisionVerifier` (Phase 8, local Ollama `llava:7b`), completes the objective regardless of the AI verdict. Returns `{ objective, photo_url, ai_verification }`; `photo_url` is relative to the API's own origin (e.g. `/api/v1/local-storage/...` for the default `LocalDiskStorageProvider` — see docs/DEPLOYMENT.md §Local dev without Docker for a real bug this URL shape fixed); `ai_verification` (`{ matches, confidence, explanation }`) is advisory-only — see docs/AI.md for the measured accuracy behind that decision |
+| POST | `/quests/{id}/objectives/{objective_id}/verify-photo` | `{ image_base64, content_type }` (max 8MB) — saves the photo via `StorageProvider`, runs it through `VisionVerifier` (Phase 8, local Ollama `llava:7b`), completes the objective regardless of the AI verdict. Returns `{ objective, photo_url, ai_verification }`; `photo_url` shape depends on `STORAGE_PROVIDER` — `/api/v1/local-storage/...` (relative to the API's own origin) for the `local` default, or a real bucket/CDN URL for `s3` (Cloudflare R2/MinIO) — see `app/storage.py`; `ai_verification` (`{ matches, confidence, explanation }`) is advisory-only — see docs/AI.md for the measured accuracy behind that decision |
 | GET | `/quests/{id}/compatibility` | Current user's compatibility score + breakdown (Phase 3) |
 
 ## Quest rooms (WebSocket)
@@ -80,13 +92,19 @@ Message frames (JSON):
 ```jsonc
 // client → server
 { "type": "message.send", "content": "on my way!" }
-{ "type": "objective.complete", "objective_id": "..." }
 
 // server → client
 { "type": "message.new", "message": { "id": "...", "sender_id": "...", "content": "...", "created_at": "..." } }
-{ "type": "presence.update", "user_id": "...", "status": "checked_in" }
-{ "type": "objective.updated", "objective_id": "...", "completed_by": ["..."] }
+{ "type": "error", "message": "Rate limit exceeded" }
 ```
+
+`message.send` is rate-limited (30/min/user, same fixed-window limiter
+every REST mutation uses — see docs/SECURITY.md). There's deliberately no
+client-triggered `objective.complete`/`objective.updated` frame — an
+earlier version had one, but it let any connected participant broadcast
+a fake "completed" event for literally any `objective_id` with no
+validation. Objective completion is server-authoritative only, via
+`POST /quests/{id}/objectives/{id}/complete`.
 
 ## AI
 
@@ -185,9 +203,9 @@ client last saw in an availability response — see
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/reports` | `{ target_type, target_id, reason }` |
-| GET | `/admin/reports` | Admin-only, moderation queue |
-| POST | `/admin/reports/{id}/resolve` | `{ action: "actioned" \| "dismissed" }` |
+| POST | `/reports` | `{ target_type, target_id, reason }`. Rate-limited (10/min/user) |
+| GET | `/admin/reports?status=` | Admin-only. Defaults to the `open` queue; pass `?status=actioned` or `?status=dismissed` for resolved history. Each `ReportOut` resolves `target_label`/`reporter_username` server-side — an admin never has to go reconstruct context from a bare UUID, per the original design intent |
+| POST | `/admin/reports/{id}/resolve` | `{ action: "action" \| "dismiss" }` → sets `status` to `actioned`/`dismissed`. 409 if already resolved |
 
 ## Notifications
 

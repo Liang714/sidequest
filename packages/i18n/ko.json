@@ -26,7 +26,23 @@
     "haveAccount": "이미 계정이 있으신가요?",
     "createOne": "계정 만들기",
     "logInInstead": "로그인하기",
-    "logOut": "로그아웃"
+    "logOut": "로그아웃",
+    "forgotPasswordLink": "비밀번호를 잊으셨나요?",
+    "forgotPasswordTitle": "비밀번호 재설정",
+    "forgotPasswordSub": "이메일을 입력하면 재설정 링크를 보내드려요.",
+    "forgotPasswordCta": "재설정 링크 보내기",
+    "forgotPasswordSent": "해당 이메일이 등록되어 있다면 재설정 링크를 보냈어요 — 받은편지함을 확인하세요.",
+    "backToLogin": "로그인으로 돌아가기",
+    "resetPasswordTitle": "새 비밀번호 설정",
+    "resetPasswordSub": "계정에 사용할 새 비밀번호를 입력하세요.",
+    "newPassword": "새 비밀번호",
+    "resetPasswordCta": "비밀번호 재설정",
+    "verifyEmailVerifying": "이메일을 확인하는 중…",
+    "verifyEmailSuccess": "이메일이 확인됐어요. 이제 준비가 끝났어요.",
+    "verifyEmailError": "이 링크는 유효하지 않거나 만료됐어요 — 설정에서 새 링크를 요청할 수 있어요.",
+    "continueToApp": "SIDEQUEST로 이동",
+    "agreeToTermsPrefix": "계정을 만들면 다음에 동의하는 것으로 간주돼요:",
+    "agreeToTermsAnd": "그리고"
   },
   "onboarding": {
     "step1Title": "관심사가 뭐예요?",
@@ -154,6 +170,26 @@
     "aiConfirms": "AI가 확인했어요",
     "aiUnsure": "AI가 확신하지 못했어요 — 완료는 그대로 인정돼요"
   },
+  "legal": {
+    "termsNavLink": "이용약관",
+    "privacyNavLink": "개인정보처리방침"
+  },
+  "settings": {
+    "navLink": "설정",
+    "title": "설정",
+    "account": "계정",
+    "email": "이메일",
+    "emailVerified": "인증됨",
+    "emailUnverified": "인증되지 않음",
+    "resendVerification": "인증 이메일 다시 보내기",
+    "verificationSent": "인증 이메일을 보냈어요 — 받은편지함을 확인하세요.",
+    "dangerZone": "위험 구역",
+    "dangerZoneSubline": "이 작업은 되돌릴 수 없어요.",
+    "deleteAccount": "계정 삭제",
+    "deleteAccountConfirmLabel": "계정이 영구적으로 삭제된다는 것을 이해했어요",
+    "deleteAccountPasswordLabel": "비밀번호 확인",
+    "deleteAccountButton": "계정 영구 삭제"
+  },
   "profile": {
     "level": "레벨 {level}",
     "xpProgress": "{current} / {next} XP",
@@ -261,7 +297,15 @@
     "pendingBusinessesSubline": "비즈니스를 인증해야 퀘스트를 후원할 수 있어요.",
     "noPendingBusinesses": "검토 대기 중인 비즈니스가 없어요.",
     "verify": "인증",
-    "reject": "거절"
+    "reject": "거절",
+    "reportsNavLink": "신고",
+    "reportsQueue": "신고 목록",
+    "reportsQueueSubline": "처리되지 않은 신고, 오래된 순으로 정렬돼요.",
+    "noOpenReports": "처리할 신고가 없어요 — 모두 확인했어요.",
+    "reportedBy": "{name}님이 신고함",
+    "reportTarget": "{type}: {label}",
+    "action": "조치하기",
+    "dismiss": "기각"
   },
   "subscription": {
     "navLink": "구독",

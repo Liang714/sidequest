@@ -210,6 +210,56 @@ endpoints exist today (payments are synchronous `charge()` calls, not
 webhook-confirmed) — if/when a real async payment flow needs one, it gets
 built with signature verification from the start, not retrofitted.
 
+## Real-user launch readiness (2026-08-18)
+
+A separate, same-day follow-up to the security review above — asked for
+explicitly ("fixed all and make it perfect") after being told what was
+still missing before real strangers should be trusted with the app:
+
+- **Moderation queue is now real**: `GET /admin/reports` /
+  `POST /admin/reports/{id}/resolve` (`app/routers/moderation.py`) — before
+  this, `POST /reports` wrote to a table nobody could ever read, so every
+  report filed simply vanished. Each `ReportOut` resolves full context
+  server-side (`target_label`, `reporter_username`) — an admin never has
+  to go reconstruct what was reported from a bare UUID, the original
+  design intent this had never actually met until now.
+- **Self-service account deletion**: `POST /users/me/delete` — soft
+  delete (same pattern as everything else "deleted" in this app), but
+  `email`/`username` are mangled and freed for reuse rather than
+  permanently squatted on an account nobody can log into, and
+  `password_hash` is overwritten with an unusable random value.
+  Requires re-entering the password.
+- **Email verification + password reset are real, end to end** — new
+  `EmailProvider` abstraction (`app/email/`, mirrors every other provider
+  seam in this app exactly): `fake` (logs instead of sending) is both the
+  dev default and the production-safe default; `resend` is a real,
+  working integration against Resend's API, not speculative. Tokens are
+  single-use, short-lived (24h verify / 1h reset), and stored only as a
+  SHA-256 hash — a DB leak alone can't hand out usable tokens.
+  `forgot-password` always returns 204 regardless of whether the email is
+  registered, so it can't be used to enumerate accounts by response
+  content (a smaller, commonly-accepted residual timing gap remains —
+  see the endpoint's own docstring for why closing it fully wasn't worth
+  the complexity, unlike login's `_DUMMY_PASSWORD_HASH`).
+- **Terms of Service + Privacy Policy** exist (`/terms`, `/privacy`),
+  written to accurately describe what this app actually collects and
+  does — not a generic template — linked from registration. Explicitly
+  labeled as a good-faith draft needing real legal review before this
+  scales, not final legal text.
+- **Error tracking (Sentry) and durable object storage (Cloudflare R2)**
+  are both wired up as real, working, DSN/credential-gated integrations
+  (true no-ops without one — see `app/main.py`, `apps/web/instrumentation.ts`,
+  `app/storage.py::S3StorageProvider`) — activating either needs an
+  account only you can create, see docs/DEPLOYMENT.md §6.
+- The API now boots with `min_machines_running = 1` in production (was
+  `0`) — a real user's first request no longer eats a cold-start delay,
+  traded for the small always-on cost of one shared-cpu-1x/256mb machine.
+
+None of this changes the Phase 6/7 real-vendor deferrals (Stripe/Toss
+live charges, a real booking provider) — those remain a separate,
+larger commitment, not part of "ready for real users to sign up, use
+the core loop safely, and be able to leave."
+
 ## Testing requirement
 
 Every milestone that touches auth, authorization, file upload, location

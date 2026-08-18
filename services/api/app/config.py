@@ -36,12 +36,16 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://sidequest:sidequest@localhost:5432/sidequest"
     valkey_url: str = "redis://localhost:6379/0"
 
-    # Object storage — falls back to local disk when unset (see app/storage.py).
-    # Set storage_endpoint to point at real MinIO/R2 when that's available.
+    # Object storage — see app/storage.py. "local" (a Fly volume in
+    # production, a plain dir in dev) is both the dev default and the
+    # production-safe default until a real bucket exists. Set
+    # STORAGE_PROVIDER=s3 + the rest of these for real Cloudflare R2/MinIO/S3.
+    storage_provider: str = "local"
     storage_endpoint: str | None = None
     storage_bucket: str = "sidequest-dev"
     storage_access_key_id: str = "minioadmin"
     storage_secret_access_key: str = "minioadmin"
+    storage_public_base_url: str | None = None
     storage_local_dir: str = "./.local-storage"
 
     jwt_signing_secret: str = "dev-only-insecure-secret-change-me"
@@ -86,6 +90,27 @@ class Settings(BaseSettings):
     # §VisionVerifier for why it doesn't gate XP awards.
     vision_provider: str = "ollama"
     ollama_vision_model: str = "llava:7b"
+
+    # Email — see docs/SECURITY.md §Security review and app/email/. "fake"
+    # (logs instead of sending — see app/email/providers/fake.py) is both
+    # the dev default and the production-safe default until a real
+    # provider is configured. Set EMAIL_PROVIDER=resend + RESEND_API_KEY
+    # for real delivery (password reset / email verification actually
+    # reaching a real inbox needs this — see docs/DEPLOYMENT.md).
+    email_provider: str = "fake"
+    resend_api_key: str | None = None
+    email_from_address: str = "SIDEQUEST <onboarding@resend.dev>"
+    # The web app's own origin — used to build links inside verification/
+    # reset emails (e.g. {web_base_url}/en/reset-password?token=...).
+    # Deliberately separate from cors_origins: that's "who's allowed to
+    # call the API," this is "where do I point a human reading an email."
+    web_base_url: str = "http://localhost:3000"
+
+    # Error tracking — see docs/DEPLOYMENT.md. Unset (the default) means
+    # Sentry's SDK is never even initialized — a true no-op, not "logs
+    # somewhere nobody's watching." Set SENTRY_DSN once you have a real
+    # Sentry project to actually start receiving errors.
+    sentry_dsn: str | None = None
 
 
 @lru_cache

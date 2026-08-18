@@ -22,6 +22,7 @@ class MeOut(ProfileOut):
     email: str
     locale: str
     is_admin: bool = False
+    email_verified: bool = False
 
 
 class ProfileUpdate(BaseModel):
@@ -43,3 +44,10 @@ class InterestOut(BaseModel):
 
 class SetInterestsRequest(BaseModel):
     interest_ids: list[UUID]
+
+
+class AccountDeleteRequest(BaseModel):
+    # Requires re-entering the password, not just "you're already logged
+    # in" — standard friction for an irreversible, destructive action
+    # (e.g. a shared/left-open session shouldn't be enough on its own).
+    password: str

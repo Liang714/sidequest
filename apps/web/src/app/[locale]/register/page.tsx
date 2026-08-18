@@ -20,6 +20,17 @@ export default async function RegisterPage() {
       <div className="mt-6">
         <RegisterForm />
       </div>
+      <p className="mt-4 text-center text-[11.5px] text-ink-faint">
+        {t("auth.agreeToTermsPrefix")}{" "}
+        <Link href="/terms" className="underline underline-offset-2">
+          {t("legal.termsNavLink")}
+        </Link>{" "}
+        {t("auth.agreeToTermsAnd")}{" "}
+        <Link href="/privacy" className="underline underline-offset-2">
+          {t("legal.privacyNavLink")}
+        </Link>
+        .
+      </p>
       <p className="mt-6 text-center text-[13px] text-ink-muted">
         {t("auth.haveAccount")}{" "}
         <Link href="/login" className="font-medium text-blue underline underline-offset-2">

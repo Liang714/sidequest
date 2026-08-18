@@ -31,12 +31,15 @@ exists, the rest is copy-paste.
   one Fly.io org, so this needs exactly **one** new account.
 - **`apps/web` on Vercel** — needs exactly **one** more new account,
   pointed at the Fly API's public URL.
-- Everything AI/payments/vision/booking-related deploys with the same
-  `fake` provider default this project has used at every prior
-  external-vendor gate (Payments Phase 6, Bookings Phase 7, AI/Vision
-  Phase 8) — real, honestly-labeled placeholder behavior, $0, no new
-  accounts. Flip any of them to a real provider later by setting its
-  `*_PROVIDER` env var + secret — see `.env.example`.
+- Everything AI/payments/vision/booking/email/storage-related deploys
+  with the same `fake`/`local` provider default this project has used at
+  every prior external-vendor gate (Payments Phase 6, Bookings Phase 7,
+  AI/Vision Phase 8) — real, honestly-labeled placeholder behavior, $0,
+  no new accounts beyond the two above. Flip any of them to a real
+  provider later by setting its `*_PROVIDER` env var + secret — see
+  `.env.example` and §6 below for email/error-tracking/storage
+  specifically (Resend, Sentry, Cloudflare R2 — all optional, all free
+  tier, none block a functioning launch on their own).
 
 ### 1. Backend — Fly.io
 
@@ -191,6 +194,78 @@ these repo secrets exist (Settings → Secrets and variables → Actions):
 Once those exist, change `.github/workflows/deploy.yml`'s trigger from
 `workflow_dispatch` to `push: branches: [main]` for real continuous
 deploy on every merge.
+
+### 6. Turning on real email, error tracking, and object storage (optional)
+
+None of these block a real launch on their own (see docs/SECURITY.md
+§Security review for what "fake"/no-op actually means for each until
+you do this) — but two of them (email verification, password reset)
+are genuinely non-functional for real users until email is real, since
+right now the token just gets logged, not delivered.
+
+**Email (Resend) — makes verification/password-reset emails actually
+arrive:**
+
+```sh
+# 1. Create a free Resend account: https://resend.com (3,000 emails/mo,
+#    100/day free tier — no credit card required for the free tier)
+# 2. Dashboard → API Keys → create one
+fly secrets set -a sidequest-liang714-api \
+  EMAIL_PROVIDER=resend \
+  RESEND_API_KEY="re_your_real_key"
+```
+
+Sending `from` Resend's own `onboarding@resend.dev` sandbox address only
+delivers to *your own* Resend account email (their anti-abuse
+restriction) — real delivery to arbitrary user addresses needs a real
+domain verified in Resend (Dashboard → Domains → Add Domain, then a few
+DNS records). Once verified:
+
+```sh
+fly secrets set -a sidequest-liang714-api \
+  EMAIL_FROM_ADDRESS="SIDEQUEST <noreply@yourdomain.com>"
+```
+
+**Error tracking (Sentry) — see real errors instead of finding out from a
+user:**
+
+```sh
+# 1. Create a free Sentry account: https://sentry.io (generous free tier)
+# 2. Create a project for each app (Python/FastAPI for the backend,
+#    Next.js for the frontend) — Sentry gives you a DSN per project
+fly secrets set -a sidequest-liang714-api SENTRY_DSN="https://...@....ingest.sentry.io/..."
+```
+
+For the web app, set `SENTRY_DSN` (the Next.js project's own DSN, not
+the backend's) as a Vercel environment variable (Settings → Environment
+Variables → add `SENTRY_DSN` for Production), then redeploy
+(`vercel --prod`). Client-side browser error capture isn't wired up in
+this pass (see `apps/web/instrumentation.ts`'s docstring) — server-side
+(Server Actions, SSR, route handlers) is covered, which is where most
+real errors in this app actually originate.
+
+**Object storage (Cloudflare R2) — durable photo storage instead of a
+single Fly volume:**
+
+```sh
+# 1. Create a free Cloudflare account, enable R2 (10GB free, zero egress
+#    fees): https://dash.cloudflare.com → R2
+# 2. Create a bucket, then R2 → Manage API Tokens → create one
+#    (Object Read & Write) — note the Account ID, Access Key ID, and
+#    Secret Access Key it gives you
+# 3. R2 → your bucket → Settings → enable a public bucket URL (or add a
+#    custom domain) — this becomes STORAGE_PUBLIC_BASE_URL
+fly secrets set -a sidequest-liang714-api \
+  STORAGE_PROVIDER=s3 \
+  STORAGE_ENDPOINT="https://<account_id>.r2.cloudflarestorage.com" \
+  STORAGE_BUCKET="sidequest" \
+  STORAGE_ACCESS_KEY_ID="your_access_key_id" \
+  STORAGE_SECRET_ACCESS_KEY="your_secret_access_key" \
+  STORAGE_PUBLIC_BASE_URL="https://pub-xxxxx.r2.dev"
+```
+
+Existing photos already on the local Fly volume don't migrate
+automatically — this only affects new uploads going forward.
 
 ## CI/CD
 

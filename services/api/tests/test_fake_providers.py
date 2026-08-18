@@ -14,6 +14,8 @@ from app.ai.base import (
     RecommendationExplanationContext,
 )
 from app.ai.providers.fake import FakeAIProvider
+from app.email.base import EmailMessage
+from app.email.providers.fake import FakeEmailProvider
 from app.vision.providers.fake import FakeVisionProvider
 
 
@@ -83,3 +85,21 @@ async def test_fake_vision_never_falsely_claims_a_match() -> None:
     assert result.matches is False
     assert result.confidence == 0.0
     assert "demo mode" in result.explanation
+
+
+async def test_fake_email_logs_instead_of_sending(caplog) -> None:
+    provider = FakeEmailProvider()
+    message = EmailMessage(
+        to="someone@example.com",
+        subject="Test subject",
+        text_body="Body with a link https://example.com/verify?token=abc123",
+        html_body="<p>Body with a link</p>",
+    )
+    with caplog.at_level("WARNING"):
+        await provider.send(message)
+    # Real regression check, not just "it didn't crash" — a prior version
+    # of this class logged at INFO, which uvicorn's default logging
+    # config silently drops (confirmed live: registering a user produced
+    # no visible log line at all until this was fixed to WARNING).
+    assert any("someone@example.com" in r.message for r in caplog.records)
+    assert any("token=abc123" in r.message for r in caplog.records)

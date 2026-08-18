@@ -26,7 +26,23 @@
     "haveAccount": "Already have an account?",
     "createOne": "Create an account",
     "logInInstead": "Log in instead",
-    "logOut": "Log out"
+    "logOut": "Log out",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordSub": "Enter your email and we'll send you a reset link.",
+    "forgotPasswordCta": "Send reset link",
+    "forgotPasswordSent": "If that email is registered, a reset link is on its way — check your inbox.",
+    "backToLogin": "Back to log in",
+    "resetPasswordTitle": "Set a new password",
+    "resetPasswordSub": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "resetPasswordCta": "Reset password",
+    "verifyEmailVerifying": "Confirming your email…",
+    "verifyEmailSuccess": "Your email is confirmed. You're all set.",
+    "verifyEmailError": "This link is invalid or has expired — you can request a new one from Settings.",
+    "continueToApp": "Continue to SIDEQUEST",
+    "agreeToTermsPrefix": "By creating an account, you agree to our",
+    "agreeToTermsAnd": "and"
   },
   "onboarding": {
     "step1Title": "What are you into?",
@@ -154,6 +170,26 @@
     "aiConfirms": "AI confirms this looks right",
     "aiUnsure": "AI isn't sure — completion still counts"
   },
+  "legal": {
+    "termsNavLink": "Terms of Service",
+    "privacyNavLink": "Privacy Policy"
+  },
+  "settings": {
+    "navLink": "Settings",
+    "title": "Settings",
+    "account": "Account",
+    "email": "Email",
+    "emailVerified": "Verified",
+    "emailUnverified": "Not verified",
+    "resendVerification": "Resend verification email",
+    "verificationSent": "Verification email sent — check your inbox.",
+    "dangerZone": "Danger Zone",
+    "dangerZoneSubline": "This cannot be undone.",
+    "deleteAccount": "Delete My Account",
+    "deleteAccountConfirmLabel": "I understand this permanently deletes my account",
+    "deleteAccountPasswordLabel": "Confirm your password",
+    "deleteAccountButton": "Permanently Delete Account"
+  },
   "profile": {
     "level": "Level {level}",
     "xpProgress": "{current} / {next} XP",
@@ -261,7 +297,15 @@
     "pendingBusinessesSubline": "Verify a business before it can sponsor quests.",
     "noPendingBusinesses": "No businesses waiting for review.",
     "verify": "Verify",
-    "reject": "Reject"
+    "reject": "Reject",
+    "reportsNavLink": "Reports",
+    "reportsQueue": "Report Queue",
+    "reportsQueueSubline": "Open reports, oldest first.",
+    "noOpenReports": "No open reports — you're caught up.",
+    "reportedBy": "Reported by {name}",
+    "reportTarget": "{type}: {label}",
+    "action": "Take Action",
+    "dismiss": "Dismiss"
   },
   "subscription": {
     "navLink": "Subscription",

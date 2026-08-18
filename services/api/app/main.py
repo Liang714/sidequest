@@ -4,6 +4,7 @@ router list mirrors, and docs/API.md for the endpoint reference."""
 from pathlib import Path
 from typing import Any
 
+import sentry_sdk
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
@@ -36,6 +37,20 @@ if settings.app_env == "production" and settings.jwt_signing_secret == _INSECURE
     raise RuntimeError(
         "APP_ENV=production but JWT_SIGNING_SECRET is still the insecure dev default — "
         "set a real secret (e.g. `openssl rand -hex 32`) via `fly secrets set`, see docs/DEPLOYMENT.md."
+    )
+
+# True no-op without a DSN — sentry_sdk.init() is never called at all, not
+# just configured to send nowhere. See docs/DEPLOYMENT.md for getting a
+# real DSN; SENTRY_DSN unset (the default) is a fully supported, expected
+# state, not a degraded one.
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.app_env,
+        # Errors are always captured; this is the % of ordinary
+        # request *traces* also sent for performance monitoring — kept
+        # low since that's a nice-to-have, not the reason this exists.
+        traces_sample_rate=0.1,
     )
 
 app = FastAPI(
