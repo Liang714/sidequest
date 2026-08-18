@@ -41,5 +41,12 @@ class ResendProvider:
                     },
                 )
                 resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            # httpx's default str(exc) is just "Client error '422 ...' for
+            # url '...'" — it drops the response body, which is exactly
+            # where Resend puts the actually-useful validation/permission
+            # message. Caught live (2026-08-18): the caller's log line was
+            # truncated right where the real answer would've been.
+            raise EmailSendError(f"Resend send failed ({exc.response.status_code}): {exc.response.text}") from exc
         except httpx.HTTPError as exc:
             raise EmailSendError(f"Resend send failed: {exc}") from exc
