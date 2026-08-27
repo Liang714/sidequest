@@ -38,3 +38,6 @@ infra/minio-data/
 services/api/.local-storage/
 .vercel
 .env*
+
+# Superpowers visual brainstorming companion (local only)
+.superpowers/
