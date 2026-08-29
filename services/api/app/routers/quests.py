@@ -1,5 +1,6 @@
 import base64
 import binascii
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Annotated
@@ -32,6 +33,7 @@ from app.schemas.quests import (
     LocationOut,
     ObjectiveOut,
     ParticipantOut,
+    ParticipantPreview,
     QuestCompleteOut,
     QuestCreate,
     QuestOut,
@@ -214,6 +216,42 @@ async def create_quest(
     return await _to_quest_out(db, await _get_quest_or_404(db, quest.id), current_user_id=current_user.id)
 
 
+MAX_FACES = 4
+
+
+async def _participant_previews(
+    db: DbSession, quests: Sequence[Quest]
+) -> dict[UUID, list[ParticipantPreview]]:
+    """Up to MAX_FACES participants per quest, in one query for the whole page.
+
+    CREW discovery cards lead with who's going rather than with the
+    activity, which means every list endpoint needs faces. Loading them per
+    quest would be an N+1 on the app's hottest path, so this batches every
+    quest in the response into a single profile lookup.
+    """
+    wanted: dict[UUID, list[UUID]] = {}
+    for q in quests:
+        ids = [p.user_id for p in q.participants if p.status != ParticipantStatus.left]
+        if ids:
+            wanted[q.id] = ids[:MAX_FACES]
+    if not wanted:
+        return {}
+
+    all_ids = {uid for ids in wanted.values() for uid in ids}
+    rows = await db.execute(
+        select(Profile.user_id, Profile.display_name, Profile.avatar_url).where(
+            Profile.user_id.in_(all_ids)
+        )
+    )
+    by_id = {
+        user_id: ParticipantPreview(user_id=user_id, display_name=name, avatar_url=avatar)
+        for user_id, name, avatar in rows.all()
+    }
+    return {
+        quest_id: [by_id[uid] for uid in ids if uid in by_id] for quest_id, ids in wanted.items()
+    }
+
+
 @router.get("", response_model=list[QuestSummaryOut])
 async def list_quests(
     current_user: CurrentUser,
@@ -253,6 +291,7 @@ async def list_quests(
         )
 
     quests = (await db.scalars(stmt)).all()
+    previews = await _participant_previews(db, quests)
     return [
         QuestSummaryOut(
             id=q.id,
@@ -267,6 +306,7 @@ async def list_quests(
             difficulty=q.difficulty,
             status=q.status,
             xp_reward=q.xp_reward,
+            participants=previews.get(q.id, []),
         )
         for q in quests
     ]
@@ -295,6 +335,7 @@ async def my_quests(current_user: CurrentUser, db: DbSession) -> list[QuestSumma
         .order_by(Quest.start_time.desc())
     )
     quests = (await db.scalars(stmt)).all()
+    previews = await _participant_previews(db, quests)
     return [
         QuestSummaryOut(
             id=q.id,
@@ -309,6 +350,7 @@ async def my_quests(current_user: CurrentUser, db: DbSession) -> list[QuestSumma
             difficulty=q.difficulty,
             status=q.status,
             xp_reward=q.xp_reward,
+            participants=previews.get(q.id, []),
         )
         for q in quests
     ]
@@ -346,6 +388,7 @@ async def nearby_quests(
             scored.append((dist, q))
     scored.sort(key=lambda pair: pair[0])
 
+    previews = await _participant_previews(db, [q for _, q in scored])
     return [
         QuestSummaryOut(
             id=q.id,
@@ -360,6 +403,7 @@ async def nearby_quests(
             difficulty=q.difficulty,
             status=q.status,
             xp_reward=q.xp_reward,
+            participants=previews.get(q.id, []),
             distance_km=round(dist, 2),
         )
         for dist, q in scored[:limit]
@@ -418,6 +462,7 @@ async def recommended_quests(
         scored.append((result.score, joined, q))
     scored.sort(key=lambda triple: triple[0], reverse=True)
 
+    previews = await _participant_previews(db, [q for _, _, q in scored])
     return [
         QuestSummaryOut(
             id=q.id,
@@ -432,6 +477,7 @@ async def recommended_quests(
             difficulty=q.difficulty,
             status=q.status,
             xp_reward=q.xp_reward,
+            participants=previews.get(q.id, []),
         )
         for _, joined, q in scored[:limit]
     ]

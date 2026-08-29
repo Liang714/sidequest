@@ -63,3 +63,4 @@ export type ReportOut = Schemas["ReportOut"];
 
 export type PublicProfileOut = Schemas["PublicProfileOut"];
 export type ReportTargetType = Schemas["ReportTargetType"];
+export type ParticipantPreview = Schemas["ParticipantPreview"];

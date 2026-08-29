@@ -127,6 +127,20 @@ class QuestCompleteOut(BaseModel):
     new_achievements: list[AchievementOut] = Field(default_factory=list)
 
 
+class ParticipantPreview(BaseModel):
+    """Just enough of a person to render a face on a card.
+
+    Deliberately tiny: an id to link to their profile, a name for the
+    accessible label, and an avatar. No age, no last-seen, nothing
+    appearance-adjacent — see PRD.md §6 and the Rule of Faces in
+    docs/superpowers/specs/2026-08-27-crew-ui-design.md §H.
+    """
+
+    user_id: UUID
+    display_name: str
+    avatar_url: str | None = None
+
+
 class QuestSummaryOut(BaseModel):
     id: UUID
     title: str
@@ -141,6 +155,9 @@ class QuestSummaryOut(BaseModel):
     status: QuestStatus
     xp_reward: int
     distance_km: float | None = None
+    #: Up to 4 people already in, so a discovery card can lead with who's
+    #: going rather than with the activity. Empty when nobody has joined.
+    participants: list[ParticipantPreview] = []
 
 
 class CompatibilityBreakdownOut(BaseModel):

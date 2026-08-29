@@ -1738,6 +1738,26 @@ export interface components {
             status: components["schemas"]["ParticipantStatus"];
         };
         /**
+         * ParticipantPreview
+         * @description Just enough of a person to render a face on a card.
+         *
+         *     Deliberately tiny: an id to link to their profile, a name for the
+         *     accessible label, and an avatar. No age, no last-seen, nothing
+         *     appearance-adjacent — see PRD.md §6 and the Rule of Faces in
+         *     docs/superpowers/specs/2026-08-27-crew-ui-design.md §H.
+         */
+        ParticipantPreview: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Avatar Url */
+            avatar_url?: string | null;
+        };
+        /**
          * ParticipantStatus
          * @enum {string}
          */
@@ -2061,6 +2081,11 @@ export interface components {
             xp_reward: number;
             /** Distance Km */
             distance_km?: number | null;
+            /**
+             * Participants
+             * @default []
+             */
+            participants: components["schemas"]["ParticipantPreview"][];
         };
         /** QuestUpdate */
         QuestUpdate: {
