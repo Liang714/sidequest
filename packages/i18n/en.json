@@ -9,7 +9,14 @@
     "create": "Create",
     "friends": "Friends",
     "profile": "Profile",
-    "map": "Map"
+    "map": "Map",
+    "primary": "Primary",
+    "tonight": "Tonight",
+    "rooms": "Rooms",
+    "plans": "Plans",
+    "you": "You",
+    "search": "Search",
+    "notifications": "Notifications"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -188,7 +195,10 @@
     "deleteAccount": "Delete My Account",
     "deleteAccountConfirmLabel": "I understand this permanently deletes my account",
     "deleteAccountPasswordLabel": "Confirm your password",
-    "deleteAccountButton": "Permanently Delete Account"
+    "deleteAccountButton": "Permanently Delete Account",
+    "preferences": "Preferences",
+    "language": "Language",
+    "appearance": "Appearance"
   },
   "profile": {
     "level": "Level {level}",
@@ -390,5 +400,47 @@
     "viewResult": "View →",
     "confirmStep": "Confirm",
     "whyRecommended": "Why recommended?"
+  },
+  "create": {
+    "title": "Start something",
+    "manual": "Create a quest",
+    "manualHint": "Pick the place, time, and who can join",
+    "ai": "Generate with AI",
+    "aiHint": "Describe your night, get a draft you can edit",
+    "plan": "Plan my night",
+    "planHint": "2–4 steps, you confirm each one",
+    "quotaLeft": "{count} left today",
+    "quotaPro": "Unlimited"
+  },
+  "rooms": {
+    "title": "Rooms",
+    "live": "Live now",
+    "upcoming": "Upcoming",
+    "archived": "Archived",
+    "emptyTitle": "No conversations yet.",
+    "emptyBody": "Join a crew and this fills up.",
+    "emptyAction": "See who's out",
+    "open": "Open room"
+  },
+  "plans": {
+    "title": "Plans",
+    "upcoming": "Upcoming",
+    "bookings": "Bookings",
+    "history": "History",
+    "emptyTitle": "Nothing on the calendar.",
+    "emptyBody": "Tonight's list is waiting.",
+    "emptyAction": "See who's out",
+    "allBookings": "All bookings"
+  },
+  "hub": {
+    "title": "More",
+    "friends": "Friends",
+    "marketplace": "Marketplace",
+    "bookings": "Bookings",
+    "subscription": "SIDEQUEST Pro",
+    "creator": "Creator Studio",
+    "business": "For Business",
+    "admin": "Admin",
+    "settings": "Settings"
   }
 }

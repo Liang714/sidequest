@@ -42,3 +42,6 @@ export type { PresenceStripProps } from "./presence-strip";
 
 export { XPBar, CompatBadge } from "./progress";
 export type { XPBarProps, CompatBadgeProps } from "./progress";
+
+export { Sheet } from "./sheet";
+export type { SheetProps } from "./sheet";
