@@ -6,14 +6,22 @@ import {
   Avatar,
   Badge,
   Button,
+  ChatBubble,
+  CheckInStrip,
   Chip,
+  CompatBadge,
+  CrewCard,
   CrewCardSkeleton,
   EmptyState,
   ErrorState,
   FaceStack,
   OfflineBanner,
+  PersonRow,
   PersonRowSkeleton,
+  PresenceStrip,
+  XPBar,
 } from "@/components/ui";
+import { distanceBandLabel, joinNames } from "@/lib/people";
 
 const CREW = [
   { id: "u-minji", name: "Minji" },
@@ -198,6 +206,152 @@ export function KitchenSink() {
               <PersonRowSkeleton />
               <PersonRowSkeleton />
               <PersonRowSkeleton />
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="Crew card"
+          note="Hierarchy inverts the category default: faces → names → activity → trust → CTA. Time is a datum in the meta line, never a countdown headline — in CREW the pressure is social (&ldquo;looking for 2 more&rdquo;), which is truer and can&rsquo;t be inflated into FOMO."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <CrewCard
+              people={CREW.slice(0, 3)}
+              namesLine={joinNames(["Minji", "Tae", "Sora"])}
+              needLine="are looking for 2 more"
+              questTitle="Hongdae Photo Hunt"
+              time="9:00 PM"
+              place="Exit 9, Hongik Univ."
+              distanceLabel="1.2km"
+              startsIn="starts in 45m"
+              urgent
+              trust={
+                <>
+                  <Badge tone="mint" icon={<Star className="h-3 w-3" />}>Sora is your friend</Badge>
+                  <CompatBadge score={94} onExplain={() => {}} />
+                </>
+              }
+            />
+            <CrewCard
+              people={CREW.slice(0, 4)}
+              namesLine={joinNames(["Minji", "Tae", "Sora", "Hyun"])}
+              questTitle="Euljiro Print Crawl"
+              time="7:30 PM"
+              place="Euljiro 3-ga"
+              distanceLabel="2.8km"
+              startsIn="starts in 2h"
+              variant="full"
+              sponsored
+              trust={<Badge tone="neutral">EN OK</Badge>}
+            />
+            <CrewCard
+              people={CREW.slice(1, 3)}
+              namesLine={joinNames(["Tae", "Sora"])}
+              needLine="you&rsquo;re in"
+              questTitle="Mangwon Night Market"
+              time="8:00 PM"
+              place="Mangwon Stn"
+              variant="joined"
+              ctaLabel="Open room"
+            />
+            <CrewCard
+              people={CREW}
+              namesLine={joinNames(["Minji", "Tae", "Sora", "Hyun", "Jamie"])}
+              questTitle="Seongsu Cafe Hunt"
+              time="Last Friday"
+              place="Seongsu"
+              variant="past"
+            />
+          </div>
+        </Section>
+
+        <Section
+          title="Person row"
+          note="Interests lead, avatar is 32px and non-overlapping, distance arrives pre-banded. distanceBandLabel() is the only sanctioned way to render how far away a person is — a precise figure, sampled a few times, locates them."
+        >
+          <div className="rounded-card border border-line bg-surface px-4 shadow-e1">
+            <PersonRow
+              id="u-jamie"
+              name="Jamie"
+              interests={["Photography", "Cafés"]}
+              languageBadge="EN OK"
+              distanceLabel={distanceBandLabel(0.6)}
+              level={4}
+              mutualCount={2}
+              note="Up for a café or a walk"
+              action={<Button variant="secondary" size="sm">Invite</Button>}
+            />
+            <PersonRow
+              id="u-sora"
+              name="Sora"
+              interests={["Dance", "Food"]}
+              distanceLabel={distanceBandLabel(2.1)}
+              level={12}
+              mutualCount={5}
+              relation="friend"
+              action={<Button variant="secondary" size="sm">Invite</Button>}
+            />
+            <PersonRow
+              id="u-hyun"
+              name="Hyun"
+              interests={["Board games", "Coffee"]}
+              distanceLabel={distanceBandLabel(4.4)}
+              level={9}
+              relation="invited"
+              action={<Button variant="ghost" size="sm" disabled>Invited</Button>}
+            />
+          </div>
+          <p className="mt-3 text-caption text-ink-faint">
+            Bands: {distanceBandLabel(0.4)} · {distanceBandLabel(2.2)} · {distanceBandLabel(4.9)} · {distanceBandLabel(12)}
+          </p>
+        </Section>
+
+        <Section
+          title="Presence"
+          note="Always shows remaining time and an edit affordance. Nobody is discoverable by default, and nobody stays discoverable by accident — this strip is what makes the second half true."
+        >
+          <div className="flex flex-col gap-3">
+            <PresenceStrip state="off" label="You&rsquo;re hidden right now." actionLabel="I&rsquo;m free tonight" />
+            <PresenceStrip state="on" label="You&rsquo;re free until 11 PM" actionLabel="Edit" />
+            <PresenceStrip state="expiring" label="Visible for 15 more minutes" actionLabel="Extend" />
+          </div>
+        </Section>
+
+        <Section
+          title="Room"
+          note="Check-in sits above the chat: &ldquo;are the others actually coming?&rdquo; is the highest-anxiety question in the product. A failed send stays visible with a retry — losing a message in a group you&rsquo;re about to meet is the worst failure mode here."
+        >
+          <CheckInStrip
+            people={[
+              { id: "u-minji", name: "Minji", checkedIn: true },
+              { id: "u-tae", name: "Tae", checkedIn: true },
+              { id: "u-sora", name: "Sora", checkedIn: false },
+              { id: "u-jamie", name: "Jamie", checkedIn: false },
+            ]}
+            countLabel="2 of 4 here"
+          />
+          <div className="mt-3 rounded-card border border-line bg-surface p-4">
+            <ChatBubble kind="theirs" senderName="Minji" senderId="u-minji" text="I'm at exit 9, black jacket" />
+            <ChatBubble kind="mine" text="On my way, 5 min" className="mt-3" />
+            <ChatBubble kind="system" text="Tae checked in" />
+            <ChatBubble kind="theirs" senderName="Tae" senderId="u-tae" text="found a great spot for the group shot" />
+            <ChatBubble kind="theirs" senderName="Tae" senderId="u-tae" grouped text="right by the crossing" className="mt-1" />
+            <ChatBubble kind="mine" text="Sending…" status="sending" className="mt-3" />
+            <ChatBubble kind="mine" text="see you there" status="failed" onRetry={() => {}} className="mt-3" />
+          </div>
+        </Section>
+
+        <Section
+          title="Progress"
+          note="XP is mint and tabular so it doesn&rsquo;t jitter as it counts up. Compatibility is always tappable through to the real breakdown — docs/AI.md is explicit that it&rsquo;s a conventional scorer, so the honest presentation is a transparent one."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-card border border-line bg-surface p-4">
+              <XPBar current={2840} target={3500} level={7} />
+            </div>
+            <div className="flex flex-wrap items-center gap-3 rounded-card border border-line bg-surface p-4">
+              <CompatBadge score={94} onExplain={() => {}} />
+              <CompatBadge score={61} />
             </div>
           </div>
         </Section>

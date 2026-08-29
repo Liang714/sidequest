@@ -30,40 +30,69 @@ URL = os.environ.get("KITCHEN_SINK_URL", "http://localhost:3001/dev/kitchen-sink
 
 JS = """
 (targets) => {
-  const lum = (c) => {
-    const [r,g,b] = c.match(/[\\d.]+/g).slice(0,3).map(Number).map(v => {
-      v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
-    });
-    return 0.2126*r + 0.7152*g + 0.0722*b;
+  const parse = (c) => {
+    const n = (c.match(/[\d.]+/g) || [0,0,0]).map(Number);
+    return { r: n[0], g: n[1], b: n[2], a: n.length > 3 ? n[3] : 1 };
   };
-  const ratio = (a,b) => {
-    const L1 = lum(a), L2 = lum(b);
-    const hi = Math.max(L1,L2), lo = Math.min(L1,L2);
-    return (hi+0.05)/(lo+0.05);
+
+  const lum = ({r, g, b}) => {
+    const f = (v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
   };
-  // Walk up for the first non-transparent background.
-  const bgOf = (el) => {
+
+  const ratio = (fg, bg) => {
+    const L1 = lum(fg), L2 = lum(bg);
+    const hi = Math.max(L1, L2), lo = Math.min(L1, L2);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+
+  // Soft tints (chips, badges, the presence strip) are rgba over a parent.
+  // Comparing text against the *undiluted* tint reports nonsense — a
+  // warn-text label on warn-soft came back as exactly 1.00 before this
+  // composited. Collect every layer up to the first opaque one, then blend
+  // bottom-up.
+  const effectiveBg = (el) => {
+    const layers = [];
     let n = el;
     while (n) {
-      const bg = getComputedStyle(n).backgroundColor;
-      if (bg && !/rgba\\(0, 0, 0, 0\\)|transparent/.test(bg)) return bg;
+      const c = parse(getComputedStyle(n).backgroundColor);
+      if (c.a > 0) layers.push(c);
+      if (c.a === 1) break;
       n = n.parentElement;
     }
-    return 'rgb(255, 255, 255)';
+    if (!layers.length) return { r: 255, g: 255, b: 255, a: 1 };
+    let base = layers[layers.length - 1];
+    for (let i = layers.length - 2; i >= 0; i -= 1) {
+      const t = layers[i];
+      base = {
+        r: t.r * t.a + base.r * (1 - t.a),
+        g: t.g * t.a + base.g * (1 - t.a),
+        b: t.b * t.a + base.b * (1 - t.a),
+        a: 1,
+      };
+    }
+    return base;
   };
+
+  const hex = ({r, g, b}) =>
+    "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
 
   return targets.map((t) => {
     const el = document.querySelector(t.q);
-    if (!el) return { name: t.name, err: 'not found' };
+    if (!el) return { name: t.name, err: "not found" };
     const cs = getComputedStyle(el);
-    const bg = bgOf(el);
+    const fg = parse(cs.color);
+    const bg = effectiveBg(el);
     return {
       name: t.name,
-      fg: cs.color,
-      bg,
+      fg: hex(fg),
+      bg: hex(bg),
       px: parseFloat(cs.fontSize),
       weight: parseInt(cs.fontWeight, 10),
-      ratio: +ratio(cs.color, bg).toFixed(2),
+      ratio: +ratio(fg, bg).toFixed(2),
     };
   });
 }
@@ -79,6 +108,13 @@ TARGETS = [
     {"name": "body copy",         "q": "span.text-body"},
     {"name": "caption",           "q": "span.text-caption"},
     {"name": "h1",                "q": "span.text-h1"},
+    # Stage 2 additions — new colour usages introduced by the CREW grammar.
+    {"name": "danger as text",    "q": "button.text-danger-text"},
+    {"name": "warn as text",      "q": "span.text-warn-text"},
+    {"name": "mint on mint-soft", "q": "p.text-mint-text"},
+    {"name": "bubble on-hot",     "q": "div.bg-hot.text-on-hot"},
+    {"name": "crew names (h2)",   "q": "p.text-h2.text-ink"},
+    {"name": "person interests",  "q": "p.truncate.text-caption.text-ink-muted"},
 ]
 
 

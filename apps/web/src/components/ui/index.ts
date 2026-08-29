@@ -24,3 +24,21 @@ export {
   PersonRowSkeleton,
 } from "./states";
 export type { EmptyStateProps, ErrorStateProps } from "./states";
+
+export { PersonRow } from "./person-row";
+export type { PersonRowProps, PersonRelation } from "./person-row";
+
+export { CrewCard } from "./crew-card";
+export type { CrewCardProps, CrewCardVariant } from "./crew-card";
+
+export { ChatBubble } from "./chat-bubble";
+export type { ChatBubbleProps, BubbleStatus } from "./chat-bubble";
+
+export { CheckInStrip } from "./check-in-strip";
+export type { CheckInStripProps } from "./check-in-strip";
+
+export { PresenceStrip } from "./presence-strip";
+export type { PresenceStripProps } from "./presence-strip";
+
+export { XPBar, CompatBadge } from "./progress";
+export type { XPBarProps, CompatBadgeProps } from "./progress";
