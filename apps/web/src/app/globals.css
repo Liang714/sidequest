@@ -3,99 +3,211 @@
 @tailwind utilities;
 
 /*
- * Theme tokens as CSS custom properties — see docs/DESIGN_SYSTEM.md for the
- * source values. :root + prefers-color-scheme covers OS preference;
- * [data-theme] (set by next-themes) overrides it explicitly in both
- * directions, per the artifact-design contract.
+ * CREW theme tokens as CSS custom properties.
+ * Source values: packages/design-tokens/tokens.ts
+ * Full system: docs/superpowers/specs/2026-08-27-crew-ui-design.md §H
+ *
+ * :root + prefers-color-scheme covers OS preference; [data-theme] (set by
+ * next-themes) overrides it explicitly in both directions. Every token is
+ * defined on bare :root first so nothing has its ONLY definition inside a
+ * media query.
+ *
+ * The --*-text variants exist because both accents fail WCAG AA as TEXT on
+ * light backgrounds (hot 3.1:1, mint 1.6:1). Use --accent-hot for fills,
+ * --accent-hot-text for text. This split is what makes the mistake
+ * structurally impossible rather than a thing to remember.
  */
+
+/* ---------- LIGHT (default) ---------- */
 :root {
-  --bg: #fafafa;
+  --bg: #fdfbf7;
   --surface: #ffffff;
-  --surface-elevated: #f1f1f5;
-  --line: #e4e4ea;
-  --ink: #14141b;
-  --ink-muted: #6b6b76;
-  --ink-faint: #9a9aa4;
+  --surface-elevated: #f5f0e9;
+  --line: #e5ddd2;
+  --ink: #12100e;
+  --ink-muted: #6b6259;
+  --ink-faint: #797067;
 
-  --accent-blue: #3854e0;
-  --accent-blue-soft: rgba(56, 84, 224, 0.1);
-  --accent-lime: #7fbf00;
-  --accent-lime-soft: rgba(127, 191, 0, 0.12);
-  --accent-violet: #7c4fe0;
-  --accent-violet-soft: rgba(124, 79, 224, 0.1);
-  --accent-coral: #e0473a;
-  --accent-coral-soft: rgba(224, 71, 58, 0.1);
+  /* fills */
+  --accent-hot: #ff6a3d;
+  --accent-mint: #7be0a4;
+  --accent-info: #3355d4;
+  --accent-warn: #f5c36b;
+  --accent-danger: #c7362a;
 
-  --shadow-card: 0 1px 2px rgba(20, 20, 27, 0.04), 0 8px 24px rgba(20, 20, 27, 0.06);
+  /* accessible text variants — NEVER use the fill values as text on light */
+  --accent-hot-text: #c2410c; /* 5.1:1 on --bg */
+  --accent-mint-text: #17714a; /* 5.8:1 on --bg */
+  --accent-info-text: #3355d4;
+  --accent-warn-text: #8a5a00;
+  --accent-danger-text: #c7362a;
+
+  /* text to place ON an accent fill. white-on-hot is 2.5:1 and FAILS. */
+  --on-hot: #12100e; /* 6.7:1 */
+  --on-mint: #12100e;
+  --on-warn: #12100e;
+  --on-info: #ffffff;
+  --on-danger: #ffffff;
+
+  /* soft tints for chips/asides */
+  --accent-hot-soft: rgba(255, 106, 61, 0.1);
+  --accent-mint-soft: rgba(23, 113, 74, 0.1);
+  --accent-info-soft: rgba(51, 85, 212, 0.1);
+  --accent-warn-soft: rgba(138, 90, 0, 0.1);
+  --accent-danger-soft: rgba(199, 54, 42, 0.1);
+
+  /* warm-tinted elevation, never neutral black */
+  --shadow-e1: 0 1px 3px rgba(60, 40, 25, 0.06);
+  --shadow-e2: 0 8px 28px rgba(60, 40, 25, 0.1);
+  --shadow-e3: 0 16px 48px rgba(60, 40, 25, 0.16);
+  --scrim: rgba(10, 8, 6, 0.45);
+
+  /* ----- deprecated aliases: pre-rebuild screens only (removed at stage 7) ----- */
+  --accent-blue: var(--accent-info);
+  --accent-blue-soft: var(--accent-info-soft);
+  --accent-lime: var(--accent-mint-text);
+  --accent-lime-soft: var(--accent-mint-soft);
+  --accent-violet: var(--accent-info);
+  --accent-violet-soft: var(--accent-info-soft);
+  --accent-coral: var(--accent-danger);
+  --accent-coral-soft: var(--accent-danger-soft);
+  --shadow-card: var(--shadow-e1);
   --glow-blue: none;
   --glow-lime: none;
 }
 
+/* ---------- DARK ---------- */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0b0f;
-    --surface: #16161d;
-    --surface-elevated: #1d1d26;
-    --line: #2a2a35;
-    --ink: #f5f5f7;
-    --ink-muted: #9c9ca8;
-    --ink-faint: #6b6b76;
+  :root:not([data-theme="light"]) {
+    --bg: #12100e;
+    --surface: #1c1916;
+    --surface-elevated: #241f1b;
+    --line: #332c26;
+    --ink: #fbf7f2;
+    --ink-muted: #a79e96;
+    --ink-faint: #8a8178;
 
-    --accent-blue: #4c6fff;
-    --accent-blue-soft: rgba(76, 111, 255, 0.16);
-    --accent-lime: #b4ff39;
-    --accent-lime-soft: rgba(180, 255, 57, 0.14);
-    --accent-violet: #9d6bff;
-    --accent-violet-soft: rgba(157, 107, 255, 0.16);
-    --accent-coral: #ff6b5b;
-    --accent-coral-soft: rgba(255, 107, 91, 0.14);
+    --accent-hot: #ff6a3d;
+    --accent-mint: #7be0a4;
+    --accent-info: #8aa6ff;
+    --accent-warn: #f5c36b;
+    --accent-danger: #ff6b5b;
 
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.45);
-    --glow-blue: 0 0 32px rgba(76, 111, 255, 0.25);
-    --glow-lime: 0 0 24px rgba(180, 255, 57, 0.2);
+    /* on dark, the fills pass as text — no separate variant needed */
+    --accent-hot-text: #ff6a3d; /* 6.7:1 */
+    --accent-mint-text: #7be0a4; /* 11.9:1 */
+    --accent-info-text: #8aa6ff;
+    --accent-warn-text: #f5c36b;
+    --accent-danger-text: #ff6b5b;
+
+    --on-hot: #12100e;
+    --on-mint: #12100e;
+    --on-warn: #12100e;
+    --on-info: #12100e;
+    --on-danger: #12100e;
+
+    --accent-hot-soft: rgba(255, 106, 61, 0.13);
+    --accent-mint-soft: rgba(123, 224, 164, 0.13);
+    --accent-info-soft: rgba(138, 166, 255, 0.14);
+    --accent-warn-soft: rgba(245, 195, 107, 0.13);
+    --accent-danger-soft: rgba(255, 107, 91, 0.13);
+
+    /* dark has no usable shadows on #12100E — depth is surface + hairline */
+    --shadow-e1: none;
+    --shadow-e2: none;
+    --shadow-e3: 0 16px 48px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(10, 8, 6, 0.72);
+
+    --shadow-card: none;
   }
 }
 
-:root[data-theme="dark"] {
-  --bg: #0b0b0f;
-  --surface: #16161d;
-  --surface-elevated: #1d1d26;
-  --line: #2a2a35;
-  --ink: #f5f5f7;
-  --ink-muted: #9c9ca8;
-  --ink-faint: #6b6b76;
-  --accent-blue: #4c6fff;
-  --accent-blue-soft: rgba(76, 111, 255, 0.16);
-  --accent-lime: #b4ff39;
-  --accent-lime-soft: rgba(180, 255, 57, 0.14);
-  --accent-violet: #9d6bff;
-  --accent-violet-soft: rgba(157, 107, 255, 0.16);
-  --accent-coral: #ff6b5b;
-  --accent-coral-soft: rgba(255, 107, 91, 0.14);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.45);
-  --glow-blue: 0 0 32px rgba(76, 111, 255, 0.25);
-  --glow-lime: 0 0 24px rgba(180, 255, 57, 0.2);
+/* ---------- explicit toggle: dark ----------
+ * The bare [data-theme] selector is deliberate alongside :root — it lets a
+ * subtree be themed independently, which is what /dev/kitchen-sink relies on
+ * to show both themes without touching the user's app-wide preference.
+ */
+:root[data-theme="dark"],
+[data-theme="dark"] {
+  --bg: #12100e;
+  --surface: #1c1916;
+  --surface-elevated: #241f1b;
+  --line: #332c26;
+  --ink: #fbf7f2;
+  --ink-muted: #a79e96;
+  --ink-faint: #8a8178;
+
+  --accent-hot: #ff6a3d;
+  --accent-mint: #7be0a4;
+  --accent-info: #8aa6ff;
+  --accent-warn: #f5c36b;
+  --accent-danger: #ff6b5b;
+
+  --accent-hot-text: #ff6a3d;
+  --accent-mint-text: #7be0a4;
+  --accent-info-text: #8aa6ff;
+  --accent-warn-text: #f5c36b;
+  --accent-danger-text: #ff6b5b;
+
+  --on-hot: #12100e;
+  --on-mint: #12100e;
+  --on-warn: #12100e;
+  --on-info: #12100e;
+  --on-danger: #12100e;
+
+  --accent-hot-soft: rgba(255, 106, 61, 0.13);
+  --accent-mint-soft: rgba(123, 224, 164, 0.13);
+  --accent-info-soft: rgba(138, 166, 255, 0.14);
+  --accent-warn-soft: rgba(245, 195, 107, 0.13);
+  --accent-danger-soft: rgba(255, 107, 91, 0.13);
+
+  --shadow-e1: none;
+  --shadow-e2: none;
+  --shadow-e3: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(10, 8, 6, 0.72);
+  --shadow-card: none;
 }
 
-:root[data-theme="light"] {
-  --bg: #fafafa;
+/* ---------- explicit toggle: light ---------- */
+:root[data-theme="light"],
+[data-theme="light"] {
+  --bg: #fdfbf7;
   --surface: #ffffff;
-  --surface-elevated: #f1f1f5;
-  --line: #e4e4ea;
-  --ink: #14141b;
-  --ink-muted: #6b6b76;
-  --ink-faint: #9a9aa4;
-  --accent-blue: #3854e0;
-  --accent-blue-soft: rgba(56, 84, 224, 0.1);
-  --accent-lime: #7fbf00;
-  --accent-lime-soft: rgba(127, 191, 0, 0.12);
-  --accent-violet: #7c4fe0;
-  --accent-violet-soft: rgba(124, 79, 224, 0.1);
-  --accent-coral: #e0473a;
-  --accent-coral-soft: rgba(224, 71, 58, 0.1);
-  --shadow-card: 0 1px 2px rgba(20, 20, 27, 0.04), 0 8px 24px rgba(20, 20, 27, 0.06);
-  --glow-blue: none;
-  --glow-lime: none;
+  --surface-elevated: #f5f0e9;
+  --line: #e5ddd2;
+  --ink: #12100e;
+  --ink-muted: #6b6259;
+  --ink-faint: #797067;
+
+  --accent-hot: #ff6a3d;
+  --accent-mint: #7be0a4;
+  --accent-info: #3355d4;
+  --accent-warn: #f5c36b;
+  --accent-danger: #c7362a;
+
+  --accent-hot-text: #c2410c;
+  --accent-mint-text: #17714a;
+  --accent-info-text: #3355d4;
+  --accent-warn-text: #8a5a00;
+  --accent-danger-text: #c7362a;
+
+  --on-hot: #12100e;
+  --on-mint: #12100e;
+  --on-warn: #12100e;
+  --on-info: #ffffff;
+  --on-danger: #ffffff;
+
+  --accent-hot-soft: rgba(255, 106, 61, 0.1);
+  --accent-mint-soft: rgba(23, 113, 74, 0.1);
+  --accent-info-soft: rgba(51, 85, 212, 0.1);
+  --accent-warn-soft: rgba(138, 90, 0, 0.1);
+  --accent-danger-soft: rgba(199, 54, 42, 0.1);
+
+  --shadow-e1: 0 1px 3px rgba(60, 40, 25, 0.06);
+  --shadow-e2: 0 8px 28px rgba(60, 40, 25, 0.1);
+  --shadow-e3: 0 16px 48px rgba(60, 40, 25, 0.16);
+  --scrim: rgba(10, 8, 6, 0.45);
+  --shadow-card: var(--shadow-e1);
 }
 
 * {
@@ -109,22 +221,44 @@ body {
 }
 
 body {
-  /* Body copy runs on the system stack for load performance; Geist Sans is
-     reserved for headings/identity via the .font-display / font-display
-     Tailwind utility — see docs/DESIGN_SYSTEM.md. */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+  /* Figtree for Latin, then a Korean-capable system stack — see
+     packages/design-tokens/tokens.ts for why Pretendard isn't loaded. */
+  font-family:
+    var(--font-figtree), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
+    "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    var(--font-figtree), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+}
+
+/*
+ * CREW is sentence-case by default, so the CJK override is far less
+ * load-bearing here than in an uppercase-led system — but tracking still
+ * must not be applied to Hangul, where negative tracking damages legibility.
+ */
+:lang(ko),
+:lang(ja),
+:lang(zh) {
+  letter-spacing: normal !important;
+  text-transform: none !important;
 }
 
 ::selection {
-  background: var(--accent-blue);
-  color: #fff;
+  background: var(--accent-hot);
+  color: var(--on-hot);
+}
+
+/* Visible focus on every interactive element — spec §K. */
+:focus-visible {
+  outline: 2px solid var(--accent-info);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {

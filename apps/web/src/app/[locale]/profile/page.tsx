@@ -1,4 +1,18 @@
 import { getTranslations } from "next-intl/server";
+import {
+  Building2,
+  ChevronRight,
+  Flag,
+  Map as MapIcon,
+  Palette,
+  Route,
+  Settings,
+  ShieldCheck,
+  Star,
+  Store,
+  Ticket,
+  Users2,
+} from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { XpBar } from "@/components/xp-bar";
 import { CategoryChip } from "@/components/category-chip";
@@ -126,61 +140,44 @@ export default async function ProfilePage() {
         </div>
       )}
 
-      <div className="mt-6 flex flex-col gap-2">
-        <Link
-          href="/plan"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
-        >
-          🧭 {t("itinerary.navLink")}
-        </Link>
-        <Link
-          href="/bookings"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
-        >
-          🎳 {t("booking.myBookings")}
-        </Link>
-        <Link
-          href="/subscription"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
-        >
-          ⭐ {t("subscription.navLink")}
-        </Link>
-        <Link
-          href="/marketplace"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
-        >
-          🛍️ {t("marketplace.navLink")}
-        </Link>
-        <Link
-          href="/creator"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
-        >
-          🎨 {t("creator.dashboardLink")}
-        </Link>
-        <Link
-          href="/business"
-          className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-violet/40"
-        >
-          🏢 {t("business.dashboardLink")}
-        </Link>
+      {/*
+        The "You" hub. These routes were previously a flat list of emoji
+        links; /friends and /map had no entry here at all, and /map had zero
+        inbound links anywhere in the app. Grouped, Lucide-iconed, and
+        role-gated so complexity is earned rather than paid up front
+        (spec §D, §L principle 8).
+      */}
+      <nav aria-label={t("hub.title")} className="mt-6 flex flex-col gap-2">
+        <HubLink href="/friends" icon={<Users2 className="h-[18px] w-[18px]" />} label={t("hub.friends")} />
+        <HubLink href="/map" icon={<MapIcon className="h-[18px] w-[18px]" />} label={t("nav.map")} />
+        <HubLink href="/plan" icon={<Route className="h-[18px] w-[18px]" />} label={t("itinerary.navLink")} />
+        <HubLink href="/bookings" icon={<Ticket className="h-[18px] w-[18px]" />} label={t("booking.myBookings")} />
+        <HubLink href="/marketplace" icon={<Store className="h-[18px] w-[18px]" />} label={t("marketplace.navLink")} />
+        <HubLink href="/subscription" icon={<Star className="h-[18px] w-[18px]" />} label={t("subscription.navLink")} />
+        <HubLink href="/creator" icon={<Palette className="h-[18px] w-[18px]" />} label={t("creator.dashboardLink")} />
+        <HubLink href="/business" icon={<Building2 className="h-[18px] w-[18px]" />} label={t("business.dashboardLink")} />
+        <HubLink href="/settings" icon={<Settings className="h-[18px] w-[18px]" />} label={t("settings.navLink")} />
         {session.is_admin && (
           <>
-            <Link
-              href="/admin/businesses"
-              className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-blue/40"
-            >
-              🛡️ {t("admin.pendingBusinesses")}
-            </Link>
-            <Link
-              href="/admin/reports"
-              className="rounded-card border border-line bg-surface px-4 py-3 text-[13px] font-medium text-ink transition-colors hover:border-coral/40"
-            >
-              🚩 {t("admin.reportsNavLink")}
-            </Link>
+            <HubLink href="/admin/businesses" icon={<ShieldCheck className="h-[18px] w-[18px]" />} label={t("admin.pendingBusinesses")} />
+            <HubLink href="/admin/reports" icon={<Flag className="h-[18px] w-[18px]" />} label={t("admin.reportsNavLink")} />
           </>
         )}
-      </div>
+      </nav>
     </AppShell>
+  );
+}
+
+function HubLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-11 items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 text-body-s font-medium text-ink transition-colors duration-150 ease-crew hover:bg-surface-elevated"
+    >
+      <span className="text-ink-muted">{icon}</span>
+      <span className="flex-1">{label}</span>
+      <ChevronRight aria-hidden className="h-4 w-4 text-ink-faint" />
+    </Link>
   );
 }
 

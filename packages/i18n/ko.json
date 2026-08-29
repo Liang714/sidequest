@@ -9,7 +9,14 @@
     "create": "만들기",
     "friends": "친구",
     "profile": "프로필",
-    "map": "지도"
+    "map": "지도",
+    "primary": "주요 메뉴",
+    "tonight": "오늘 밤",
+    "rooms": "대화방",
+    "plans": "일정",
+    "you": "내 정보",
+    "search": "검색",
+    "notifications": "알림"
   },
   "auth": {
     "loginTitle": "다시 오셨네요",
@@ -188,7 +195,10 @@
     "deleteAccount": "계정 삭제",
     "deleteAccountConfirmLabel": "계정이 영구적으로 삭제된다는 것을 이해했어요",
     "deleteAccountPasswordLabel": "비밀번호 확인",
-    "deleteAccountButton": "계정 영구 삭제"
+    "deleteAccountButton": "계정 영구 삭제",
+    "preferences": "환경설정",
+    "language": "언어",
+    "appearance": "화면 테마"
   },
   "profile": {
     "level": "레벨 {level}",
@@ -390,5 +400,86 @@
     "viewResult": "보러 가기 →",
     "confirmStep": "확인",
     "whyRecommended": "왜 추천됐나요?"
+  },
+  "create": {
+    "title": "무언가 시작하기",
+    "manual": "퀘스트 만들기",
+    "manualHint": "장소, 시간, 참여 인원을 직접 정하세요",
+    "ai": "AI로 만들기",
+    "aiHint": "오늘 밤을 설명하면 수정 가능한 초안을 만들어 드려요",
+    "plan": "오늘 밤 계획하기",
+    "planHint": "2~4단계, 각 단계는 직접 확인해요",
+    "quotaLeft": "오늘 {count}회 남음",
+    "quotaPro": "무제한"
+  },
+  "rooms": {
+    "title": "대화방",
+    "live": "진행 중",
+    "upcoming": "예정",
+    "archived": "지난 대화",
+    "emptyTitle": "아직 대화가 없어요.",
+    "emptyBody": "크루에 참여하면 여기에 표시돼요.",
+    "emptyAction": "오늘 밤 둘러보기",
+    "open": "대화방 열기"
+  },
+  "plans": {
+    "title": "일정",
+    "upcoming": "예정",
+    "bookings": "예약",
+    "history": "지난 기록",
+    "emptyTitle": "예정된 일정이 없어요.",
+    "emptyBody": "오늘 밤 목록이 기다리고 있어요.",
+    "emptyAction": "오늘 밤 둘러보기",
+    "allBookings": "모든 예약"
+  },
+  "hub": {
+    "title": "더 보기",
+    "friends": "친구",
+    "marketplace": "마켓플레이스",
+    "bookings": "예약",
+    "subscription": "SIDEQUEST Pro",
+    "creator": "크리에이터 스튜디오",
+    "business": "비즈니스",
+    "admin": "관리자",
+    "settings": "설정"
+  },
+  "notifications": {
+    "title": "알림",
+    "markAllRead": "모두 읽음으로 표시",
+    "group": {
+      "needsYou": "확인이 필요해요",
+      "startingSoon": "곧 시작해요",
+      "activity": "활동"
+    },
+    "friendRequestReceived": "{name}님이 친구를 신청했어요.",
+    "friendRequestAccepted": "{name}님이 친구 신청을 수락했어요.",
+    "generic": "새로운 소식이 있어요 ({type}).",
+    "accept": "수락",
+    "ignore": "무시",
+    "accepted": "이제 친구예요.",
+    "viewProfile": "프로필 보기",
+    "emptyTitle": "모두 확인했어요.",
+    "emptyAction": "오늘 밤 둘러보기"
+  },
+  "publicProfile": {
+    "friend": "★ 친구",
+    "mutuals": "함께 아는 친구 {count}명",
+    "into": "관심사",
+    "together": "함께한 기록",
+    "sharedQuests": "함께 완료한 퀘스트 {count}개",
+    "recently": "활동",
+    "completed": "완료한 퀘스트",
+    "badges": "배지",
+    "restricted": "친구에게만 공개된 프로필이에요.",
+    "addFriend": "친구 신청",
+    "requestSent": "신청함",
+    "actionFailed": "실패했어요. 다시 시도해 주세요.",
+    "report": "신고",
+    "reported": "신고함",
+    "block": "차단",
+    "blockTitle": "{name}님을 차단할까요?",
+    "blockBody": "서로의 퀘스트, 메시지, 상태를 볼 수 없게 되고 친구 관계도 해제돼요.",
+    "blockConfirm": "차단",
+    "cancel": "취소"
   }
 }

@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { AppShell } from "@/components/app-shell";
 import { DeleteAccountForm } from "@/components/delete-account-form";
 import { ResendVerificationButton } from "@/components/resend-verification-button";
@@ -29,6 +31,20 @@ export default async function SettingsPage() {
             {session.email_verified ? `✓ ${t("settings.emailVerified")}` : t("settings.emailUnverified")}
           </span>
           {!session.email_verified && <ResendVerificationButton />}
+        </div>
+      </section>
+
+      {/* Moved out of the header, which overflowed at 390px. These are
+          preferences, not per-session actions. */}
+      <section className="mt-5 rounded-card border border-line bg-surface p-4">
+        <h2 className="mb-3 text-h3 text-ink">{t("settings.preferences")}</h2>
+        <div className="flex items-center justify-between py-2">
+          <span className="text-body-s text-ink-muted">{t("settings.language")}</span>
+          <LocaleSwitcher />
+        </div>
+        <div className="flex items-center justify-between py-2">
+          <span className="text-body-s text-ink-muted">{t("settings.appearance")}</span>
+          <ThemeToggle />
         </div>
       </section>
 

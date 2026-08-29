@@ -9,7 +9,14 @@
     "create": "Create",
     "friends": "Friends",
     "profile": "Profile",
-    "map": "Map"
+    "map": "Map",
+    "primary": "Primary",
+    "tonight": "Tonight",
+    "rooms": "Rooms",
+    "plans": "Plans",
+    "you": "You",
+    "search": "Search",
+    "notifications": "Notifications"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -188,7 +195,10 @@
     "deleteAccount": "Delete My Account",
     "deleteAccountConfirmLabel": "I understand this permanently deletes my account",
     "deleteAccountPasswordLabel": "Confirm your password",
-    "deleteAccountButton": "Permanently Delete Account"
+    "deleteAccountButton": "Permanently Delete Account",
+    "preferences": "Preferences",
+    "language": "Language",
+    "appearance": "Appearance"
   },
   "profile": {
     "level": "Level {level}",
@@ -390,5 +400,86 @@
     "viewResult": "View →",
     "confirmStep": "Confirm",
     "whyRecommended": "Why recommended?"
+  },
+  "create": {
+    "title": "Start something",
+    "manual": "Create a quest",
+    "manualHint": "Pick the place, time, and who can join",
+    "ai": "Generate with AI",
+    "aiHint": "Describe your night, get a draft you can edit",
+    "plan": "Plan my night",
+    "planHint": "2–4 steps, you confirm each one",
+    "quotaLeft": "{count} left today",
+    "quotaPro": "Unlimited"
+  },
+  "rooms": {
+    "title": "Rooms",
+    "live": "Live now",
+    "upcoming": "Upcoming",
+    "archived": "Archived",
+    "emptyTitle": "No conversations yet.",
+    "emptyBody": "Join a crew and this fills up.",
+    "emptyAction": "See who's out",
+    "open": "Open room"
+  },
+  "plans": {
+    "title": "Plans",
+    "upcoming": "Upcoming",
+    "bookings": "Bookings",
+    "history": "History",
+    "emptyTitle": "Nothing on the calendar.",
+    "emptyBody": "Tonight's list is waiting.",
+    "emptyAction": "See who's out",
+    "allBookings": "All bookings"
+  },
+  "hub": {
+    "title": "More",
+    "friends": "Friends",
+    "marketplace": "Marketplace",
+    "bookings": "Bookings",
+    "subscription": "SIDEQUEST Pro",
+    "creator": "Creator Studio",
+    "business": "For Business",
+    "admin": "Admin",
+    "settings": "Settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "group": {
+      "needsYou": "Needs you",
+      "startingSoon": "Starting soon",
+      "activity": "Activity"
+    },
+    "friendRequestReceived": "{name} wants to be friends.",
+    "friendRequestAccepted": "{name} accepted your friend request.",
+    "generic": "Something happened ({type}).",
+    "accept": "Accept",
+    "ignore": "Ignore",
+    "accepted": "You're friends now.",
+    "viewProfile": "View profile",
+    "emptyTitle": "You're all caught up.",
+    "emptyAction": "See who's out"
+  },
+  "publicProfile": {
+    "friend": "★ Friend",
+    "mutuals": "{count} mutual",
+    "into": "Into",
+    "together": "Together",
+    "sharedQuests": "You've both completed {count} quest(s)",
+    "recently": "Recently",
+    "completed": "Quests completed",
+    "badges": "Badges",
+    "restricted": "This profile is friends-only.",
+    "addFriend": "Add friend",
+    "requestSent": "Request sent",
+    "actionFailed": "That didn't work. Try again.",
+    "report": "Report",
+    "reported": "Reported",
+    "block": "Block",
+    "blockTitle": "Block {name}?",
+    "blockBody": "You won't see each other's quests, messages, or status. Any friendship is removed.",
+    "blockConfirm": "Block",
+    "cancel": "Cancel"
   }
 }

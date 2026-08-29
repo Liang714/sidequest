@@ -48,7 +48,7 @@ generated schema is the contract `packages/types` is built from.
 |---|---|---|
 | GET | `/users/me` | Full profile incl. private settings |
 | PATCH | `/users/me` | Partial update |
-| GET | `/users/{id}` | Public view, respects `visibility_settings` |
+| GET | `/users/{id}` | Public profile (`PublicProfileOut`). Adds interest keys, `completed_quests`, `achievements_unlocked`, `shared_quests` (quests both users completed — the strongest vetting signal available), `mutual_friends`, `is_friend`, `friend_request_pending`. Everything is interest-, behaviour- or graph-derived: there is deliberately no appearance field, no last-seen and no profile-view count, so PRD.md §6 is satisfied by the payload not having the data rather than the UI choosing not to render it. **404s when either user has blocked the other**, in both directions, so a block never reveals itself. `visibility_settings.profile == "friends"` returns an identity-only view with `restricted: true` (a stranger can still send a friend request but learns nothing else) — this implements the "public or friends-only profile" **Must** story from USER_STORIES.md, which had been specced but never built |
 | POST | `/users/me/delete` | `{ password }` — self-service account deletion. Soft delete (`deleted_at`), same as everything else in this app; `email`/`username` are mangled and freed up for reuse, `password_hash` is overwritten with an unusable random value. Requires re-entering the password. Rate-limited (5/min/user) |
 | GET | `/users/me/xp` | XP total + level + recent `xp_transactions` |
 | GET | `/users/me/achievements` | Full achievement gallery — locked *and* unlocked (Phase 4), sorted unlocked-first |
@@ -57,7 +57,7 @@ generated schema is the contract `packages/types` is built from.
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/friends/request` | `{ addressee_id }` |
+| POST | `/friends/request` | `{ addressee_id }`. The `friend_request_received` notification payload carries `friend_id` and `requester_id` so the request can be accepted inline from the notification rather than deep-linking to `/friends`. (The row is flushed before the payload is built — reading `friend.id` pre-flush yields the string `"None"`.) |
 | POST | `/friends/accept` | `{ friend_request_id }` |
 | POST | `/friends/{id}/remove` | Removes an accepted friendship |
 | GET | `/friends` | Paginated friend list |
