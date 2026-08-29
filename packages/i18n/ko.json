@@ -442,5 +442,44 @@
     "business": "비즈니스",
     "admin": "관리자",
     "settings": "설정"
+  },
+  "notifications": {
+    "title": "알림",
+    "markAllRead": "모두 읽음으로 표시",
+    "group": {
+      "needsYou": "확인이 필요해요",
+      "startingSoon": "곧 시작해요",
+      "activity": "활동"
+    },
+    "friendRequestReceived": "{name}님이 친구를 신청했어요.",
+    "friendRequestAccepted": "{name}님이 친구 신청을 수락했어요.",
+    "generic": "새로운 소식이 있어요 ({type}).",
+    "accept": "수락",
+    "ignore": "무시",
+    "accepted": "이제 친구예요.",
+    "viewProfile": "프로필 보기",
+    "emptyTitle": "모두 확인했어요.",
+    "emptyAction": "오늘 밤 둘러보기"
+  },
+  "publicProfile": {
+    "friend": "★ 친구",
+    "mutuals": "함께 아는 친구 {count}명",
+    "into": "관심사",
+    "together": "함께한 기록",
+    "sharedQuests": "함께 완료한 퀘스트 {count}개",
+    "recently": "활동",
+    "completed": "완료한 퀘스트",
+    "badges": "배지",
+    "restricted": "친구에게만 공개된 프로필이에요.",
+    "addFriend": "친구 신청",
+    "requestSent": "신청함",
+    "actionFailed": "실패했어요. 다시 시도해 주세요.",
+    "report": "신고",
+    "reported": "신고함",
+    "block": "차단",
+    "blockTitle": "{name}님을 차단할까요?",
+    "blockBody": "서로의 퀘스트, 메시지, 상태를 볼 수 없게 되고 친구 관계도 해제돼요.",
+    "blockConfirm": "차단",
+    "cancel": "취소"
   }
 }

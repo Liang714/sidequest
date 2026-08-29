@@ -207,7 +207,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Profile */
+        /**
+         * Get User Profile
+         * @description Another user's public profile.
+         *
+         *     This is the screen that makes the app's social half work at all: until
+         *     it existed there was no way to obtain another user's id, so
+         *     POST /friends/request — a Must story — could never be reached from the
+         *     UI. It is also the vetting surface that presence depends on; see
+         *     docs/superpowers/specs/2026-08-27-crew-ui-design.md §F2.
+         */
         get: operations["get_user_profile_users__user_id__get"];
         put?: never;
         post?: never;
@@ -1824,6 +1833,77 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /**
+         * PublicProfileOut
+         * @description Another user's profile, as seen by the current user.
+         *
+         *     Everything here is interest-, behaviour- or graph-derived. There is
+         *     deliberately no appearance-oriented field, no last-seen and no
+         *     profile-view count: PRD.md §6 rules out appearance-based matching, and
+         *     the UI satisfies that by not having the data rather than by choosing not
+         *     to render it. See docs/superpowers/specs/2026-08-27-crew-ui-design.md §F2.
+         */
+        PublicProfileOut: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Username */
+            username: string;
+            /** Display Name */
+            display_name: string;
+            /** Real Name */
+            real_name: string | null;
+            /** Bio */
+            bio: string | null;
+            /** Avatar Url */
+            avatar_url: string | null;
+            /** Xp */
+            xp: number;
+            /** Level */
+            level: number;
+            /**
+             * Interests
+             * @default []
+             */
+            interests: string[];
+            /**
+             * Completed Quests
+             * @default 0
+             */
+            completed_quests: number;
+            /**
+             * Achievements Unlocked
+             * @default 0
+             */
+            achievements_unlocked: number;
+            /**
+             * Shared Quests
+             * @default 0
+             */
+            shared_quests: number;
+            /**
+             * Mutual Friends
+             * @default 0
+             */
+            mutual_friends: number;
+            /**
+             * Is Friend
+             * @default false
+             */
+            is_friend: boolean;
+            /**
+             * Friend Request Pending
+             * @default false
+             */
+            friend_request_pending: boolean;
+            /**
+             * Restricted
+             * @default false
+             */
+            restricted: boolean;
+        };
         /** QuestAnalyticsOut */
         QuestAnalyticsOut: {
             /**
@@ -2582,7 +2662,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProfileOut"];
+                    "application/json": components["schemas"]["PublicProfileOut"];
                 };
             };
             /** @description Validation Error */

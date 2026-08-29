@@ -442,5 +442,44 @@
     "business": "For Business",
     "admin": "Admin",
     "settings": "Settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "group": {
+      "needsYou": "Needs you",
+      "startingSoon": "Starting soon",
+      "activity": "Activity"
+    },
+    "friendRequestReceived": "{name} wants to be friends.",
+    "friendRequestAccepted": "{name} accepted your friend request.",
+    "generic": "Something happened ({type}).",
+    "accept": "Accept",
+    "ignore": "Ignore",
+    "accepted": "You're friends now.",
+    "viewProfile": "View profile",
+    "emptyTitle": "You're all caught up.",
+    "emptyAction": "See who's out"
+  },
+  "publicProfile": {
+    "friend": "★ Friend",
+    "mutuals": "{count} mutual",
+    "into": "Into",
+    "together": "Together",
+    "sharedQuests": "You've both completed {count} quest(s)",
+    "recently": "Recently",
+    "completed": "Quests completed",
+    "badges": "Badges",
+    "restricted": "This profile is friends-only.",
+    "addFriend": "Add friend",
+    "requestSent": "Request sent",
+    "actionFailed": "That didn't work. Try again.",
+    "report": "Report",
+    "reported": "Reported",
+    "block": "Block",
+    "blockTitle": "Block {name}?",
+    "blockBody": "You won't see each other's quests, messages, or status. Any friendship is removed.",
+    "blockConfirm": "Block",
+    "cancel": "Cancel"
   }
 }

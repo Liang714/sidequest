@@ -52,11 +52,22 @@ async def send_friend_request(
 
     friend = Friend(requester_id=current_user.id, addressee_id=body.addressee_id)
     db.add(friend)
+    # The PK is generated on insert, so flush before reading friend.id —
+    # without this the payload carries the string "None" and the inline
+    # accept 422s.
+    await db.flush()
+    # friend_id travels in the payload so the notification can be acted on
+    # where it's read. Without it the client can only deep-link to /friends,
+    # and an actionable notification that isn't actionable is just noise.
     db.add(
         Notification(
             user_id=body.addressee_id,
             type="friend_request_received",
-            payload={"requester_username": current_user.username},
+            payload={
+                "requester_username": current_user.username,
+                "requester_id": str(current_user.id),
+                "friend_id": str(friend.id),
+            },
         )
     )
     await db.commit()

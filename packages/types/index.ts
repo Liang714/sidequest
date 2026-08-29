@@ -60,3 +60,6 @@ export type VerifyPhotoOut = Schemas["VerifyPhotoOut"];
 export type VisionVerificationOut = Schemas["VisionVerificationOut"];
 
 export type ReportOut = Schemas["ReportOut"];
+
+export type PublicProfileOut = Schemas["PublicProfileOut"];
+export type ReportTargetType = Schemas["ReportTargetType"];

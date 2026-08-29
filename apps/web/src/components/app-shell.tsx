@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { TabBar } from "./tab-bar";
 
@@ -37,6 +37,9 @@ export async function AppShell({
 }: AppShellProps) {
   const t = await getTranslations();
 
+  // No search entry point yet: there is no /search route and no quest
+  // text-search endpoint (GET /quests has filters but no `q`). A header
+  // link to a 404 is worse than no link — it lands with the endpoint.
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur-md">
@@ -53,10 +56,6 @@ export async function AppShell({
             per-session actions — the same reasoning that moved log out.
           */}
           <div className="flex items-center gap-1">
-            <IconLink href="/search" label={t("nav.search")}>
-              <Search aria-hidden className="h-[18px] w-[18px]" />
-            </IconLink>
-
             <IconLink href="/notifications" label={t("nav.notifications")} badge={unreadCount}>
               <Bell aria-hidden className="h-[18px] w-[18px]" />
             </IconLink>
