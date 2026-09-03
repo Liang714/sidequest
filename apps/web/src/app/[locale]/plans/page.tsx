@@ -59,7 +59,7 @@ export default async function PlansPage() {
             <Section title={t("plans.upcoming")}>
               <div className="flex flex-col gap-3">
                 {upcoming.map((q) => (
-                  <QuestCard key={q.id} quest={q} variant="row" />
+                  <QuestCard key={q.id} quest={q} />
                 ))}
               </div>
             </Section>
@@ -90,7 +90,7 @@ export default async function PlansPage() {
             <Section title={t("plans.history")}>
               <div className="flex flex-col gap-3">
                 {history.slice(0, 5).map((q) => (
-                  <QuestCard key={q.id} quest={q} variant="row" />
+                  <QuestCard key={q.id} quest={q} />
                 ))}
               </div>
             </Section>
