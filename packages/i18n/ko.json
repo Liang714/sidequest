@@ -193,7 +193,10 @@
     "photoObjective": "사진",
     "uploadPhoto": "사진 업로드",
     "aiConfirms": "AI가 확인했어요",
-    "aiUnsure": "AI가 확신하지 못했어요 — 완료는 그대로 인정돼요"
+    "aiUnsure": "AI가 확신하지 못했어요 — 완료는 그대로 인정돼요",
+    "hereCount": "{total}명 중 {count}명 도착",
+    "questComplete": "퀘스트 완료",
+    "aiAdvisory": "AI 판단"
   },
   "legal": {
     "termsNavLink": "이용약관",

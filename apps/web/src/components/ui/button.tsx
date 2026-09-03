@@ -66,10 +66,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         "transition-[transform,background-color,color] duration-150 ease-crew",
         "active:scale-[0.97] disabled:pointer-events-none",
         // `disabled` and `loading` need different affordances: a disabled
-        // button is unavailable (dimmed), a loading one is working (full
-        // opacity, spinner).
-        disabled && !loading && "opacity-40",
-        VARIANTS[variant],
+        // button is unavailable, a loading one is working (full opacity,
+        // spinner).
+        //
+        // Dimming a tangerine fill to 40% produces a washed-out salmon that
+        // reads as broken rather than unavailable, so a disabled primary
+        // drops to a neutral surface instead. Other variants are already
+        // low-contrast enough that opacity alone works.
+        disabled && !loading
+          ? variant === "primary"
+            ? "bg-surface-elevated text-ink-faint"
+            : clsx(VARIANTS[variant], "opacity-40")
+          : VARIANTS[variant],
         SIZES[size],
         block && "w-full",
         className,

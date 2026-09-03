@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
+import { MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import clsx from "clsx";
 import { categoryEmoji, type Category } from "@/lib/types";
@@ -139,7 +140,7 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
         {step === 3 && (
           <StepShell title={t("step4Title")} sub={t("step4Sub")}>
             <div className="mt-2 flex h-40 flex-col items-center justify-center gap-2 rounded-card border border-dashed border-line text-center">
-              <span className="text-4xl">📍</span>
+              <MapPin aria-hidden className="h-9 w-9 text-hot-text" />
               {locationStatus === "granted" && (
                 <span className="text-[12px] text-lime">{t("locationSaved")}</span>
               )}

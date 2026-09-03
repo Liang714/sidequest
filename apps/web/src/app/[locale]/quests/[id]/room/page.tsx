@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/app-shell";
 import { QuestRoomClient } from "@/components/quest-room-client";
@@ -39,12 +40,13 @@ export default async function QuestRoomPage({
     <AppShell>
       <Link
         href={`/quests/${quest.id}`}
-        className="mb-4 inline-flex items-center gap-1 text-[13px] text-ink-muted"
+        className="inline-flex min-h-11 items-center gap-1 text-body-s text-ink-muted"
       >
-        ← {t("common.back")}
+        <ArrowLeft aria-hidden className="h-4 w-4" />
+        {t("common.back")}
       </Link>
-      <h1 className="mb-1 font-display text-[20px] font-bold text-ink">{quest.title}</h1>
-      <p className="mb-5 text-[13px] text-ink-faint">{t("questRoom.title")}</p>
+      <h1 className="mt-2 text-h1 text-ink">{quest.title}</h1>
+      <p className="mb-5 text-body-s text-ink-faint">{t("questRoom.title")}</p>
       <QuestRoomClient
         quest={quest}
         initialMessages={messages}

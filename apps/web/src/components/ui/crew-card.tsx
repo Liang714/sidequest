@@ -130,10 +130,6 @@ export function CrewCard({
           className="mt-4"
           onClick={onCta}
           loading={ctaLoading}
-          // A dimmed tangerine fill reads as muddy rather than unavailable,
-          // so `full` drops to the outline treatment instead of relying on
-          // opacity to communicate the state.
-          variant={variant === "full" ? "secondary" : "primary"}
           disabled={variant === "full"}
         >
           {variant === "full" ? "Crew full" : ctaLabel}

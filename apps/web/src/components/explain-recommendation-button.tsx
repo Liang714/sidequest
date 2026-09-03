@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { explainRecommendationAction } from "@/app/actions/recommendation";
 
@@ -28,7 +29,8 @@ export function ExplainRecommendationButton({
   if (explanation) {
     return (
       <p className="mt-2 rounded-button border border-violet/30 bg-violet-soft px-3 py-2 text-[12.5px] text-ink">
-        🤖 {explanation}
+        <Sparkles aria-hidden className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
+        {explanation}
       </p>
     );
   }

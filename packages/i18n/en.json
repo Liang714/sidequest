@@ -193,7 +193,10 @@
     "photoObjective": "Photo",
     "uploadPhoto": "Upload Photo",
     "aiConfirms": "AI confirms this looks right",
-    "aiUnsure": "AI isn't sure — completion still counts"
+    "aiUnsure": "AI isn't sure — completion still counts",
+    "hereCount": "{count} of {total} here",
+    "questComplete": "Quest complete",
+    "aiAdvisory": "AI thinks"
   },
   "legal": {
     "termsNavLink": "Terms of Service",
