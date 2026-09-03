@@ -249,7 +249,10 @@
     "remove": "Remove",
     "addFriend": "Add Friend",
     "noRequests": "No pending requests.",
-    "inviteToQuest": "Invite to quest"
+    "inviteToQuest": "Invite to quest",
+    "emptyTitle": "No friends yet.",
+    "emptyBody": "The easiest way to make them is finishing a quest together.",
+    "emptyAction": "See who's out"
   },
   "map": {
     "title": "Map",
@@ -387,7 +390,9 @@
     "empty": "No marketplace quests yet.",
     "byCreator": "by {name}",
     "purchase": "Purchase",
-    "viewQuest": "View Quest"
+    "viewQuest": "View Quest",
+    "emptyBody": "Creators publish repeatable quests here.",
+    "emptyAction": "See what's on tonight"
   },
   "booking": {
     "title": "Book an Activity",
@@ -410,7 +415,9 @@
       "cancelled": "Cancelled"
     },
     "commissionLabel": "{amount} platform fee",
-    "cancel": "Cancel Booking"
+    "cancel": "Cancel Booking",
+    "emptyBody": "You can book a lane or a table from any quest.",
+    "emptyAction": "See what's on tonight"
   },
   "itinerary": {
     "navLink": "Plan My Day",

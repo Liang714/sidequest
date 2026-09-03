@@ -249,7 +249,10 @@
     "remove": "삭제",
     "addFriend": "친구 추가",
     "noRequests": "대기 중인 요청이 없어요.",
-    "inviteToQuest": "퀘스트에 초대"
+    "inviteToQuest": "퀘스트에 초대",
+    "emptyTitle": "아직 친구가 없어요.",
+    "emptyBody": "퀘스트를 함께 완료하는 게 가장 쉬운 방법이에요.",
+    "emptyAction": "오늘 밤 둘러보기"
   },
   "map": {
     "title": "지도",
@@ -387,7 +390,9 @@
     "empty": "아직 마켓플레이스 퀘스트가 없어요.",
     "byCreator": "{name} 제작",
     "purchase": "구매",
-    "viewQuest": "퀘스트 보기"
+    "viewQuest": "퀘스트 보기",
+    "emptyBody": "크리에이터가 반복 가능한 퀘스트를 여기에 올려요.",
+    "emptyAction": "오늘 밤 둘러보기"
   },
   "booking": {
     "title": "활동 예약",
@@ -410,7 +415,9 @@
       "cancelled": "취소됨"
     },
     "commissionLabel": "{amount} 플랫폼 수수료",
-    "cancel": "예약 취소"
+    "cancel": "예약 취소",
+    "emptyBody": "어떤 퀘스트에서든 레인이나 자리를 예약할 수 있어요.",
+    "emptyAction": "오늘 밤 둘러보기"
   },
   "itinerary": {
     "navLink": "오늘 계획 짜기",
