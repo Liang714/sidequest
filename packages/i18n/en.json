@@ -180,7 +180,9 @@
     "budgetFree": "Free",
     "addObjective": "Add objective",
     "publish": "Publish Quest",
-    "publishHint": "This is a Phase 1 prototype — publishing shows you the quest detail screen with what you entered, nothing is saved."
+    "publishHint": "This is a Phase 1 prototype — publishing shows you the quest detail screen with what you entered, nothing is saved.",
+    "previewLabel": "How it'll look",
+    "previewHint": "This is the card people will see in the feed."
   },
   "questRoom": {
     "title": "Quest Room",
@@ -289,7 +291,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "loading": "Loading…",
-    "prototypeBadge": "Phase 1 prototype — mock data, no backend"
+    "prototypeBadge": "Phase 1 prototype — mock data, no backend",
+    "remove": "Remove"
   },
   "business": {
     "title": "Business Account",

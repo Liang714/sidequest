@@ -180,7 +180,9 @@
     "budgetFree": "무료",
     "addObjective": "목표 추가",
     "publish": "퀘스트 게시",
-    "publishHint": "지금은 Phase 1 프로토타입이에요 — 게시하면 입력한 내용으로 상세 화면을 보여줄 뿐, 실제로 저장되지는 않아요."
+    "publishHint": "지금은 Phase 1 프로토타입이에요 — 게시하면 입력한 내용으로 상세 화면을 보여줄 뿐, 실제로 저장되지는 않아요.",
+    "previewLabel": "이렇게 보여요",
+    "previewHint": "피드에서 사람들에게 보이는 카드예요."
   },
   "questRoom": {
     "title": "퀘스트 룸",
@@ -289,7 +291,8 @@
     "cancel": "취소",
     "save": "저장",
     "loading": "불러오는 중…",
-    "prototypeBadge": "Phase 1 프로토타입 — 목업 데이터, 백엔드 없음"
+    "prototypeBadge": "Phase 1 프로토타입 — 목업 데이터, 백엔드 없음",
+    "remove": "삭제"
   },
   "business": {
     "title": "비즈니스 계정",
