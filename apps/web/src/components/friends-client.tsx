@@ -2,28 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { UserPlus, Users } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Avatar, Button, EmptyState } from "@/components/ui";
 import { acceptFriendRequestAction, removeFriendAction } from "@/app/actions/friends";
-import { avatarColorFor, initialFromUsername } from "@/lib/format";
 import type { FriendOut } from "@sidequest/types";
 
-const avatarBg: Record<string, string> = {
-  blue: "var(--accent-blue)",
-  violet: "var(--accent-violet)",
-  coral: "var(--accent-coral)",
-  lime: "var(--accent-lime)",
-};
-
-function Avatar({ id, username }: { id: string; username: string }) {
-  return (
-    <div
-      className="flex h-11 w-11 items-center justify-center rounded-full font-display text-[14px] font-semibold text-white"
-      style={{ background: avatarBg[avatarColorFor(id)] }}
-    >
-      {initialFromUsername(username)}
-    </div>
-  );
-}
-
+/**
+ * Friends — reachable from the You hub since the tab bar rebuild.
+ *
+ * Every row now links to that person's public profile. Before stage 4 there
+ * was nowhere to link to, so a friend was just a name and an avatar; the
+ * social graph was a dead end in both directions.
+ *
+ * The local avatar implementation is gone in favour of the shared one, so a
+ * person is the same colour and initial here as on their profile, in a
+ * roster, and in a notification.
+ */
 export function FriendsClient({
   friends,
   requests,
@@ -44,73 +39,86 @@ export function FriendsClient({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <section>
-        <h2 className="mb-3 font-display text-[14px] font-semibold text-ink">{t("friends.requests")}</h2>
-        {requests.length === 0 ? (
-          <p className="text-[13px] text-ink-faint">{t("friends.noRequests")}</p>
-        ) : (
-          <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-8">
+      {requests.length > 0 && (
+        <section>
+          <h2 className="mb-2 flex items-center gap-2 text-label uppercase text-ink-faint">
+            <UserPlus aria-hidden className="h-3.5 w-3.5" />
+            {t("friends.requests")}
+          </h2>
+          <ul className="flex flex-col gap-2">
             {requests.map((f) => (
-              <div
+              <li
                 key={f.id}
-                className="flex items-center justify-between rounded-card border border-line bg-surface p-3"
+                className="flex items-center gap-3 rounded-card border border-hot-soft bg-surface p-4 shadow-e1"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar id={f.user_id} username={f.username} />
-                  <span className="font-display text-[14px] font-medium text-ink">{f.username}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    disabled={pending && busyId === f.id}
+                <PersonLink userId={f.user_id} username={f.username} />
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    size="sm"
+                    loading={pending && busyId === f.id}
                     onClick={() => run(f.id, acceptFriendRequestAction)}
-                    className="rounded-button bg-blue px-3 py-1.5 font-display text-[12px] font-semibold text-white disabled:opacity-60"
                   >
                     {t("friends.accept")}
-                  </button>
-                  <button
+                  </Button>
+                  {/* Declining is silent — USER_FLOWS.md §5: a rejection
+                      never notifies the sender. */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     disabled={pending && busyId === f.id}
                     onClick={() => run(f.id, removeFriendAction)}
-                    className="rounded-button border border-line px-3 py-1.5 font-display text-[12px] font-semibold text-ink-muted disabled:opacity-60"
                   >
                     {t("friends.decline")}
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
-        )}
-      </section>
+          </ul>
+        </section>
+      )}
 
       <section>
-        <h2 className="mb-3 font-display text-[14px] font-semibold text-ink">
+        <h2 className="mb-2 text-label uppercase text-ink-faint">
           {t("profile.friendsCount", { count: friends.length })}
         </h2>
         {friends.length === 0 ? (
-          <p className="text-[13px] text-ink-faint">{t("friends.noRequests")}</p>
+          <EmptyState
+            icon={<Users className="h-7 w-7" />}
+            title={t("friends.emptyTitle")}
+            body={t("friends.emptyBody")}
+            action={{ label: t("friends.emptyAction"), href: "/" }}
+          />
         ) : (
-          <div className="flex flex-col gap-2">
+          <ul className="rounded-card border border-line bg-surface px-4 shadow-e1">
             {friends.map((f) => (
-              <div
+              <li
                 key={f.id}
-                className="flex items-center justify-between rounded-card border border-line bg-surface p-3"
+                className="flex items-center gap-3 border-b border-line py-3 last:border-b-0"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar id={f.user_id} username={f.username} />
-                  <div className="font-display text-[14px] font-medium text-ink">{f.username}</div>
-                </div>
+                <PersonLink userId={f.user_id} username={f.username} />
                 <button
+                  type="button"
                   disabled={pending && busyId === f.id}
                   onClick={() => run(f.id, removeFriendAction)}
-                  className="text-[12px] text-ink-faint underline underline-offset-2 disabled:opacity-60"
+                  className="shrink-0 text-caption text-ink-faint underline disabled:opacity-60"
                 >
                   {t("friends.remove")}
                 </button>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </section>
     </div>
+  );
+}
+
+function PersonLink({ userId, username }: { userId: string; username: string }) {
+  return (
+    <Link href={`/users/${userId}`} className="flex min-h-11 min-w-0 flex-1 items-center gap-3">
+      <Avatar name={username} userId={userId} size="sm" ringClassName="border-transparent" />
+      <span className="truncate text-h3 text-ink">{username}</span>
+    </Link>
   );
 }

@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Ticket } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import clsx from "clsx";
+import { Badge, Button, EmptyState } from "@/components/ui";
 import { cancelBookingAction } from "@/app/actions/booking";
 import { formatBudget } from "@/lib/format";
 import type { BookingOut } from "@sidequest/types";
@@ -26,38 +27,52 @@ export function BookingsClient({ bookings }: { bookings: BookingOut[] }) {
   };
 
   if (bookings.length === 0) {
-    return <p className="text-[13px] text-ink-faint">{t("booking.empty")}</p>;
+    return (
+      <EmptyState
+        icon={<Ticket className="h-7 w-7" />}
+        title={t("booking.empty")}
+        body={t("booking.emptyBody")}
+        action={{ label: t("booking.emptyAction"), href: "/" }}
+      />
+    );
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {error && <p className="text-[13px] text-coral">{error}</p>}
+      {error && (
+        <p role="alert" className="text-body-s text-danger-text">
+          {error}
+        </p>
+      )}
       {bookings.map((b) => (
-        <div key={b.id} className="rounded-card border border-line bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[13px] text-ink">{b.provider_booking_ref}</span>
-            <span
-              className={clsx(
-                "rounded-chip px-2.5 py-1 font-mono text-[11px] font-medium",
-                b.status === "confirmed" ? "bg-lime-soft text-lime" : "bg-surface-elevated text-ink-faint",
-              )}
-            >
+        <div key={b.id} className="rounded-card border border-line bg-surface p-4 shadow-e1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate text-body-s tabular-nums text-ink">{b.provider_booking_ref}</span>
+            <Badge tone={b.status === "confirmed" ? "mint" : "neutral"}>
               {t(`booking.status.${b.status}`)}
-            </span>
+            </Badge>
           </div>
-          <div className="mt-2 flex items-center justify-between text-[12.5px] text-ink-muted">
-            <span>{formatBudget(b.amount, "KRW", "")}</span>
-            <span>{t("booking.commissionLabel", { amount: formatBudget(b.commission_amount, "KRW", "") })}</span>
-          </div>
+
+          <p className="mt-2 text-h2 tabular-nums text-ink">{formatBudget(b.amount, "KRW", "")}</p>
+          {/* The platform fee is stated plainly rather than buried — the
+              commission is computed from the provider's confirmed price, so
+              showing it costs nothing and hiding it would be the choice. */}
+          <p className="text-caption tabular-nums text-ink-muted">
+            {t("booking.commissionLabel", {
+              amount: formatBudget(b.commission_amount, "KRW", ""),
+            })}
+          </p>
+
           {b.status === "confirmed" && (
-            <button
-              type="button"
-              disabled={pending && pendingId === b.id}
+            <Button
+              variant="danger"
+              block
+              className="mt-3"
+              loading={pending && pendingId === b.id}
               onClick={() => cancel(b.id)}
-              className="mt-3 w-full rounded-button border border-coral/40 py-2 font-display text-[12px] font-semibold text-coral disabled:opacity-60"
             >
               {t("booking.cancel")}
-            </button>
+            </Button>
           )}
         </div>
       ))}
