@@ -256,11 +256,14 @@
   },
   "map": {
     "title": "Map",
-    "subtitle": "Approximate positions only — exact meeting points are shared once you join.",
+    "subtitle": "Quests near you, plotted from their real meeting points. You're at the centre.",
     "legendQuest": "Quest",
     "legendBusiness": "Business",
     "legendFriend": "Friend activity",
-    "placeholderNote": "Live map rendering (MapLibre GL + Kakao/Mapbox tiles) ships in Phase 2 — this is a static layout preview using real quest positions."
+    "placeholderNote": "Pins are plotted from each quest's real meeting point, relative to you at the centre — bearing and distance are accurate. Street tiles come with a real map provider, which isn't wired up yet. People are never plotted here; only quests have public meeting points.",
+    "tapPin": "Tap a pin to see the quest.",
+    "clusterLabel": "{count} quests here",
+    "youAreHere": "You are here"
   },
   "category": {
     "food": "Food",
