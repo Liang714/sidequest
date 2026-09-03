@@ -146,6 +146,12 @@ class QuestSummaryOut(BaseModel):
     title: str
     category_key: str
     location_city: str
+    #: The quest's public meeting point. A quest is a place people agree
+    #: to meet, so this is public by nature — unlike a *user's* position,
+    #: which is never exposed (docs/SECURITY.md). Lets the map plot real
+    #: relative positions instead of a decorative spread.
+    lat: float
+    lng: float
     start_time: datetime
     budget_amount: Decimal | None
     currency: str

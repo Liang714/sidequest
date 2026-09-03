@@ -256,11 +256,14 @@
   },
   "map": {
     "title": "지도",
-    "subtitle": "대략적인 위치만 표시돼요 — 정확한 만남 장소는 참가 후에 공유돼요.",
+    "subtitle": "근처 퀘스트를 실제 만남 장소 기준으로 표시했어요. 가운데가 내 위치예요.",
     "legendQuest": "퀘스트",
     "legendBusiness": "비즈니스",
     "legendFriend": "친구 활동",
-    "placeholderNote": "실제 지도(MapLibre GL + 카카오/맵박스 타일)는 Phase 2에서 연동돼요 — 지금은 실제 퀘스트 위치를 이용한 정적 미리보기예요."
+    "placeholderNote": "핀은 각 퀘스트의 실제 만남 장소를 기준으로, 가운데의 내 위치에 상대적으로 표시돼요 — 방향과 거리는 정확해요. 실제 지도 타일은 아직 연결되지 않았어요. 사람은 지도에 표시되지 않아요.",
+    "tapPin": "핀을 눌러 퀘스트를 확인하세요.",
+    "clusterLabel": "여기에 퀘스트 {count}개",
+    "youAreHere": "내 위치"
   },
   "category": {
     "food": "음식",

@@ -2062,6 +2062,10 @@ export interface components {
             category_key: string;
             /** Location City */
             location_city: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
             /**
              * Start Time
              * Format: date-time
