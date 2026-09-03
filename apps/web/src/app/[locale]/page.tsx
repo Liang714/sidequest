@@ -1,44 +1,77 @@
 import { getTranslations } from "next-intl/server";
+import { Users } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { QuestCard } from "@/components/quest-card";
-import { Link } from "@/i18n/navigation";
+import { CategoryChip } from "@/components/category-chip";
+import { EmptyState } from "@/components/ui";
 import { requireSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api-client";
 import { getLocationCookie, DEFAULT_SEOUL_CENTER } from "@/lib/location";
 import { isStartingSoon } from "@/lib/format";
-import { CategoryChip } from "@/components/category-chip";
-import type { QuestSummaryOut } from "@sidequest/types";
+import { badgeCount } from "@/lib/notifications";
+import type { NotificationOut, QuestSummaryOut } from "@sidequest/types";
 import type { Category } from "@/lib/types";
 
 const FILTER_CATEGORIES: Category[] = ["gaming", "photography", "dance", "cafe", "food", "art"];
 
-export default async function HomePage() {
+/**
+ * Tonight — spec §F1. The screen the user lands on.
+ *
+ * People-first: sections lead with crews that are forming, and each card
+ * leads with who's going rather than with the activity. Capped at three
+ * crew cards before the rest, because a wall of crews reads like a feed
+ * and buries what makes this different.
+ */
+export default async function TonightPage() {
   await requireSession();
   const t = await getTranslations();
 
   const coords = (await getLocationCookie()) ?? DEFAULT_SEOUL_CENTER;
-  const [quests, recommended] = await Promise.all([
-    apiFetch<QuestSummaryOut[]>(`/quests/nearby?lat=${coords.lat}&lng=${coords.lng}&radius_km=15&limit=20`),
-    apiFetch<QuestSummaryOut[]>(`/quests/recommended?lat=${coords.lat}&lng=${coords.lng}&limit=6`),
+  const [quests, recommended, notifications] = await Promise.all([
+    apiFetch<QuestSummaryOut[]>(
+      `/quests/nearby?lat=${coords.lat}&lng=${coords.lng}&radius_km=15&limit=20`,
+    ),
+    apiFetch<QuestSummaryOut[]>(
+      `/quests/recommended?lat=${coords.lat}&lng=${coords.lng}&limit=6`,
+    ).catch(() => [] as QuestSummaryOut[]),
+    apiFetch<NotificationOut[]>("/notifications?limit=50").catch(() => [] as NotificationOut[]),
   ]);
 
-  const now = quests.filter((q) => isStartingSoon(q.start_time));
+  const soon = quests.filter((q) => isStartingSoon(q.start_time));
   const rest = quests.filter((q) => !isStartingSoon(q.start_time));
 
+  // People already committed are the strongest signal, so crews with a
+  // roster sort ahead of empty ones within "forming".
+  const forming = [...soon]
+    .sort((a, b) => (b.participants?.length ?? 0) - (a.participants?.length ?? 0))
+    .slice(0, 3);
+
+  // Sections must not repeat a quest. "For You" and "Later tonight" draw
+  // from overlapping pools, and the same card appearing twice on one screen
+  // reads as a bug — which is exactly what it is.
+  const shown = new Set(forming.map((q) => q.id));
+  const forYou = recommended.filter((q) => !shown.has(q.id)).slice(0, 3);
+  forYou.forEach((q) => shown.add(q.id));
+  const later = [...soon.slice(3), ...rest].filter((q) => !shown.has(q.id));
+
+  const peopleOut = new Set(
+    quests.flatMap((q) => (q.participants ?? []).map((p) => p.user_id)),
+  ).size;
+
   return (
-    <AppShell>
+    <AppShell unreadCount={badgeCount(notifications)}>
       <section>
-        <h1 className="font-display text-[26px] font-bold leading-[1.05] tracking-tight text-ink">
-          {t("home.greeting")}
-          <br />
-          <span className="text-blue">{t("home.greetingAccent")}</span>
+        <h1 className="text-display text-ink">
+          {peopleOut > 0
+            ? t("home.peopleOut", { count: peopleOut })
+            : t("home.greeting")}
         </h1>
-        <p className="mt-2 text-[14px] text-ink-muted">
+        <p className="mt-1 text-body-s text-ink-muted">
           {t("home.subline", { count: quests.length })}
         </p>
       </section>
 
-      <section className="mt-5 -mx-4 overflow-x-auto px-4">
+      <section className="-mx-4 mt-4 overflow-x-auto px-4">
         <div className="flex w-max gap-2">
           {FILTER_CATEGORIES.map((cat) => (
             <CategoryChip key={cat} category={cat} label={t(`category.${cat}`)} />
@@ -46,63 +79,54 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {now.length > 0 && <SectionHeading title={t("home.sectionNow")} />}
-      {now.length > 0 && (
-        <div className="grid grid-cols-1 gap-3">
-          {now.map((q) => (
-            <QuestCard key={q.id} quest={q} variant="row" />
-          ))}
-        </div>
-      )}
-
-      {recommended.length > 0 && (
-        <>
-          <SectionHeading title={t("home.sectionForYou")} />
-          <div className="-mx-4 overflow-x-auto px-4 pb-1">
-            <div className="flex w-max gap-3">
-              {recommended.map((q) => (
-                <div key={q.id} className="w-[220px]">
-                  <QuestCard quest={q} />
-                </div>
-              ))}
-            </div>
+      {forming.length > 0 && (
+        <Section title={t("home.crewsForming")}>
+          <div className="flex flex-col gap-3">
+            {forming.map((q) => (
+              <QuestCard key={q.id} quest={q} />
+            ))}
           </div>
-        </>
+        </Section>
       )}
 
-      <SectionHeading title={t("home.sectionNear")} />
-      {rest.length === 0 && now.length === 0 ? (
-        <EmptyState createHref="/quests/new" label={t("createQuest.title")} empty={t("home.emptyNearby")} />
-      ) : (
-        <div className="grid grid-cols-2 gap-3 pb-2">
-          {rest.map((q) => (
-            <QuestCard key={q.id} quest={q} />
-          ))}
-        </div>
+      {forYou.length > 0 && (
+        <Section title={t("home.sectionForYou")}>
+          <div className="flex flex-col gap-3">
+            {forYou.map((q) => (
+              <QuestCard key={q.id} quest={q} />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {later.length > 0 && (
+        <Section title={t("home.laterTonight")}>
+          <div className="flex flex-col gap-3">
+            {later.map((q) => (
+              <QuestCard key={q.id} quest={q} />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {quests.length === 0 && recommended.length === 0 && (
+        <EmptyState
+          className="mt-6"
+          icon={<Users className="h-7 w-7" />}
+          title={t("home.nobodyYet")}
+          body={t("home.beFirst")}
+          action={{ label: t("createQuest.title"), href: "/quests/new" }}
+        />
       )}
     </AppShell>
   );
 }
 
-function SectionHeading({ title }: { title: string }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-3 mt-7 flex items-baseline justify-between">
-      <h2 className="font-display text-[16px] font-semibold text-ink">{title}</h2>
-    </div>
-  );
-}
-
-function EmptyState({ createHref, label, empty }: { createHref: string; label: string; empty: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line p-8 text-center">
-      <span className="text-3xl">🗺️</span>
-      <p className="text-[13px] text-ink-muted">{empty}</p>
-      <Link
-        href={createHref}
-        className="rounded-button bg-blue px-4 py-2 font-display text-[12.5px] font-semibold text-white shadow-glow-blue"
-      >
-        {label}
-      </Link>
-    </div>
+    <section className="mt-10">
+      <h2 className="mb-3 text-label uppercase text-ink-faint">{title}</h2>
+      {children}
+    </section>
   );
 }

@@ -94,7 +94,12 @@
     "filters": "필터",
     "emptyFriends": "아직 친구 활동이 없어요 — 퀘스트에 친구를 초대해보세요.",
     "emptyNearby": "아직 근처에 퀘스트가 없어요 — 첫 퀘스트를 만들어보세요.",
-    "friendJoined": "{names}님이 <link>{quest}</link>에 참가했어요"
+    "friendJoined": "{names}님이 <link>{quest}</link>에 참가했어요",
+    "crewsForming": "모이는 중인 크루",
+    "laterTonight": "이따 밤에",
+    "nobodyYet": "근처에서 아직 아무도 시작하지 않았어요.",
+    "beFirst": "가장 먼저 시작해 보세요 — 1분이면 돼요.",
+    "peopleOut": "오늘 밤 근처에 {count}명이 나와 있어요"
   },
   "quest": {
     "joinQuest": "퀘스트 참가",
@@ -127,7 +132,11 @@
       "in_progress": "진행중",
       "completed": "완료",
       "cancelled": "취소됨"
-    }
+    },
+    "spotsLeft": "{count}자리 남음",
+    "crewFull": "크루가 다 찼어요",
+    "lookingForMoreOne": "{count}명을 더 찾고 있어요",
+    "lookingForMoreMany": "{count}명을 더 찾고 있어요"
   },
   "createQuest": {
     "title": "사이드퀘스트 만들기",

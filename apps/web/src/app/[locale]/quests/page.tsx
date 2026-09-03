@@ -18,7 +18,7 @@ export default async function MyQuestsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {quests.map((q) => (
-            <QuestCard key={q.id} quest={q} variant="row" />
+            <QuestCard key={q.id} quest={q} />
           ))}
         </div>
       )}

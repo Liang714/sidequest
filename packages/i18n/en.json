@@ -94,7 +94,12 @@
     "filters": "Filters",
     "emptyFriends": "No friend activity right now — invite someone to a quest.",
     "emptyNearby": "No quests near you yet — be the first.",
-    "friendJoined": "{names} joined <link>{quest}</link>"
+    "friendJoined": "{names} joined <link>{quest}</link>",
+    "crewsForming": "Crews forming",
+    "laterTonight": "Later tonight",
+    "nobodyYet": "Nobody's started anything near you yet.",
+    "beFirst": "Be the first — it takes about a minute.",
+    "peopleOut": "{count} people are out near you tonight"
   },
   "quest": {
     "joinQuest": "Join Quest",
@@ -127,7 +132,11 @@
       "in_progress": "In progress",
       "completed": "Completed",
       "cancelled": "Cancelled"
-    }
+    },
+    "spotsLeft": "{count} left",
+    "crewFull": "the crew is full",
+    "lookingForMoreOne": "is looking for {count} more",
+    "lookingForMoreMany": "are looking for {count} more"
   },
   "createQuest": {
     "title": "Create a SideQuest",
