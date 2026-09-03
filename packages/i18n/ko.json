@@ -136,7 +136,16 @@
     "spotsLeft": "{count}자리 남음",
     "crewFull": "크루가 다 찼어요",
     "lookingForMoreOne": "{count}명을 더 찾고 있어요",
-    "lookingForMoreMany": "{count}명을 더 찾고 있어요"
+    "lookingForMoreMany": "{count}명을 더 찾고 있어요",
+    "whosGoing": "참여하는 사람",
+    "nobodyYet": "아직 아무도 참여하지 않았어요. 먼저 참여해 보세요.",
+    "host": "호스트",
+    "you": "나",
+    "viewProfileOf": "{name}님의 프로필 보기",
+    "live": "진행 중",
+    "publicPlace": "공공장소 · {count}명 참여",
+    "report": "이 퀘스트 신고",
+    "reported": "신고함"
   },
   "createQuest": {
     "title": "사이드퀘스트 만들기",
