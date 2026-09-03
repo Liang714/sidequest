@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
-import { MapPin } from "lucide-react";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { MapPin, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import clsx from "clsx";
-import { categoryEmoji, type Category } from "@/lib/types";
+import { Button } from "@/components/ui";
+import { CategoryIcon } from "./category-icon";
+import { categoryShortKey } from "@/lib/format";
+import type { Category } from "@/lib/types";
 import { LOCATION_COOKIE } from "@/lib/location-shared";
 import { finishOnboardingAction } from "@/app/actions/onboarding";
 import type { InterestOut } from "@sidequest/types";
@@ -12,7 +15,26 @@ import type { InterestOut } from "@sidequest/types";
 const GROUP_SIZES = ["step2Alone", "step2Small", "step2Large"] as const;
 const VIBES = ["chill", "spontaneous", "competitive", "creative", "adventurous", "social"] as const;
 
-export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
+/**
+ * Onboarding — spec §C.
+ *
+ * Three steps, not four. Group size and vibe are both one-tap chip choices,
+ * so splitting them across two screens spent a drop-off for nothing; Miller's
+ * Law tolerates them together comfortably.
+ *
+ * The interests step shows a live count of matching quests nearby, so the
+ * user watches value accrue while they invest rather than filling in a form
+ * on faith. Location is last and genuinely skippable — the app stays fully
+ * usable without it, only "nearby" degrades.
+ */
+export function OnboardingWizard({
+  interests,
+  questCategories,
+}: {
+  interests: InterestOut[];
+  /** category_key of every quest currently near the default city view. */
+  questCategories: string[];
+}) {
   const t = useTranslations("onboarding");
   const tCategory = useTranslations("category");
   const [pending, startTransition] = useTransition();
@@ -28,7 +50,16 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
   const toggle = <T,>(list: T[], setList: (v: T[]) => void, value: T) =>
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const canNext = [selectedInterestIds.length > 0, groupSize !== null, vibes.length > 0, true][step];
+  // Steps: 0 interests · 1 group size + vibe · 2 location
+  const canNext = [selectedInterestIds.length > 0, groupSize !== null && vibes.length > 0, true][step];
+
+  const matchCount = useMemo(() => {
+    if (selectedInterestIds.length === 0) return 0;
+    const chosen = new Set(
+      interests.filter((i) => selectedInterestIds.includes(i.id)).map((i) => i.category),
+    );
+    return questCategories.filter((key) => chosen.has(categoryShortKey(key))).length;
+  }, [selectedInterestIds, interests, questCategories]);
 
   const requestLocation = () => {
     setLocationStatus("requesting");
@@ -56,13 +87,13 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col px-6 py-8">
-      <div className="mb-8 flex gap-1.5">
-        {[0, 1, 2, 3].map((i) => (
+      <div className="mb-8 flex gap-1.5" role="progressbar" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={3}>
+        {[0, 1, 2].map((i) => (
           <div
             key={i}
             className={clsx(
-              "h-1 flex-1 rounded-full transition-colors",
-              i <= step ? "bg-blue" : "bg-surface-elevated",
+              "h-1 flex-1 rounded-pill transition-colors duration-150 ease-crew",
+              i <= step ? "bg-hot" : "bg-surface-elevated",
             )}
           />
         ))}
@@ -78,58 +109,82 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
                 return (
                   <button
                     key={interest.id}
+                    type="button"
+                    aria-pressed={selected}
                     onClick={() => toggle(selectedInterestIds, setSelectedInterestIds, interest.id)}
                     className={clsx(
-                      "flex flex-col items-center gap-1.5 rounded-card border px-2 py-4 text-[12px] font-medium transition-colors",
+                      "flex min-h-11 flex-col items-center gap-1.5 rounded-card border px-2 py-4 text-caption font-semibold",
+                      "transition-colors duration-150 ease-crew",
                       selected
-                        ? "border-blue/50 bg-blue-soft text-blue"
+                        ? "border-hot bg-hot text-on-hot"
                         : "border-line bg-surface text-ink-muted",
                     )}
                   >
-                    <span className="text-xl">{categoryEmoji[shortKey] ?? "✨"}</span>
+                    {selected ? (
+                      <Check aria-hidden className="h-5 w-5" strokeWidth={3} />
+                    ) : (
+                      <CategoryIcon category={shortKey} className="h-5 w-5" />
+                    )}
                     {tCategory(shortKey)}
                   </button>
                 );
               })}
             </div>
+
+            {/* Value accrues as they invest — spec §C step 3. */}
+            <p
+              aria-live="polite"
+              className={clsx(
+                "mt-4 text-center text-body-s font-semibold",
+                matchCount > 0 ? "text-mint-text" : "text-ink-faint",
+              )}
+            >
+              {matchCount > 0 ? t("matchCount", { count: matchCount }) : t("matchNone")}
+            </p>
           </StepShell>
         )}
 
         {step === 1 && (
           <StepShell title={t("step2Title")} sub={t("step2Sub")}>
+            <p className="mb-2 text-label uppercase text-ink-faint">{t("groupSizeLabel")}</p>
             <div className="flex flex-col gap-2.5">
               {GROUP_SIZES.map((g) => (
                 <button
                   key={g}
+                  type="button"
+                  aria-pressed={groupSize === g}
                   onClick={() => setGroupSize(g)}
                   className={clsx(
-                    "rounded-card border px-4 py-4 text-left font-display text-[15px] font-medium transition-colors",
+                    "flex min-h-11 items-center gap-2 rounded-card border px-4 py-3.5 text-left text-h3",
+                    "transition-colors duration-150 ease-crew",
                     groupSize === g
-                      ? "border-blue/50 bg-blue-soft text-blue"
+                      ? "border-hot bg-hot text-on-hot"
                       : "border-line bg-surface text-ink",
                   )}
                 >
+                  {groupSize === g && <Check aria-hidden className="h-4 w-4" strokeWidth={3} />}
                   {t(g)}
                 </button>
               ))}
             </div>
-          </StepShell>
-        )}
 
-        {step === 2 && (
-          <StepShell title={t("step3Title")} sub={t("step3Sub")}>
+            <p className="mb-2 mt-6 text-label uppercase text-ink-faint">{t("vibeLabel")}</p>
             <div className="flex flex-wrap gap-2">
               {VIBES.map((v) => (
                 <button
                   key={v}
+                  type="button"
+                  aria-pressed={vibes.includes(v)}
                   onClick={() => toggle(vibes, setVibes, v)}
                   className={clsx(
-                    "rounded-chip border px-4 py-2.5 text-[13px] font-medium transition-colors",
+                    "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-4 text-caption font-semibold",
+                    "transition-colors duration-150 ease-crew",
                     vibes.includes(v)
-                      ? "border-blue/50 bg-blue-soft text-blue"
+                      ? "border-hot bg-hot text-on-hot"
                       : "border-line bg-surface text-ink-muted",
                   )}
                 >
+                  {vibes.includes(v) && <Check aria-hidden className="h-[13px] w-[13px]" strokeWidth={3} />}
                   {t(`vibe.${v}`)}
                 </button>
               ))}
@@ -137,63 +192,54 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
           </StepShell>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <StepShell title={t("step4Title")} sub={t("step4Sub")}>
             <div className="mt-2 flex h-40 flex-col items-center justify-center gap-2 rounded-card border border-dashed border-line text-center">
               <MapPin aria-hidden className="h-9 w-9 text-hot-text" />
               {locationStatus === "granted" && (
-                <span className="text-[12px] text-lime">{t("locationSaved")}</span>
+                <span className="text-caption font-semibold text-mint-text">{t("locationSaved")}</span>
               )}
               {locationStatus === "denied" && (
-                <span className="text-[12px] text-ink-faint">{t("locationDenied")}</span>
+                <span className="px-6 text-caption text-ink-faint">{t("locationDenied")}</span>
               )}
             </div>
-            {error && <p className="mt-3 text-[13px] text-coral">{error}</p>}
+            {error && (
+              <p role="alert" className="mt-3 text-body-s text-danger-text">
+                {error}
+              </p>
+            )}
           </StepShell>
         )}
       </div>
 
       <div className="mt-8 flex gap-3">
         {step > 0 && (
-          <button
-            onClick={() => setStep((s) => s - 1)}
-            className="rounded-button border border-line px-5 py-3.5 font-display text-[14px] font-semibold text-ink-muted"
-          >
+          <Button variant="secondary" size="lg" onClick={() => setStep((s) => s - 1)}>
             {t("back")}
-          </button>
+          </Button>
         )}
-        {step < 3 ? (
-          <button
-            disabled={!canNext}
-            onClick={() => setStep((s) => s + 1)}
-            className={clsx(
-              "flex-1 rounded-button py-3.5 font-display text-[14px] font-semibold transition-colors",
-              canNext
-                ? "bg-blue text-white shadow-glow-blue"
-                : "cursor-not-allowed bg-surface-elevated text-ink-faint",
-            )}
-          >
+        {step < 2 ? (
+          <Button block size="lg" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
             {t("next")}
-          </button>
+          </Button>
         ) : (
           <div className="flex flex-1 gap-3">
-            <button
-              disabled={pending}
-              onClick={finish}
-              className="flex-1 rounded-button border border-line py-3.5 font-display text-[14px] font-semibold text-ink-muted disabled:opacity-60"
-            >
+            {/* Skipping is a real option, not a dark-pattern decoy — the app
+                stays usable, only "nearby" degrades to a city view. */}
+            <Button variant="secondary" size="lg" className="flex-1" disabled={pending} onClick={finish}>
               {t("step4Skip")}
-            </button>
-            <button
-              disabled={pending}
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              loading={pending}
               onClick={() => {
                 requestLocation();
                 finish();
               }}
-              className="flex-1 rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue disabled:opacity-60"
             >
               {t("step4Allow")}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -204,8 +250,8 @@ export function OnboardingWizard({ interests }: { interests: InterestOut[] }) {
 function StepShell({ title, sub, children }: { title: string; sub: string; children: ReactNode }) {
   return (
     <div>
-      <h1 className="font-display text-[24px] font-bold leading-tight text-ink">{title}</h1>
-      <p className="mt-2 text-[14px] text-ink-muted">{sub}</p>
+      <h1 className="text-display text-ink">{title}</h1>
+      <p className="mt-2 text-body text-ink-muted">{sub}</p>
       <div className="mt-6">{children}</div>
     </div>
   );
