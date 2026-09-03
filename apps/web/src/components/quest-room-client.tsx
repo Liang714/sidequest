@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import clsx from "clsx";
-import { AvatarStack } from "./avatar-stack";
+import { Camera, Check, MapPin, Send, Sparkles } from "lucide-react";
+import { Button, ChatBubble, CheckInStrip } from "@/components/ui";
 import {
   checkinQuestAction,
   completeObjectiveAction,
@@ -138,65 +139,74 @@ export function QuestRoomClient({
     // falls back to the quest's flat xp_reward, same as before this feature.
     const xp = completionResult?.xpAwarded ?? quest.xp_reward;
     return (
-      <div className="flex flex-col items-center gap-4 rounded-card border border-line bg-surface p-8 text-center">
-        <span className="font-mono text-[32px] font-medium text-lime">{t("quest.xpReward", { xp })}</span>
+      <div className="flex flex-col items-center gap-4 rounded-card border border-line bg-surface p-8 text-center shadow-e1">
+        <span className="flex h-14 w-14 items-center justify-center rounded-pill bg-mint">
+          <Check aria-hidden className="h-7 w-7 text-on-mint" strokeWidth={3} />
+        </span>
+        <p className="text-display text-ink">{t("questRoom.questComplete")}</p>
+        <span className="text-[40px] font-extrabold tabular-nums leading-none text-mint-text">
+          {t("quest.xpReward", { xp })}
+        </span>
         {completionResult?.newLevel != null && (
-          <p className="font-display text-[15px] font-semibold text-ink">
-            🎉 {t("questRoom.leveledUp", { level: completionResult.newLevel })}
+          <p className="text-h3 text-ink">
+            {t("questRoom.leveledUp", { level: completionResult.newLevel })}
           </p>
         )}
         {completionResult && completionResult.newAchievements.length > 0 && (
           <div className="flex flex-col items-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
-              {t("questRoom.newAchievements")}
-            </p>
+            <p className="text-label uppercase text-ink-faint">{t("questRoom.newAchievements")}</p>
             <div className="flex flex-wrap justify-center gap-2">
               {completionResult.newAchievements.map((a) => (
                 <span
                   key={a.key}
-                  className="inline-flex items-center gap-1.5 rounded-chip border border-lime/40 bg-lime-soft px-3 py-1.5 text-[13px] font-medium text-ink shadow-glow-lime"
+                  className="inline-flex items-center gap-1.5 rounded-chip border border-mint-soft bg-mint-soft px-3 py-1.5 text-caption font-bold text-mint-text"
                 >
-                  <span>{a.icon}</span>
                   {t(a.key)}
                 </span>
               ))}
             </div>
           </div>
         )}
-        <p className="text-[13px] text-ink-muted">{t("questRoom.archived")}</p>
+        <p className="text-body-s text-ink-muted">{t("questRoom.archived")}</p>
       </div>
     );
   }
 
+  const going = quest.participants.filter((p) => p.status !== "left");
+  const hereCount = going.filter(
+    (p) => p.status === "checked_in" || p.status === "completed",
+  ).length;
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="rounded-card border border-line bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <AvatarStack
-            people={quest.participants
-              .filter((p) => p.status !== "left")
-              .map((p) => ({ id: p.user_id, username: p.username }))}
-          />
-          <button
-            type="button"
-            disabled={checkedIn || pending}
-            onClick={() => runAction(() => checkinQuestAction(quest.id))}
-            className={clsx(
-              "rounded-button px-3.5 py-2 font-display text-[12.5px] font-semibold transition-colors disabled:opacity-70",
-              checkedIn ? "bg-lime-soft text-lime" : "bg-blue text-white shadow-glow-blue",
-            )}
-          >
-            {checkedIn ? `✓ ${t("questRoom.checkedIn")}` : t("questRoom.checkIn")}
-          </button>
-        </div>
-        <p className="mt-3 text-[13px] text-ink-muted">
-          📍 {quest.location.address ?? quest.location.place_name ?? quest.location.city}
+      {/* Check-in sits above the chat: "are the others actually coming?" is
+          the highest-anxiety question in the product (spec §F4). */}
+      <div>
+        <CheckInStrip
+          people={going.map((p) => ({
+            id: p.user_id,
+            name: p.username,
+            checkedIn: p.status === "checked_in" || p.status === "completed",
+          }))}
+          countLabel={t("questRoom.hereCount", { count: hereCount, total: going.length })}
+          canCheckIn={!checkedIn}
+          checkInLabel={t("questRoom.checkIn")}
+          loading={pending}
+          onCheckIn={() => runAction(() => checkinQuestAction(quest.id))}
+        />
+        <p className="mt-2 flex items-center gap-1.5 text-caption text-ink-muted">
+          <MapPin aria-hidden className="h-3.5 w-3.5 shrink-0" />
+          {quest.location.address ?? quest.location.place_name ?? quest.location.city}
         </p>
-        {!connected && <p className="mt-2 text-[11px] text-coral">{t("questRoom.reconnecting")}</p>}
+        {!connected && (
+          <p role="status" className="mt-2 text-caption text-warn-text">
+            {t("questRoom.reconnecting")}
+          </p>
+        )}
       </div>
 
       <div>
-        <h2 className="mb-2 font-display text-[14px] font-semibold text-ink">
+        <h2 className="mb-2 text-label uppercase text-ink-faint">
           {t("questRoom.objectivesTitle")}
         </h2>
         <ul className="flex flex-col gap-2">
@@ -216,18 +226,24 @@ export function QuestRoomClient({
                   disabled={o.completed_by_me || pending}
                   onClick={() => runAction(() => completeObjectiveAction(quest.id, o.id))}
                   className={clsx(
-                    "flex w-full items-center gap-2.5 rounded-button border px-3.5 py-2.5 text-left text-[13px] transition-colors disabled:cursor-default",
+                    "flex min-h-11 w-full items-center gap-3 rounded-button border px-4 py-3 text-left text-body-s",
+                    "transition-colors duration-150 ease-crew disabled:cursor-default",
                     o.completed_by_me
-                      ? "border-lime/40 bg-lime-soft text-ink"
+                      ? "border-mint-soft bg-mint-soft text-ink"
                       : "border-line bg-surface text-ink-muted",
                   )}
                 >
-                  <span className={o.completed_by_me ? "text-lime" : "text-ink-faint"}>
-                    {o.completed_by_me ? "☑" : "☐"}
+                  <span
+                    className={clsx(
+                      "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-pill border",
+                      o.completed_by_me ? "border-mint bg-mint" : "border-line",
+                    )}
+                  >
+                    {o.completed_by_me && (
+                      <Check aria-hidden className="h-3 w-3 text-on-mint" strokeWidth={3} />
+                    )}
                   </span>
-                  <span className={o.completed_by_me ? "line-through decoration-ink-faint" : ""}>
-                    {o.description}
-                  </span>
+                  {o.description}
                 </button>
               </li>
             ),
@@ -235,27 +251,19 @@ export function QuestRoomClient({
         </ul>
       </div>
 
-      <div className="rounded-card border border-line bg-surface">
-        <div ref={scrollRef} className="flex max-h-64 flex-col gap-3 overflow-y-auto p-4">
-          {messages.map((m) => {
-            const mine = m.senderId === currentUserId;
+      <div className="rounded-card border border-line bg-surface shadow-e1">
+        <div ref={scrollRef} className="flex max-h-72 flex-col gap-3 overflow-y-auto p-4">
+          {messages.map((m, i) => {
+            const prev = messages[i - 1];
             return (
-              <div key={m.id} className={clsx("flex flex-col", mine && "items-end")}>
-                <span className="text-[11px] text-ink-faint">
-                  {m.senderUsername} ·{" "}
-                  {new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(
-                    new Date(m.createdAt),
-                  )}
-                </span>
-                <span
-                  className={clsx(
-                    "mt-0.5 max-w-[80%] rounded-button px-3 py-1.5 text-[13px]",
-                    mine ? "bg-blue text-white" : "bg-surface-elevated text-ink",
-                  )}
-                >
-                  {m.content}
-                </span>
-              </div>
+              <ChatBubble
+                key={m.id}
+                kind={m.senderId === currentUserId ? "mine" : "theirs"}
+                text={m.content}
+                senderName={m.senderUsername}
+                senderId={m.senderId}
+                grouped={prev?.senderId === m.senderId}
+              />
             );
           })}
         </div>
@@ -270,32 +278,24 @@ export function QuestRoomClient({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={t("questRoom.chatPlaceholder")}
-            className="flex-1 rounded-button border border-line bg-surface-elevated px-3.5 py-2.5 text-[13px] text-ink outline-none focus:border-blue"
+            aria-label={t("questRoom.chatPlaceholder")}
+            className="min-h-11 flex-1 rounded-pill border border-line bg-surface-elevated px-4 text-body-s text-ink outline-none focus:border-hot"
           />
-          <button
-            type="submit"
-            className="rounded-button bg-blue px-4 py-2.5 font-display text-[13px] font-semibold text-white"
-          >
-            {t("questRoom.send")}
-          </button>
+          <Button type="submit" size="sm" aria-label={t("questRoom.send")}>
+            <Send aria-hidden className="h-4 w-4" />
+          </Button>
         </form>
       </div>
 
-      {actionError && <p className="text-center text-[12px] text-coral">{actionError}</p>}
+      {actionError && (
+        <p role="alert" className="text-center text-caption text-danger-text">
+          {actionError}
+        </p>
+      )}
 
-      <button
-        type="button"
-        disabled={!requiredDone || pending}
-        onClick={handleCompleteQuest}
-        className={clsx(
-          "rounded-button py-3.5 font-display text-[14px] font-semibold transition-colors",
-          requiredDone
-            ? "bg-lime text-[#0B0B0F] shadow-glow-lime"
-            : "cursor-not-allowed bg-surface-elevated text-ink-faint",
-        )}
-      >
+      <Button block size="lg" disabled={!requiredDone || pending} onClick={handleCompleteQuest}>
         {t("questRoom.completeQuest")}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -342,21 +342,27 @@ function PhotoObjectiveItem({
   };
 
   return (
-    <li className="rounded-button border border-line bg-surface px-3.5 py-2.5">
+    <li className="rounded-button border border-line bg-surface px-4 py-3">
       <div
         className={clsx(
-          "flex items-center gap-2.5 text-[13px]",
+          "flex items-center gap-3 text-body-s",
           objective.completed_by_me ? "text-ink" : "text-ink-muted",
         )}
       >
-        <span className={objective.completed_by_me ? "text-lime" : "text-ink-faint"}>
-          {objective.completed_by_me ? "☑" : "☐"}
+        <span
+          className={clsx(
+            "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-pill border",
+            objective.completed_by_me ? "border-mint bg-mint" : "border-line",
+          )}
+        >
+          {objective.completed_by_me && (
+            <Check aria-hidden className="h-3 w-3 text-on-mint" strokeWidth={3} />
+          )}
         </span>
-        <span className={objective.completed_by_me ? "line-through decoration-ink-faint" : ""}>
-          {objective.description}
-        </span>
-        <span className="ml-auto flex-none rounded-chip bg-violet-soft px-2 py-0.5 font-mono text-[10px] text-violet">
-          📷 {t("questRoom.photoObjective")}
+        <span>{objective.description}</span>
+        <span className="ml-auto flex flex-none items-center gap-1 rounded-chip bg-info-soft px-2 py-0.5 text-label uppercase text-info-text">
+          <Camera aria-hidden className="h-3 w-3" />
+          {t("questRoom.photoObjective")}
         </span>
       </div>
 
@@ -372,18 +378,25 @@ function PhotoObjectiveItem({
               if (file) handleFile(file);
             }}
           />
-          <button
-            type="button"
-            disabled={pending}
+          <Button
+            variant="secondary"
+            size="sm"
+            block
+            className="mt-3"
+            loading={pending}
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 w-full rounded-button bg-violet py-2 font-display text-[12px] font-semibold text-white disabled:opacity-60"
+            icon={<Camera className="h-4 w-4" />}
           >
-            {pending ? t("common.loading") : t("questRoom.uploadPhoto")}
-          </button>
+            {t("questRoom.uploadPhoto")}
+          </Button>
         </>
       )}
 
-      {error && <p className="mt-1.5 text-[11.5px] text-coral">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-caption text-danger-text">
+          {error}
+        </p>
+      )}
       {photoUrl && (
         // Small user-uploaded thumbnail from our own API origin — not a
         // case next/image's remote-domain optimization pipeline is worth
@@ -396,9 +409,20 @@ function PhotoObjectiveItem({
         />
       )}
       {aiResult && (
-        <p className={clsx("mt-1.5 text-[11.5px]", aiResult.matches ? "text-lime" : "text-ink-faint")}>
-          🤖 {aiResult.matches ? t("questRoom.aiConfirms") : t("questRoom.aiUnsure")} — {aiResult.explanation}
-        </p>
+        // Advisory only, and styled to say so. Vision verification measured
+        // 58% correct / 25% false-negative (docs/AI.md), which is why it
+        // never gates completion — the objective is already done above.
+        // Rendering a "no match" in a failure colour would imply otherwise.
+        <div className="mt-2 rounded-r-lg border-l-2 border-info bg-info-soft px-3 py-2">
+          <p className="flex items-center gap-1.5 text-label uppercase text-info-text">
+            <Sparkles aria-hidden className="h-3 w-3" />
+            {t("questRoom.aiAdvisory")}
+          </p>
+          <p className="mt-1 text-caption text-ink-muted">
+            {aiResult.matches ? t("questRoom.aiConfirms") : t("questRoom.aiUnsure")} —{" "}
+            {aiResult.explanation}
+          </p>
+        </div>
       )}
     </li>
   );
