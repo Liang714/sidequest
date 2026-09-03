@@ -3,16 +3,19 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import clsx from "clsx";
+import { CircleDot as Bowling, KeyRound, Mic, UtensilsCrossed } from "lucide-react";
 import { createBookingAction, getAvailabilityAction } from "@/app/actions/booking";
 import { formatBudget } from "@/lib/format";
 import { Field, inputClass } from "./form-field";
 import type { AvailabilitySlotOut, BookingOut } from "@sidequest/types";
 
+// Lucide rather than emoji: consistent across platforms, takes state
+// colour, sizes predictably (spec §A1 finding 4).
 const ACTIVITIES = [
-  { key: "bowling", emoji: "🎳" },
-  { key: "karaoke", emoji: "🎤" },
-  { key: "restaurant_table", emoji: "🍽️" },
-  { key: "escape_room", emoji: "🔐" },
+  { key: "bowling", Icon: Bowling },
+  { key: "karaoke", Icon: Mic },
+  { key: "restaurant_table", Icon: UtensilsCrossed },
+  { key: "escape_room", Icon: KeyRound },
 ] as const;
 
 function tomorrow(): string {
@@ -97,7 +100,8 @@ export function BookActivityWidget({ questId }: { questId: string }) {
               activityKey === a.key ? "border-blue/50 bg-blue-soft text-blue" : "border-line bg-surface text-ink-muted",
             )}
           >
-            {a.emoji} {t(`booking.activity.${a.key}`)}
+            <a.Icon aria-hidden className="h-4 w-4" />
+            {t(`booking.activity.${a.key}`)}
           </button>
         ))}
       </div>

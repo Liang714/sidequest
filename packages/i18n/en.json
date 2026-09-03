@@ -136,7 +136,16 @@
     "spotsLeft": "{count} left",
     "crewFull": "the crew is full",
     "lookingForMoreOne": "is looking for {count} more",
-    "lookingForMoreMany": "are looking for {count} more"
+    "lookingForMoreMany": "are looking for {count} more",
+    "whosGoing": "Who's going",
+    "nobodyYet": "Nobody's joined yet. Be the first.",
+    "host": "Host",
+    "you": "You",
+    "viewProfileOf": "View {name}'s profile",
+    "live": "Live",
+    "publicPlace": "Public place · {count} going",
+    "report": "Report this quest",
+    "reported": "Reported"
   },
   "createQuest": {
     "title": "Create a SideQuest",
