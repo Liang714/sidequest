@@ -53,16 +53,16 @@
   },
   "onboarding": {
     "step1Title": "What are you into?",
-    "step1Sub": "Pick a few — you can change these anytime.",
-    "step2Title": "What do you usually do?",
-    "step2Sub": "Helps us match you with the right group size.",
+    "step1Sub": "Pick 3 or more — you can change these anytime.",
+    "step2Title": "How do you like to hang out?",
+    "step2Sub": "Group size, and the kind of thing you're up for.",
     "step2Alone": "Alone",
     "step2Small": "Small groups",
     "step2Large": "Large groups",
     "step3Title": "What's your vibe?",
     "step3Sub": "Pick as many as fit.",
     "step4Title": "Find quests near you",
-    "step4Sub": "SIDEQUEST uses your approximate area to show nearby quests. We never share your exact location with other users — see how in Privacy.",
+    "step4Sub": "We'll show you what's close. Others only ever see a rough distance — never where you are.",
     "step4Allow": "Allow location",
     "step4Skip": "Not now",
     "locationSaved": "Location saved",
@@ -77,7 +77,11 @@
       "creative": "Creative",
       "adventurous": "Adventurous",
       "social": "Social"
-    }
+    },
+    "matchCount": "{count} quests near you match",
+    "matchNone": "Pick a few to see what's nearby",
+    "groupSizeLabel": "Group size",
+    "vibeLabel": "Your vibe"
   },
   "home": {
     "greeting": "Friday night.",

@@ -53,16 +53,16 @@
   },
   "onboarding": {
     "step1Title": "관심사가 뭐예요?",
-    "step1Sub": "몇 개 골라보세요 — 나중에 언제든 바꿀 수 있어요.",
-    "step2Title": "보통 누구랑 노세요?",
-    "step2Sub": "어울리는 그룹 크기를 매칭하는 데 도움이 돼요.",
+    "step1Sub": "3개 이상 골라 주세요 — 언제든 바꿀 수 있어요.",
+    "step2Title": "어떻게 노는 걸 좋아하세요?",
+    "step2Sub": "인원수와 어떤 걸 하고 싶은지 알려 주세요.",
     "step2Alone": "혼자",
     "step2Small": "소규모 모임",
     "step2Large": "대규모 모임",
     "step3Title": "당신의 무드는?",
     "step3Sub": "해당하는 만큼 골라보세요.",
     "step4Title": "근처 퀘스트 찾기",
-    "step4Sub": "대략적인 위치로 근처 퀘스트를 보여드려요. 정확한 위치는 다른 사용자에게 절대 공유되지 않아요 — 자세한 내용은 개인정보 설정에서 확인하세요.",
+    "step4Sub": "가까운 것들을 보여드릴게요. 다른 사람에게는 대략적인 거리만 보이고, 정확한 위치는 절대 보이지 않아요.",
     "step4Allow": "위치 허용",
     "step4Skip": "나중에",
     "locationSaved": "위치가 저장됐어요",
@@ -77,7 +77,11 @@
       "creative": "창의적으로",
       "adventurous": "모험적으로",
       "social": "사교적으로"
-    }
+    },
+    "matchCount": "근처에 {count}개의 퀘스트가 맞아요",
+    "matchNone": "몇 개 골라서 근처에 뭐가 있는지 확인해 보세요",
+    "groupSizeLabel": "인원수",
+    "vibeLabel": "분위기"
   },
   "home": {
     "greeting": "금요일 밤.",
