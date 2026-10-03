@@ -126,7 +126,7 @@ export function ItineraryPlannerClient({
           type="button"
           disabled={buyingCredits}
           onClick={buyCredits}
-          className="self-start rounded-button bg-violet px-3 py-1.5 font-mono text-[11.5px] font-medium text-white disabled:opacity-60"
+          className="self-start rounded-button pressable border border-line bg-info px-3 py-1.5 font-mono text-[11.5px] font-medium text-on-info disabled:opacity-60"
         >
           {t("createQuest.aiBuyCredits")}
         </button>
@@ -136,7 +136,7 @@ export function ItineraryPlannerClient({
         type="button"
         disabled={pending || !freeText.trim()}
         onClick={plan}
-        className="rounded-button bg-violet py-3.5 font-display text-[14px] font-semibold text-white disabled:opacity-60"
+        className="rounded-button pressable border border-line bg-info py-3.5 font-display text-[14px] font-bold text-on-info disabled:opacity-60"
       >
         {pending && steps.length === 0 ? t("itinerary.planning") : t("itinerary.planIt")}
       </button>
@@ -175,8 +175,8 @@ export function ItineraryPlannerClient({
                     disabled={state === "pending"}
                     onClick={() => confirmStep(i, step)}
                     className={clsx(
-                      "mt-3 w-full rounded-button py-2.5 font-display text-[12.5px] font-semibold transition-colors disabled:opacity-60",
-                      "bg-blue text-white shadow-glow-blue",
+                      "pressable mt-3 w-full rounded-button border border-line py-2.5 font-display text-[12.5px] font-bold disabled:opacity-60",
+                      "bg-hot text-on-hot",
                     )}
                   >
                     {state === "pending" ? t("common.loading") : t("itinerary.confirmStep")}

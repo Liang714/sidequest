@@ -18,10 +18,10 @@ import clsx from "clsx";
 export type AvatarSize = "xs" | "sm" | "md" | "lg";
 
 const SIZES: Record<AvatarSize, { box: string; text: string; ring: string }> = {
-  xs: { box: "h-6 w-6", text: "text-[10px]", ring: "border-2" },
+  xs: { box: "h-6 w-6", text: "text-[10px]", ring: "border-[1.5px]" },
   sm: { box: "h-8 w-8", text: "text-[13px]", ring: "border-2" },
-  md: { box: "h-[46px] w-[46px]", text: "text-[16px]", ring: "border-[3px]" },
-  lg: { box: "h-[78px] w-[78px]", text: "text-[31px]", ring: "border-4" },
+  md: { box: "h-[46px] w-[46px]", text: "text-[17px]", ring: "border-2" },
+  lg: { box: "h-[78px] w-[78px]", text: "text-[32px]", ring: "border-[3px]" },
 };
 
 /**
@@ -29,9 +29,11 @@ const SIZES: Record<AvatarSize, { box: string; text: string; ring: string }> = {
  * color on every screen and across sessions, which is what makes an
  * initials fallback readable as identity rather than noise.
  *
- * Every swatch is light enough to carry near-black text at >4.5:1.
+ * Brand fills plus three siblings tuned to sit beside them. Every swatch
+ * carries black text at >9:1 (the brand blue is excluded — black on it is
+ * only 4.1:1, too close to the line for a 13px initial).
  */
-const SWATCHES = ["#FF6A3D", "#7BE0A4", "#F5D06F", "#9FB8FF", "#F2A0C4", "#8FD9CE", "#D9B8FF"] as const;
+const SWATCHES = ["#FFE14D", "#FF8FB1", "#9FB0FF", "#FF9F43", "#7BE0A4", "#C9A7FF", "#FFFFFF"] as const;
 
 function swatchFor(seed: string): string {
   let hash = 0;
@@ -55,7 +57,7 @@ export interface AvatarProps {
   userId?: string;
   src?: string | null;
   size?: AvatarSize;
-  /** Mint ring = checked in / arrived. Always paired with a text cue elsewhere. */
+  /** Pink ring = checked in / arrived. Always paired with a text cue elsewhere. */
   checkedIn?: boolean;
   /** Dimmed = hasn't arrived yet. Never the only signal. */
   dimmed?: boolean;
@@ -71,7 +73,7 @@ export function Avatar({
   size = "sm",
   checkedIn = false,
   dimmed = false,
-  ringClassName = "border-surface",
+  ringClassName = "border-line",
   className,
 }: AvatarProps) {
   const s = SIZES[size];
@@ -85,7 +87,7 @@ export function Avatar({
         s.ring,
         ringClassName,
         dimmed && "opacity-40",
-        checkedIn && "ring-2 ring-mint",
+        checkedIn && "ring-[3px] ring-pink",
         className,
       )}
       style={src ? undefined : { background }}
@@ -96,7 +98,7 @@ export function Avatar({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" className="h-full w-full rounded-pill object-cover" />
       ) : (
-        <span aria-hidden className={clsx("font-extrabold text-[#12100E]", s.text)}>
+        <span aria-hidden className={clsx("font-bold text-black", s.text)}>
           {initialFor(name)}
         </span>
       )}
@@ -141,8 +143,8 @@ export function FaceStack({ people, max = 3, ringClassName, className }: FaceSta
         <span
           className={clsx(
             "-ml-[14px] inline-flex h-[46px] w-[46px] items-center justify-center rounded-pill",
-            "border-[3px] bg-surface-elevated text-[14px] font-extrabold text-ink-muted",
-            ringClassName ?? "border-surface",
+            "border-2 bg-ink text-[14px] font-bold text-surface",
+            ringClassName ?? "border-line",
           )}
         >
           +{overflow}

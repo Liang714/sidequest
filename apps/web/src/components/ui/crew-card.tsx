@@ -83,13 +83,13 @@ export function CrewCard({
       {(sponsored || variant === "joined" || variant === "full") && (
         <div className="mb-3 flex gap-2">
           {sponsored && <Badge tone="warn">Sponsored</Badge>}
-          {variant === "joined" && <Badge tone="mint">You&rsquo;re in</Badge>}
+          {variant === "joined" && <Badge tone="pink">You&rsquo;re in</Badge>}
           {variant === "full" && <Badge tone="neutral">Full</Badge>}
         </div>
       )}
 
       {/* ① faces — 46px, overlapping, ringed to the card surface */}
-      <FaceStack people={people} ringClassName="border-surface" />
+      <FaceStack people={people} />
 
       {/* ② names — the headline */}
       <button type="button" onClick={onOpen} className="mt-3 block w-full text-left">

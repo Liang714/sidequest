@@ -61,7 +61,7 @@ export default async function TonightPage() {
   return (
     <AppShell unreadCount={badgeCount(notifications)}>
       <section>
-        <h1 className="text-display text-ink">
+        <h1 className="animate-rise-in text-display text-ink">
           {peopleOut > 0
             ? t("home.peopleOut", { count: peopleOut })
             : t("home.greeting")}
@@ -82,8 +82,10 @@ export default async function TonightPage() {
       {forming.length > 0 && (
         <Section title={t("home.crewsForming")}>
           <div className="flex flex-col gap-3">
-            {forming.map((q) => (
-              <QuestCard key={q.id} quest={q} />
+            {forming.map((q, i) => (
+              <Staggered key={q.id} index={i}>
+                <QuestCard quest={q} />
+              </Staggered>
             ))}
           </div>
         </Section>
@@ -92,8 +94,10 @@ export default async function TonightPage() {
       {forYou.length > 0 && (
         <Section title={t("home.sectionForYou")}>
           <div className="flex flex-col gap-3">
-            {forYou.map((q) => (
-              <QuestCard key={q.id} quest={q} />
+            {forYou.map((q, i) => (
+              <Staggered key={q.id} index={i}>
+                <QuestCard quest={q} />
+              </Staggered>
             ))}
           </div>
         </Section>
@@ -102,8 +106,10 @@ export default async function TonightPage() {
       {later.length > 0 && (
         <Section title={t("home.laterTonight")}>
           <div className="flex flex-col gap-3">
-            {later.map((q) => (
-              <QuestCard key={q.id} quest={q} />
+            {later.map((q, i) => (
+              <Staggered key={q.id} index={i}>
+                <QuestCard quest={q} />
+              </Staggered>
             ))}
           </div>
         </Section>
@@ -125,8 +131,23 @@ export default async function TonightPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="mb-3 text-label uppercase text-ink-faint">{title}</h2>
+      {/* Section labels are small black stickers — the feed's wayfinding. */}
+      <h2 className="mb-3 inline-block -rotate-1 rounded-md border border-line bg-ink px-2 py-1 text-label uppercase text-surface">
+        {title}
+      </h2>
       {children}
     </section>
+  );
+}
+
+/**
+ * Feed entrance: cards rise in one after another, 40ms apart, capped at 8
+ * so a long list never makes the last card wait (spec §4.3).
+ */
+function Staggered({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div className="stagger animate-rise-in" style={{ "--i": index } as React.CSSProperties}>
+      {children}
+    </div>
   );
 }

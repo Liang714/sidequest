@@ -1,9 +1,8 @@
 # packages/design-tokens
 
-Single Tailwind config (colors, spacing, type scale) shared as literal
-Tailwind CSS by `apps/web` and via NativeWind v4 by `apps/mobile` — one
-source of truth, not two synced copies. Values are specified in
-[../../docs/DESIGN_SYSTEM.md](../../docs/DESIGN_SYSTEM.md).
+Bold Pop design tokens (`tokens.ts`): brand colours, semantic roles, type,
+spacing, radius, outlines, hard shadows, motion. One source of truth,
+consumed by `apps/web`'s Tailwind config and CSS variables, and by
+`apps/mobile` via NativeWind v4 once it is scaffolded.
 
-Empty on purpose in Phase 0 — populated when `apps/web`/`apps/mobile` are
-scaffolded in Phase 2.
+Full system: [../../docs/superpowers/specs/2026-10-03-bold-pop-design.md](../../docs/superpowers/specs/2026-10-03-bold-pop-design.md).

@@ -44,7 +44,7 @@ export function CreatorRegisterForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-button bg-violet py-3.5 font-display text-[14px] font-semibold text-white disabled:opacity-60"
+        className="rounded-button pressable border border-line bg-info py-3.5 font-display text-[14px] font-bold text-on-info disabled:opacity-60"
       >
         {pending ? t("common.loading") : t("creator.register")}
       </button>

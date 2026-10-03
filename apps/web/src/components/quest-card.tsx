@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
+import { TransitionLink, vtName } from "./motion/transition-link";
 import { QuestCardView } from "./quest-card-view";
 import { categoryShortKey, formatBudget, formatStartLabel } from "@/lib/format";
 import { joinNames } from "@/lib/people";
@@ -9,6 +9,10 @@ import type { QuestSummaryOut } from "@sidequest/types";
  * Feed card — spec §F1. Formats and translates, then hands off to
  * QuestCardView for the actual presentation, which the create flow's review
  * step also renders so a preview can't drift from the real thing.
+ *
+ * Motion: the card is `pressable-lg` (lifts on hover, pushes flat on press)
+ * and carries a view-transition-name shared with the detail page's header,
+ * so opening it morphs the card into that header (spec §4.2).
  */
 export async function QuestCard({ quest }: { quest: QuestSummaryOut }) {
   const t = await getTranslations();
@@ -29,11 +33,10 @@ export async function QuestCard({ quest }: { quest: QuestSummaryOut }) {
   const minutesToStart = (new Date(quest.start_time).getTime() - Date.now()) / 60000;
 
   return (
-    <Link
-      href={`/quests/${quest.id}`}
-      className="group block transition-transform duration-150 ease-crew hover:-translate-y-0.5"
-    >
+    <TransitionLink href={`/quests/${quest.id}`} className="group block rounded-card">
       <QuestCardView
+        className="pressable-lg"
+        style={{ viewTransitionName: vtName("quest", quest.id) }}
         category={category}
         categoryLabel={t(`category.${category}`)}
         meta={
@@ -60,6 +63,6 @@ export async function QuestCard({ quest }: { quest: QuestSummaryOut }) {
         xpLabel={t("quest.xpReward", { xp: quest.xp_reward })}
         urgent={minutesToStart > 0 && minutesToStart <= 60}
       />
-    </Link>
+    </TransitionLink>
   );
 }

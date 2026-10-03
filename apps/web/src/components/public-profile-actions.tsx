@@ -95,7 +95,7 @@ export function PublicProfileActions({
       </div>
 
       {confirmBlock && (
-        <div className="mt-4 rounded-card border border-danger-soft bg-danger-soft p-4 text-center">
+        <div className="mt-4 rounded-card border border-line bg-danger-soft p-4 text-center">
           <p className="text-body-s font-semibold text-ink">{t("blockTitle", { name: displayName })}</p>
           <p className="mt-1 text-caption text-ink-muted">{t("blockBody")}</p>
           <div className="mt-3 flex justify-center gap-2">

@@ -7,7 +7,7 @@ import type { Category } from "@/lib/types";
 import { CategoryIcon } from "./category-icon";
 
 /**
- * CREW filter chip. Selected state carries a check icon as well as the
+ * Bold Pop filter chip. Selected state carries a check icon as well as the
  * fill — colour is never the sole signal (spec §K).
  */
 export function CategoryChip({
@@ -29,10 +29,10 @@ export function CategoryChip({
       aria-pressed={Component === "button" ? selected : undefined}
       className={clsx(
         "inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-chip border px-3.5 text-caption",
-        "transition-colors duration-150 ease-crew",
+        "transition-colors duration-150 ease-snap",
         selected
-          ? "border-hot bg-hot font-bold text-on-hot"
-          : "border-line bg-surface-elevated text-ink-muted hover:text-ink",
+          ? "border-line bg-hot font-bold text-on-hot shadow-e1"
+          : "border-line bg-surface text-ink hover:bg-hot-soft",
         className,
       )}
     >

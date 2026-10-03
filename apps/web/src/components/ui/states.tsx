@@ -4,7 +4,11 @@ import { WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "./button";
 
 /**
- * Empty / error / loading states — spec §I, §J.
+ * Empty / error / loading states — spec §2.4, §5.2.
+ *
+ * Bold Pop treats an empty state as a moment, not an absence: the icon sits
+ * on a yellow sticker that wobbles once on arrival, and the action is a full
+ * pressable button. Errors arrive with a single hard shake.
  *
  * Two rules enforced by these component signatures rather than by review:
  *   1. An EmptyState without an action is a bug, so `action` is required.
@@ -26,17 +30,21 @@ export function EmptyState({ icon, title, body, action, className }: EmptyStateP
   return (
     <div
       className={clsx(
-        "flex flex-col items-center gap-3 rounded-card border border-dashed border-line px-6 py-10 text-center",
+        "flex animate-pop-in flex-col items-center gap-3 rounded-card border border-line bg-surface px-6 py-10 text-center shadow-e2",
         className,
       )}
     >
-      {icon && <span className="text-ink-faint">{icon}</span>}
+      {icon && (
+        <span className="flex h-16 w-16 -rotate-6 animate-wiggle items-center justify-center rounded-pill border border-line bg-hot text-ink shadow-e1 [animation-delay:250ms]">
+          {icon}
+        </span>
+      )}
       <p className="text-h3 text-ink">{title}</p>
       {body && <p className="max-w-[34ch] text-body-s text-ink-muted">{body}</p>}
       {action.href ? (
         <a
           href={action.href}
-          className="mt-1 inline-flex h-12 items-center rounded-button bg-hot px-5 text-[14.5px] font-bold text-on-hot"
+          className="pressable mt-1 inline-flex h-12 items-center rounded-button border border-line bg-hot px-5 text-[14.5px] font-bold text-on-hot"
         >
           {action.label}
         </a>
@@ -63,7 +71,7 @@ export function ErrorState({ title, body, onRetry, retryLabel = "Retry", classNa
     <div
       role="alert"
       className={clsx(
-        "flex flex-col items-center gap-3 rounded-card border border-danger-soft bg-danger-soft px-6 py-8 text-center",
+        "flex animate-shake flex-col items-center gap-3 rounded-card border border-line bg-danger-soft px-6 py-8 text-center shadow-e1",
         className,
       )}
     >
@@ -83,7 +91,7 @@ export function OfflineBanner({ message }: { message: string }) {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 border-b border-line bg-warn-soft px-4 py-2 text-caption text-warn-text"
+      className="flex animate-rise-in items-center gap-2 border-b border-line bg-warn px-4 py-2 text-caption font-bold text-on-warn"
     >
       <WifiOff aria-hidden className="h-4 w-4 shrink-0" />
       {message}
@@ -94,14 +102,16 @@ export function OfflineBanner({ message }: { message: string }) {
 /**
  * Skeletons must match the final layout's dimensions exactly, or the page
  * reflows on load and the user loses their place — spec §M.
- * Shimmer is disabled under prefers-reduced-motion.
+ * Bold Pop skeletons are sliding diagonal stripes rather than a soft grey
+ * pulse — it reads as "under construction", on-brand and unmistakably a
+ * placeholder. The slide stops under prefers-reduced-motion.
  */
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       aria-hidden
       className={clsx(
-        "animate-pulse rounded-md bg-surface-elevated motion-reduce:animate-none",
+        "skeleton-stripes animate-stripes rounded-md motion-reduce:animate-none",
         className,
       )}
     />
@@ -111,7 +121,7 @@ export function Skeleton({ className }: { className?: string }) {
 /** Matches CrewCard's real dimensions — face stack, headline, meta, CTA. */
 export function CrewCardSkeleton() {
   return (
-    <div className="rounded-card border border-line bg-surface p-4 shadow-e1">
+    <div className="rounded-card border border-line bg-surface p-4 shadow-e2">
       <Skeleton className="h-[46px] w-[104px] rounded-pill" />
       <Skeleton className="mt-3 h-6 w-3/4" />
       <Skeleton className="mt-2 h-4 w-1/2" />

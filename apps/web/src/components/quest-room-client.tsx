@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import clsx from "clsx";
 import { Camera, Check, MapPin, Send, Sparkles } from "lucide-react";
 import { Button, ChatBubble, CheckInStrip } from "@/components/ui";
+import { Confetti, DrawnCheck } from "@/components/motion/celebrate";
 import {
   checkinQuestAction,
   completeObjectiveAction,
@@ -139,16 +140,19 @@ export function QuestRoomClient({
     // falls back to the quest's flat xp_reward, same as before this feature.
     const xp = completionResult?.xpAwarded ?? quest.xp_reward;
     return (
-      <div className="flex flex-col items-center gap-4 rounded-card border border-line bg-surface p-8 text-center shadow-e1">
-        <span className="flex h-14 w-14 items-center justify-center rounded-pill bg-mint">
-          <Check aria-hidden className="h-7 w-7 text-on-mint" strokeWidth={3} />
-        </span>
-        <p className="text-display text-ink">{t("questRoom.questComplete")}</p>
-        <span className="text-[40px] font-extrabold tabular-nums leading-none text-mint-text">
+      <div className="relative flex flex-col items-center gap-4 rounded-card border border-line bg-surface p-8 text-center shadow-e2">
+        {/* Confetti only for the client that just completed it — a revisit
+            to an archived room is a record, not a celebration. */}
+        {completionResult && <Confetti count={completionResult.newLevel != null ? 40 : 28} />}
+        <DrawnCheck size={64} />
+        <p className="animate-rise-in text-display text-ink [animation-delay:150ms]">
+          {t("questRoom.questComplete")}
+        </p>
+        <span className="-rotate-2 animate-pop-in rounded-button border border-line bg-hot px-4 py-2 text-[36px] font-bold tabular-nums leading-none text-on-hot shadow-e1 [animation-delay:300ms]">
           {t("quest.xpReward", { xp })}
         </span>
         {completionResult?.newLevel != null && (
-          <p className="text-h3 text-ink">
+          <p className="animate-pop-in rounded-chip border border-line bg-info px-4 py-1.5 text-h3 text-on-info [animation-delay:450ms]">
             {t("questRoom.leveledUp", { level: completionResult.newLevel })}
           </p>
         )}
@@ -156,10 +160,11 @@ export function QuestRoomClient({
           <div className="flex flex-col items-center gap-2">
             <p className="text-label uppercase text-ink-faint">{t("questRoom.newAchievements")}</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {completionResult.newAchievements.map((a) => (
+              {completionResult.newAchievements.map((a, i) => (
                 <span
                   key={a.key}
-                  className="inline-flex items-center gap-1.5 rounded-chip border border-mint-soft bg-mint-soft px-3 py-1.5 text-caption font-bold text-mint-text"
+                  style={{ "--i": i + 12 } as CSSProperties}
+                  className="stagger inline-flex animate-pop-in items-center gap-1.5 rounded-chip border border-line bg-pink px-3 py-1.5 text-caption font-bold text-on-pink shadow-e1"
                 >
                   {t(a.key)}
                 </span>
@@ -227,20 +232,20 @@ export function QuestRoomClient({
                   onClick={() => runAction(() => completeObjectiveAction(quest.id, o.id))}
                   className={clsx(
                     "flex min-h-11 w-full items-center gap-3 rounded-button border px-4 py-3 text-left text-body-s",
-                    "transition-colors duration-150 ease-crew disabled:cursor-default",
+                    "disabled:cursor-default",
                     o.completed_by_me
-                      ? "border-mint-soft bg-mint-soft text-ink"
-                      : "border-line bg-surface text-ink-muted",
+                      ? "border-line bg-pink-soft text-ink"
+                      : "pressable border-line bg-surface text-ink",
                   )}
                 >
                   <span
                     className={clsx(
                       "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-pill border",
-                      o.completed_by_me ? "border-mint bg-mint" : "border-line",
+                      o.completed_by_me ? "border-line bg-pink animate-pop-in" : "border-line",
                     )}
                   >
                     {o.completed_by_me && (
-                      <Check aria-hidden className="h-3 w-3 text-on-mint" strokeWidth={3} />
+                      <Check aria-hidden className="h-3 w-3 text-on-pink" strokeWidth={3} />
                     )}
                   </span>
                   {o.description}
@@ -352,11 +357,11 @@ function PhotoObjectiveItem({
         <span
           className={clsx(
             "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-pill border",
-            objective.completed_by_me ? "border-mint bg-mint" : "border-line",
+            objective.completed_by_me ? "border-line bg-pink animate-pop-in" : "border-line",
           )}
         >
           {objective.completed_by_me && (
-            <Check aria-hidden className="h-3 w-3 text-on-mint" strokeWidth={3} />
+            <Check aria-hidden className="h-3 w-3 text-on-pink" strokeWidth={3} />
           )}
         </span>
         <span>{objective.description}</span>

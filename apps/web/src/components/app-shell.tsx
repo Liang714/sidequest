@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { TabBar } from "./tab-bar";
 
 /**
- * CREW app shell — spec §D.
+ * Bold Pop app shell — spec §3.2.
  *
  * The header gains a notifications entry point, which the app has never had
  * despite GET /notifications shipping in the API (spec §A1 finding 1). The
@@ -42,9 +42,16 @@ export async function AppShell({
   // link to a 404 is worse than no link — it lands with the endpoint.
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-20 border-b border-line bg-bg"
+        // Named so it holds still during page transitions instead of fading.
+        style={{ viewTransitionName: "app-header" }}
+      >
         <div className="mx-auto flex max-w-lg items-center justify-between gap-2 px-4 py-3">
-          <Link href="/" className="text-h3 font-extrabold tracking-tight text-ink">
+          <Link
+            href="/"
+            className="group inline-flex items-center rounded-button border border-line bg-hot px-2.5 py-1 text-h3 font-bold uppercase tracking-tight text-ink shadow-e1 transition-transform duration-fast ease-snap hover:-rotate-2"
+          >
             {t("app.name")}
           </Link>
 
@@ -89,12 +96,12 @@ function IconLink({
     <Link
       href={href}
       aria-label={badge > 0 ? `${label} (${badge})` : label}
-      // 40px box keeps the target near 44px around an 18px icon.
-      className="relative flex h-10 w-10 items-center justify-center rounded-button text-ink-muted hover:text-ink"
+      // 44px box — the full touch target around an 18px icon.
+      className="relative flex h-11 w-11 items-center justify-center rounded-button border border-transparent text-ink transition-colors duration-fast ease-snap hover:border-line hover:bg-surface"
     >
       {children}
       {badge > 0 && (
-        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-pill bg-hot ring-2 ring-bg" />
+        <span className="absolute right-1 top-1 h-3 w-3 animate-pop-in rounded-pill border-2 border-line bg-pink" />
       )}
     </Link>
   );

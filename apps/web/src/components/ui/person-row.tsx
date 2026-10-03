@@ -41,8 +41,8 @@ export interface PersonRowProps {
   className?: string;
 }
 
-const RELATION_BADGE: Partial<Record<PersonRelation, { label: string; tone: "mint" | "neutral" }>> = {
-  friend: { label: "★ Friend", tone: "mint" },
+const RELATION_BADGE: Partial<Record<PersonRelation, { label: string; tone: "pink" | "neutral" }>> = {
+  friend: { label: "★ Friend", tone: "pink" },
   pending: { label: "Requested", tone: "neutral" },
   invited: { label: "Invited", tone: "neutral" },
 };

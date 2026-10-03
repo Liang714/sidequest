@@ -50,7 +50,7 @@ export function FriendsClient({
             {requests.map((f) => (
               <li
                 key={f.id}
-                className="flex items-center gap-3 rounded-card border border-hot-soft bg-surface p-4 shadow-e1"
+                className="flex items-center gap-3 rounded-card border border-line bg-surface p-4 shadow-e1"
               >
                 <PersonLink userId={f.user_id} username={f.username} />
                 <div className="flex shrink-0 gap-2">
@@ -117,7 +117,7 @@ export function FriendsClient({
 function PersonLink({ userId, username }: { userId: string; username: string }) {
   return (
     <Link href={`/users/${userId}`} className="flex min-h-11 min-w-0 flex-1 items-center gap-3">
-      <Avatar name={username} userId={userId} size="sm" ringClassName="border-transparent" />
+      <Avatar name={username} userId={userId} size="sm" />
       <span className="truncate text-h3 text-ink">{username}</span>
     </Link>
   );

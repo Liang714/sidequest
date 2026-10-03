@@ -173,8 +173,8 @@ export function CreateQuestForm({
           <div
             key={i}
             className={clsx(
-              "h-1 flex-1 rounded-pill transition-colors duration-150 ease-crew",
-              i <= step ? "bg-hot" : "bg-surface-elevated",
+              "h-2.5 flex-1 rounded-pill border border-line transition-colors duration-base ease-snap",
+              i <= step ? "bg-hot" : "bg-surface",
             )}
           />
         ))}
@@ -183,7 +183,7 @@ export function CreateQuestForm({
       {/* ---------- Step 1: what & where ---------- */}
       {step === 0 && (
         <>
-          <div className="rounded-card border border-info-soft bg-info-soft p-4">
+          <div className="rounded-card border border-line bg-info-soft p-4">
             <div className="mb-2.5 flex items-center justify-between gap-2">
               <p className="flex items-center gap-1.5 text-h3 text-ink">
                 <Sparkles aria-hidden className="h-4 w-4 text-info-text" />
@@ -238,7 +238,7 @@ export function CreateQuestForm({
               </div>
             )}
             {aiApplied && (
-              <p className="mt-2 text-caption font-semibold text-mint-text">
+              <p className="mt-2 text-caption font-semibold text-pink-text">
                 {t("createQuest.aiFilledIn")}
               </p>
             )}
@@ -338,8 +338,8 @@ export function CreateQuestForm({
                   aria-pressed={difficulty === d}
                   onClick={() => setDifficulty(d)}
                   className={clsx(
-                    "min-h-11 flex-1 rounded-button border px-2 text-caption font-semibold transition-colors duration-150 ease-crew",
-                    difficulty === d ? "border-hot bg-hot text-on-hot" : "border-line bg-surface text-ink-muted",
+                    "min-h-11 flex-1 rounded-button border px-2 text-caption font-semibold transition-colors duration-150 ease-snap",
+                    difficulty === d ? "border-line bg-hot text-on-hot shadow-e1" : "border-line bg-surface text-ink-muted",
                   )}
                 >
                   {t(`difficulty.${d}`)}
@@ -416,8 +416,8 @@ export function CreateQuestForm({
                   aria-pressed={visibility === v}
                   onClick={() => setVisibility(v)}
                   className={clsx(
-                    "min-h-11 flex-1 rounded-button border px-2 text-caption font-semibold transition-colors duration-150 ease-crew",
-                    visibility === v ? "border-hot bg-hot text-on-hot" : "border-line bg-surface text-ink-muted",
+                    "min-h-11 flex-1 rounded-button border px-2 text-caption font-semibold transition-colors duration-150 ease-snap",
+                    visibility === v ? "border-line bg-hot text-on-hot shadow-e1" : "border-line bg-surface text-ink-muted",
                   )}
                 >
                   {t(`quest.visibility.${v}`)}

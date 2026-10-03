@@ -13,7 +13,7 @@ export default async function ResetPasswordPage({
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-10">
       <div className="mb-2 flex items-center gap-2 font-display text-[14px] font-bold text-ink">
-        <span className="h-[7px] w-[7px] rounded-full bg-lime shadow-glow-lime" />
+        <span className="h-3 w-3 rounded-full border-2 border-line bg-pop-pink" />
         {t("app.name")}
       </div>
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">{t("auth.resetPasswordTitle")}</h1>

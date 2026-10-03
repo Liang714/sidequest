@@ -3,211 +3,80 @@
 @tailwind utilities;
 
 /*
- * CREW theme tokens as CSS custom properties.
+ * BOLD POP theme tokens as CSS custom properties.
  * Source values: packages/design-tokens/tokens.ts
- * Full system: docs/superpowers/specs/2026-08-27-crew-ui-design.md §H
+ * Full system: docs/superpowers/specs/2026-10-03-bold-pop-design.md
  *
- * :root + prefers-color-scheme covers OS preference; [data-theme] (set by
- * next-themes) overrides it explicitly in both directions. Every token is
- * defined on bare :root first so nothing has its ONLY definition inside a
- * media query.
+ * Light-only (spec §1.4). `color-scheme: light` stops the browser from
+ * darkening form controls and scrollbars when the OS is in dark mode.
  *
- * The --*-text variants exist because both accents fail WCAG AA as TEXT on
- * light backgrounds (hot 3.1:1, mint 1.6:1). Use --accent-hot for fills,
- * --accent-hot-text for text. This split is what makes the mistake
- * structurally impossible rather than a thing to remember.
+ * The --*-text variants exist because yellow (1.3:1) and pink (2.1:1) fail
+ * WCAG AA as TEXT on the canvas. Use --accent-hot for fills,
+ * --accent-hot-text for text. The split makes the mistake structurally
+ * impossible rather than a thing to remember.
  */
 
-/* ---------- LIGHT (default) ---------- */
 :root {
-  --bg: #fdfbf7;
+  color-scheme: light;
+
+  /* brand */
+  --pop-yellow: #ffe14d;
+  --pop-blue: #3b5bff;
+  --pop-pink: #ff8fb1;
+
+  /* neutrals */
+  --bg: #fffbea;
   --surface: #ffffff;
-  --surface-elevated: #f5f0e9;
-  --line: #e5ddd2;
-  --ink: #12100e;
-  --ink-muted: #6b6259;
-  --ink-faint: #797067;
+  --surface-elevated: #f4f0e2;
+  --line: #000000;
+  --ink: #000000; /* 19.6:1 on --bg */
+  --ink-muted: #404040; /* 9.9:1 */
+  --ink-faint: #5c5c5c; /* 6.4:1 */
 
   /* fills */
-  --accent-hot: #ff6a3d;
-  --accent-mint: #7be0a4;
-  --accent-info: #3355d4;
-  --accent-warn: #f5c36b;
-  --accent-danger: #c7362a;
+  --accent-hot: var(--pop-yellow);
+  --accent-info: var(--pop-blue);
+  --accent-pink: var(--pop-pink);
+  --accent-warn: #ff9f43;
+  --accent-danger: #ff5a5a;
 
-  /* accessible text variants — NEVER use the fill values as text on light */
-  --accent-hot-text: #c2410c; /* 5.1:1 on --bg */
-  --accent-mint-text: #17714a; /* 5.8:1 on --bg */
-  --accent-info-text: #3355d4;
-  --accent-warn-text: #8a5a00;
-  --accent-danger-text: #c7362a;
+  /* accessible text variants — NEVER use the fill values as text */
+  --accent-hot-text: #2a44d6; /* 6.8:1 — "hot" links and active states read blue */
+  --accent-info-text: #2a44d6; /* 6.8:1 on --bg, 5.7:1 on --accent-info-soft */
+  --accent-pink-text: #a3134c; /* 7.1:1 on --bg, 5.1:1 on --accent-pink-soft */
+  --accent-warn-text: #9a4a00; /* 5.8:1 on --bg, 5.1:1 on --accent-warn-soft */
+  --accent-danger-text: #b71c1c; /* 6.1:1 on --bg, 5.2:1 on --accent-danger-soft */
 
-  /* text to place ON an accent fill. white-on-hot is 2.5:1 and FAILS. */
-  --on-hot: #12100e; /* 6.7:1 */
-  --on-mint: #12100e;
-  --on-warn: #12100e;
-  --on-info: #ffffff;
-  --on-danger: #ffffff;
+  /* text to place ON a fill. Only blue takes white (5.1:1). */
+  --on-hot: #000000; /* 16.1:1 */
+  --on-pink: #000000; /* 9.8:1 */
+  --on-warn: #000000; /* 10.3:1 */
+  --on-info: #ffffff; /* 5.1:1 */
+  --on-danger: #000000; /* 6.9:1 */
 
-  /* soft tints for chips/asides */
-  --accent-hot-soft: rgba(255, 106, 61, 0.1);
-  --accent-mint-soft: rgba(23, 113, 74, 0.1);
-  --accent-info-soft: rgba(51, 85, 212, 0.1);
-  --accent-warn-soft: rgba(138, 90, 0, 0.1);
-  --accent-danger-soft: rgba(199, 54, 42, 0.1);
+  /* pastel tints for chips/asides — opaque, so black outlines stay crisp */
+  --accent-hot-soft: #fff3b0;
+  --accent-info-soft: #dde3ff;
+  --accent-pink-soft: #ffe0ea;
+  --accent-warn-soft: #ffe4cc;
+  --accent-danger-soft: #ffdcdc;
 
-  /* warm-tinted elevation, never neutral black */
-  --shadow-e1: 0 1px 3px rgba(60, 40, 25, 0.06);
-  --shadow-e2: 0 8px 28px rgba(60, 40, 25, 0.1);
-  --shadow-e3: 0 16px 48px rgba(60, 40, 25, 0.16);
-  --scrim: rgba(10, 8, 6, 0.45);
+  --scrim: rgba(0, 0, 0, 0.55);
 
-  /* ----- deprecated aliases: pre-rebuild screens only (removed at stage 7) ----- */
-  --accent-blue: var(--accent-info);
-  --accent-blue-soft: var(--accent-info-soft);
-  --accent-lime: var(--accent-mint-text);
-  --accent-lime-soft: var(--accent-mint-soft);
-  --accent-violet: var(--accent-info);
-  --accent-violet-soft: var(--accent-info-soft);
+  /* deprecated: raw var() references in pre-rebuild screens only */
+  --accent-blue: var(--pop-blue);
+  --accent-violet: var(--pop-blue);
+  --accent-lime: var(--pop-pink);
   --accent-coral: var(--accent-danger);
-  --accent-coral-soft: var(--accent-danger-soft);
-  --shadow-card: var(--shadow-e1);
-  --glow-blue: none;
-  --glow-lime: none;
-}
 
-/* ---------- DARK ---------- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #12100e;
-    --surface: #1c1916;
-    --surface-elevated: #241f1b;
-    --line: #332c26;
-    --ink: #fbf7f2;
-    --ink-muted: #a79e96;
-    --ink-faint: #8a8178;
-
-    --accent-hot: #ff6a3d;
-    --accent-mint: #7be0a4;
-    --accent-info: #8aa6ff;
-    --accent-warn: #f5c36b;
-    --accent-danger: #ff6b5b;
-
-    /* on dark, the fills pass as text — no separate variant needed */
-    --accent-hot-text: #ff6a3d; /* 6.7:1 */
-    --accent-mint-text: #7be0a4; /* 11.9:1 */
-    --accent-info-text: #8aa6ff;
-    --accent-warn-text: #f5c36b;
-    --accent-danger-text: #ff6b5b;
-
-    --on-hot: #12100e;
-    --on-mint: #12100e;
-    --on-warn: #12100e;
-    --on-info: #12100e;
-    --on-danger: #12100e;
-
-    --accent-hot-soft: rgba(255, 106, 61, 0.13);
-    --accent-mint-soft: rgba(123, 224, 164, 0.13);
-    --accent-info-soft: rgba(138, 166, 255, 0.14);
-    --accent-warn-soft: rgba(245, 195, 107, 0.13);
-    --accent-danger-soft: rgba(255, 107, 91, 0.13);
-
-    /* dark has no usable shadows on #12100E — depth is surface + hairline */
-    --shadow-e1: none;
-    --shadow-e2: none;
-    --shadow-e3: 0 16px 48px rgba(0, 0, 0, 0.5);
-    --scrim: rgba(10, 8, 6, 0.72);
-
-    --shadow-card: none;
-  }
-}
-
-/* ---------- explicit toggle: dark ----------
- * The bare [data-theme] selector is deliberate alongside :root — it lets a
- * subtree be themed independently, which is what /dev/kitchen-sink relies on
- * to show both themes without touching the user's app-wide preference.
- */
-:root[data-theme="dark"],
-[data-theme="dark"] {
-  --bg: #12100e;
-  --surface: #1c1916;
-  --surface-elevated: #241f1b;
-  --line: #332c26;
-  --ink: #fbf7f2;
-  --ink-muted: #a79e96;
-  --ink-faint: #8a8178;
-
-  --accent-hot: #ff6a3d;
-  --accent-mint: #7be0a4;
-  --accent-info: #8aa6ff;
-  --accent-warn: #f5c36b;
-  --accent-danger: #ff6b5b;
-
-  --accent-hot-text: #ff6a3d;
-  --accent-mint-text: #7be0a4;
-  --accent-info-text: #8aa6ff;
-  --accent-warn-text: #f5c36b;
-  --accent-danger-text: #ff6b5b;
-
-  --on-hot: #12100e;
-  --on-mint: #12100e;
-  --on-warn: #12100e;
-  --on-info: #12100e;
-  --on-danger: #12100e;
-
-  --accent-hot-soft: rgba(255, 106, 61, 0.13);
-  --accent-mint-soft: rgba(123, 224, 164, 0.13);
-  --accent-info-soft: rgba(138, 166, 255, 0.14);
-  --accent-warn-soft: rgba(245, 195, 107, 0.13);
-  --accent-danger-soft: rgba(255, 107, 91, 0.13);
-
-  --shadow-e1: none;
-  --shadow-e2: none;
-  --shadow-e3: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --scrim: rgba(10, 8, 6, 0.72);
-  --shadow-card: none;
-}
-
-/* ---------- explicit toggle: light ---------- */
-:root[data-theme="light"],
-[data-theme="light"] {
-  --bg: #fdfbf7;
-  --surface: #ffffff;
-  --surface-elevated: #f5f0e9;
-  --line: #e5ddd2;
-  --ink: #12100e;
-  --ink-muted: #6b6259;
-  --ink-faint: #797067;
-
-  --accent-hot: #ff6a3d;
-  --accent-mint: #7be0a4;
-  --accent-info: #3355d4;
-  --accent-warn: #f5c36b;
-  --accent-danger: #c7362a;
-
-  --accent-hot-text: #c2410c;
-  --accent-mint-text: #17714a;
-  --accent-info-text: #3355d4;
-  --accent-warn-text: #8a5a00;
-  --accent-danger-text: #c7362a;
-
-  --on-hot: #12100e;
-  --on-mint: #12100e;
-  --on-warn: #12100e;
-  --on-info: #ffffff;
-  --on-danger: #ffffff;
-
-  --accent-hot-soft: rgba(255, 106, 61, 0.1);
-  --accent-mint-soft: rgba(23, 113, 74, 0.1);
-  --accent-info-soft: rgba(51, 85, 212, 0.1);
-  --accent-warn-soft: rgba(138, 90, 0, 0.1);
-  --accent-danger-soft: rgba(199, 54, 42, 0.1);
-
-  --shadow-e1: 0 1px 3px rgba(60, 40, 25, 0.06);
-  --shadow-e2: 0 8px 28px rgba(60, 40, 25, 0.1);
-  --shadow-e3: 0 16px 48px rgba(60, 40, 25, 0.16);
-  --scrim: rgba(10, 8, 6, 0.45);
-  --shadow-card: var(--shadow-e1);
+  /* motion — mirrors tokens.motion so plain CSS can use it */
+  --ease-snap: cubic-bezier(0.3, 0, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
 }
 
 * {
@@ -221,26 +90,27 @@ body {
 }
 
 body {
-  /* Figtree for Latin, then a Korean-capable system stack — see
-     packages/design-tokens/tokens.ts for why Pretendard isn't loaded. */
+  /* Space Grotesk for Latin, then a Korean-capable system stack that picks
+     up Hangul per-glyph — see packages/design-tokens/tokens.ts. */
   font-family:
-    var(--font-figtree), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
-    "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+    var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 h1,
 h2,
 h3 {
   font-family:
-    var(--font-figtree), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
-    sans-serif;
+    var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
 }
 
 /*
- * CREW is sentence-case by default, so the CJK override is far less
- * load-bearing here than in an uppercase-led system — but tracking still
- * must not be applied to Hangul, where negative tracking damages legibility.
+ * Tracking and uppercase must not be applied to Hangul — negative tracking
+ * damages legibility and there is no case. The fallback Korean faces are
+ * lighter than Space Grotesk at the same nominal weight, so headings step up.
  */
 :lang(ko),
 :lang(ja),
@@ -248,25 +118,211 @@ h3 {
   letter-spacing: normal !important;
   text-transform: none !important;
 }
+:lang(ko) h1,
+:lang(ko) h2,
+:lang(ko) h3 {
+  font-weight: 800;
+}
 
 ::selection {
-  background: var(--accent-hot);
-  color: var(--on-hot);
+  background: var(--pop-yellow);
+  color: #000000;
 }
 
-/* Visible focus on every interactive element — spec §K. */
+/* Visible focus on every interactive element: a thick blue ring offset from
+   the black outline, so it's distinguishable from the outline itself. */
 :focus-visible {
-  outline: 2px solid var(--accent-info);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 3px solid var(--pop-blue);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
+@layer components {
+  /*
+   * The signature interaction. An element sits on a hard e1 shadow; hover
+   * lifts it 1px toward the light; press pushes it fully into the page
+   * (translate by the shadow offset, shadow to zero). Linear and 90ms —
+   * a physical push has no curve.
+   */
+  .pressable {
+    box-shadow: 3px 3px 0 0 #000;
+    transition:
+      transform var(--dur-instant) linear,
+      box-shadow var(--dur-instant) linear,
+      background-color var(--dur-fast) var(--ease-snap);
+  }
+  @media (hover: hover) {
+    .pressable:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 0 #000;
+    }
+  }
+  .pressable:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 #000;
+  }
+  .pressable:disabled,
+  .pressable[aria-disabled="true"] {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Same, scaled for e2 cards. */
+  .pressable-lg {
+    box-shadow: 5px 5px 0 0 #000;
+    transition:
+      transform var(--dur-instant) linear,
+      box-shadow var(--dur-instant) linear;
+  }
+  @media (hover: hover) {
+    .pressable-lg:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 0 #000;
+    }
+  }
+  .pressable-lg:active {
+    transform: translate(5px, 5px);
+    box-shadow: 0 0 0 0 #000;
+  }
+
+  /* Staggered list entrance: set --i on each child (capped at 8 by callers). */
+  .stagger {
+    animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  }
+
+  /* Skeleton: diagonal stripes instead of a soft grey pulse. */
+  .skeleton-stripes {
+    background-color: var(--surface-elevated);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 7px,
+      rgba(0, 0, 0, 0.06) 7px 14px
+    );
+    background-size: 28px 28px;
+  }
+
+  /*
+   * Reveal-on-scroll with CSS scroll-driven animations — no JS observer,
+   * runs off the main thread. Browsers without support simply show the
+   * content (the @supports guard means nothing is ever stuck hidden).
+   */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+
+  /* Highlighter-pen emphasis for a word in a headline. */
+  .marker {
+    background: linear-gradient(transparent 55%, var(--pop-yellow) 55% 92%, transparent 92%);
+    padding: 0 0.08em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
+/* Bottom sheet / dialog entrance — <dialog> top layer, so plain CSS. */
+dialog[open] > .sheet-panel {
+  animation: sheet-up var(--dur-base) var(--ease-snap) both;
+}
+@media (min-width: 640px) {
+  dialog[open] > .sheet-panel {
+    animation: pop-in var(--dur-slow) var(--ease-pop) both;
+  }
+}
+dialog[open]::backdrop {
+  animation: scrim-in var(--dur-base) linear both;
+}
+
+/*
+ * Shared-element page transitions (View Transitions API, see
+ * components/motion/transition-link.tsx). The root cross-fades fast; named
+ * elements (a quest card → the detail header) morph between positions.
+ */
+::view-transition-old(root) {
+  animation: 120ms var(--ease-exit) both vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 200ms var(--ease-snap) 60ms both vt-fade-in;
+}
+::view-transition-group(*) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-snap);
+}
+/* Plain-CSS copies of the Tailwind keyframes the rules above reference —
+   Tailwind only emits a keyframe when its animate-* utility is used. */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.86) rotate(-2deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) rotate(0.6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes rise-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-up {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes scrim-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+ * Reduced motion: movement goes, meaning stays. Transitions and animations
+ * collapse to near-instant, pressables stop translating (the shadow change
+ * still signals the press), and view transitions are skipped in JS.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pressable:hover,
+  .pressable:active,
+  .pressable-lg:hover,
+  .pressable-lg:active {
+    transform: none;
   }
 }

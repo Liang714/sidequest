@@ -3,25 +3,30 @@ import localFont from "next/font/local";
 // Self-hosted (no font CDN request) — see docs/DESIGN_SYSTEM.md.
 
 /**
- * CREW's display + UI face. Warm geometric humanist, variable 400–800.
- * Two files split by unicode-range exactly as Google Fonts serves them, so
- * the 10KB latin-ext slice only downloads when a page actually needs it.
- * Total for the common case: ~20KB.
+ * Bold Pop's display + UI face. Space Grotesk, variable 400–700 — quirky
+ * geometric grotesk whose odd terminals carry the brand at bold weights.
+ *
+ * Two slices as Google Fonts serves them. Same-descriptor faces form one
+ * composite face and the browser tries the LAST-declared first, so latin
+ * goes last: the 19KB latin-ext slice is only fetched when a page contains
+ * a glyph the 22KB latin slice lacks.
+ *
+ * No Hangul — Korean falls through per-glyph to the system stack below.
  */
-export const figtree = localFont({
+export const spaceGrotesk = localFont({
   src: [
     {
-      path: "../fonts/Figtree-Variable.woff2",
-      weight: "400 800",
+      path: "../fonts/SpaceGrotesk-Variable-LatinExt.woff2",
+      weight: "400 700",
       style: "normal",
     },
     {
-      path: "../fonts/Figtree-Variable-LatinExt.woff2",
-      weight: "400 800",
+      path: "../fonts/SpaceGrotesk-Variable.woff2",
+      weight: "400 700",
       style: "normal",
     },
   ],
-  variable: "--font-figtree",
+  variable: "--font-space-grotesk",
   display: "swap",
   fallback: [
     "-apple-system",
@@ -31,19 +36,4 @@ export const figtree = localFont({
     "Noto Sans KR",
     "sans-serif",
   ],
-});
-
-/**
- * Retained only for screens not yet migrated to CREW (they use `font-mono`
- * for tabular figures). CREW gets tabular figures from Figtree via
- * `tabular-nums`, so this goes away with stage 7.
- * @deprecated
- */
-export const geistMono = localFont({
-  src: [
-    { path: "../fonts/GeistMono-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/GeistMono-Medium.woff2", weight: "500", style: "normal" },
-  ],
-  variable: "--font-geist-mono",
-  display: "swap",
 });

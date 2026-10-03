@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { KitchenSink } from "./kitchen-sink";
 
 /**
- * CREW design system live preview — stage 1 of the rebuild.
+ * Bold Pop design system live preview, including motion demos.
  *
  * Deliberately OUTSIDE the [locale] segment: it's a developer surface, not
  * product, so it doesn't go through next-intl and its copy is intentionally

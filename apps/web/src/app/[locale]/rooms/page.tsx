@@ -83,7 +83,7 @@ function Group({
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
                   <span className="truncate text-h3 text-ink">{q.title}</span>
-                  {live && <Badge tone="mint">Live</Badge>}
+                  {live && <Badge tone="pink">Live</Badge>}
                 </span>
                 <span className="block text-caption text-ink-muted">
                   {q.location_city} · {q.joined_count}/{q.max_participants}

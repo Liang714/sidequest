@@ -11,7 +11,7 @@ import { Button } from "./button";
  * others actually coming?" is the highest-anxiety question in the whole
  * product, and it deserves an answer before anything else.
  *
- * Arrival is signalled by a mint ring AND the "N of M here" count, never by
+ * Arrival is signalled by a pink ring AND the "N of M here" count, never by
  * colour alone (spec §K). Un-arrived avatars dim rather than disappear, so
  * the group size stays legible.
  */
@@ -55,13 +55,13 @@ export function CheckInStrip({
               size="sm"
               checkedIn={p.checkedIn}
               dimmed={!p.checkedIn}
-              ringClassName="border-surface"
+             
               className={i > 0 ? "-ml-2" : undefined}
             />
           ))}
         </div>
         {/* aria-live so a screen reader hears arrivals as they happen. */}
-        <p aria-live="polite" className="truncate text-body-s font-semibold text-mint-text">
+        <p aria-live="polite" className="truncate text-body-s font-semibold text-pink-text">
           {countLabel}
         </p>
       </div>

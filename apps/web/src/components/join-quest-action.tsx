@@ -26,7 +26,7 @@ export function JoinQuestAction({ questId, joined }: { questId: string; joined: 
       <div className="flex flex-col gap-2">
         <Link
           href={`/quests/${questId}/room`}
-          className="rounded-button bg-blue px-5 py-3.5 text-center font-display text-[14px] font-semibold text-white shadow-glow-blue"
+          className="rounded-button pressable border border-line bg-hot px-5 py-3.5 text-center font-display text-[14px] font-bold text-on-hot"
         >
           {t("quest.viewRoom")}
         </Link>
@@ -50,7 +50,7 @@ export function JoinQuestAction({ questId, joined }: { questId: string; joined: 
         disabled={pending}
         onClick={() => act(joinQuestAction)}
         className={clsx(
-          "w-full rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue transition-transform active:scale-[0.98] disabled:opacity-60",
+          "w-full rounded-button pressable border border-line bg-hot py-3.5 font-display text-[14px] font-bold text-on-hot disabled:opacity-60",
         )}
       >
         {t("quest.joinQuest")}

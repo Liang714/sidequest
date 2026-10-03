@@ -4,11 +4,18 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import clsx from "clsx";
 import { Users, MessageCircle, Plus, CalendarDays, UserRound } from "lucide-react";
-import { Link, usePathname } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
+import { TransitionLink } from "./motion/transition-link";
 import { CreateSheet } from "./create-sheet";
 
 /**
- * CREW navigation — spec §D.
+ * Bold Pop navigation — spec §3.2, motion §4.2.
+ *
+ * The active tab sits on a yellow outlined pill. The pill carries a fixed
+ * `view-transition-name`, so when a tab navigation runs through
+ * TransitionLink the browser morphs the pill from the old tab to the new
+ * one — a "tab morph" with no JS animation code. The bar itself is named
+ * too, so it stays put instead of cross-fading with the page.
  *
  * Five tabs, and the two changes from the pre-rebuild bar are the whole
  * point of the IA fix:
@@ -34,7 +41,7 @@ const TABS = [
 ] as const;
 
 export interface TabBarProps {
-  /** Mint dot on Rooms when a quest is live right now. */
+  /** Pink dot on Rooms when a quest is live right now. */
   liveRoom?: boolean;
   aiRemaining?: number | null;
   isPro?: boolean;
@@ -51,9 +58,9 @@ export function TabBar({ liveRoom = false, aiRemaining, isPro }: TabBarProps) {
     <>
       <nav
         aria-label={t("primary")}
-        className="sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-md"
+        className="sticky bottom-0 z-30 border-t border-line bg-surface"
         // Safe-area padding so the bar clears the iOS home indicator.
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)", viewTransitionName: "tab-bar" }}
       >
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
           {left.map((tab) => (
@@ -64,9 +71,17 @@ export function TabBar({ liveRoom = false, aiRemaining, isPro }: TabBarProps) {
             type="button"
             onClick={() => setCreateOpen(true)}
             aria-label={t("create")}
-            className="-mt-2 flex h-11 w-11 items-center justify-center rounded-pill bg-hot text-on-hot transition-transform duration-150 ease-crew active:scale-[0.94]"
+            aria-expanded={createOpen}
+            className="pressable group -mt-5 flex h-14 w-14 items-center justify-center rounded-pill border border-line bg-hot text-on-hot"
           >
-            <Plus aria-hidden className="h-5 w-5" strokeWidth={2.5} />
+            <Plus
+              aria-hidden
+              strokeWidth={3}
+              className={clsx(
+                "h-6 w-6 transition-transform duration-base ease-pop",
+                createOpen ? "rotate-45" : "group-hover:rotate-90",
+              )}
+            />
           </button>
 
           {right.map((tab) => (
@@ -105,22 +120,29 @@ function Tab({
   const active = exact ? pathname === href : pathname.startsWith(href);
 
   return (
-    <Link
+    <TransitionLink
       href={href}
       aria-current={active ? "page" : undefined}
       className={clsx(
         // min-h-11 keeps the target at 44px even though the label is 11px.
-        "relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-button",
-        active ? "text-hot-text" : "text-ink-faint",
+        "relative flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1",
+        active ? "text-ink" : "text-ink-faint hover:text-ink",
       )}
     >
+      {active && (
+        <span
+          aria-hidden
+          className="absolute inset-x-1 inset-y-0 rounded-button border border-line bg-hot"
+          style={{ viewTransitionName: "tab-indicator" }}
+        />
+      )}
       <span className="relative">
-        <Icon aria-hidden className="h-5 w-5" />
+        <Icon aria-hidden className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
         {dot && (
-          <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-pill bg-mint ring-2 ring-bg" />
+          <span className="absolute -right-1.5 -top-1 h-3 w-3 animate-pop-in rounded-pill border-2 border-line bg-pink" />
         )}
       </span>
-      <span className="text-label">{label}</span>
-    </Link>
+      <span className={clsx("relative text-label", active && "font-bold")}>{label}</span>
+    </TransitionLink>
   );
 }

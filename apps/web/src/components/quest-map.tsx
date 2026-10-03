@@ -33,8 +33,8 @@ const CATEGORY_COLOR: Partial<Record<Category, string>> = {
   cafe: "var(--accent-warn)",
   dance: "var(--accent-hot)",
   music: "var(--accent-hot)",
-  art: "var(--accent-mint)",
-  exploration: "var(--accent-mint)",
+  art: "var(--accent-pink)",
+  exploration: "var(--accent-pink)",
 };
 
 function colorFor(category: Category): string {
@@ -155,8 +155,8 @@ export function QuestMap({
               }
               aria-pressed={isActive}
               className={clsx(
-                "absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill border-2 border-surface",
-                "transition-transform duration-150 ease-crew",
+                "absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill border-2 border-line shadow-e1",
+                "transition-transform duration-150 ease-snap",
                 isActive ? "z-10 scale-125" : "hover:scale-110",
               )}
               style={{
@@ -166,11 +166,11 @@ export function QuestMap({
               }}
             >
               {count > 1 ? (
-                <span className="text-caption font-extrabold tabular-nums text-[#12100E]">
+                <span className="text-caption font-extrabold tabular-nums text-black">
                   {count}
                 </span>
               ) : (
-                <CategoryIcon category={category} className="h-4 w-4 text-[#12100E]" />
+                <CategoryIcon category={category} className="h-4 w-4 text-black" />
               )}
             </button>
           );

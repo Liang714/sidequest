@@ -14,7 +14,7 @@ export default async function VerifyEmailPage({
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-10 text-center">
       <div className="mb-2 flex items-center justify-center gap-2 font-display text-[14px] font-bold text-ink">
-        <span className="h-[7px] w-[7px] rounded-full bg-lime shadow-glow-lime" />
+        <span className="h-3 w-3 rounded-full border-2 border-line bg-pop-pink" />
         {t("app.name")}
       </div>
       {result.error ? (
@@ -24,7 +24,7 @@ export default async function VerifyEmailPage({
       )}
       <Link
         href="/"
-        className="mt-6 rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue"
+        className="mt-6 rounded-button pressable border border-line bg-hot py-3.5 font-display text-[14px] font-bold text-on-hot"
       >
         {t("auth.continueToApp")}
       </Link>

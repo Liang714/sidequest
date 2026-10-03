@@ -4,8 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
-import { ThemeProvider } from "@/components/theme-provider";
-import { figtree, geistMono } from "@/lib/fonts";
+import { spaceGrotesk } from "@/lib/fonts";
+import { ViewTransitions } from "@/components/motion/transition-link";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -33,11 +33,11 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${figtree.variable} ${geistMono.variable}`}>
+    <html lang={locale} className={spaceGrotesk.variable}>
       <body>
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ViewTransitions>{children}</ViewTransitions>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

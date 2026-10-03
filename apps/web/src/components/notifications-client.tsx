@@ -143,7 +143,7 @@ function Row({
     <div
       className={clsx(
         "flex items-start gap-3 rounded-card border bg-surface p-4 shadow-e1",
-        unread ? "border-hot-soft" : "border-line",
+        unread ? "border-line" : "border-line",
       )}
     >
       {who ? <Avatar name={who} userId={requesterId ?? who} size="sm" /> : null}
@@ -155,7 +155,7 @@ function Row({
         </p>
 
         {state === "accepted" && (
-          <p className="mt-1 text-caption font-semibold text-mint-text">{t("accepted")}</p>
+          <p className="mt-1 text-caption font-semibold text-pink-text">{t("accepted")}</p>
         )}
 
         {canAccept && !state && (

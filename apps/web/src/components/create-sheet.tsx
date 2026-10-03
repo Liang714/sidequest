@@ -86,7 +86,7 @@ function Row({
       <button
         type="button"
         onClick={onClick}
-        className="flex w-full items-center gap-3 rounded-card border border-line bg-surface p-4 text-left transition-colors duration-150 ease-crew hover:bg-surface-elevated"
+        className="flex w-full items-center gap-3 rounded-card border border-line bg-surface p-4 text-left transition-colors duration-150 ease-snap hover:bg-surface-elevated"
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-button bg-hot-soft text-hot-text">
           {icon}

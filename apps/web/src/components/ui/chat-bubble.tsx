@@ -60,7 +60,7 @@ export function ChatBubble({
               userId={senderId ?? senderName}
               src={senderAvatarUrl}
               size="sm"
-              ringClassName="border-transparent"
+             
             />
           )}
         </div>
@@ -76,14 +76,13 @@ export function ChatBubble({
             // The 5px tail corner is what makes a bubble read as speech
             // rather than as a card.
             mine ? "rounded-br-[5px]" : "rounded-bl-[5px]",
-            // A failed send drops the normal fill entirely. An outline in
-            // danger over bg-hot is invisible — #FF6B5B on #FF6A3D — and a
-            // message that failed must never look like one that sent.
+            // A failed send drops the normal fill and shadow entirely and goes
+            // dashed — a message that failed must never look like one that sent.
             status === "failed"
-              ? "border border-danger bg-danger-soft text-danger-text"
+              ? "border border-dashed border-line bg-danger-soft text-danger-text"
               : mine
-                ? "bg-hot text-on-hot"
-                : "bg-surface-elevated text-ink",
+                ? "border border-line bg-hot text-on-hot shadow-e1"
+                : "border border-line bg-surface text-ink shadow-e1",
             status === "sending" && "opacity-60",
           )}
         >

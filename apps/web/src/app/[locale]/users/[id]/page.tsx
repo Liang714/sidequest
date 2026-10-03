@@ -57,14 +57,14 @@ export default async function PublicProfilePage({
           userId={profile.user_id}
           src={profile.avatar_url}
           size="lg"
-          ringClassName="border-transparent"
+         
         />
         <h1 className="mt-3 text-h1 text-ink">{profile.display_name || profile.username}</h1>
         <p className="text-body-s text-ink-muted">@{profile.username}</p>
 
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
           <Badge tone="neutral">{t("profile.level", { level: profile.level })}</Badge>
-          {profile.is_friend && <Badge tone="mint">{t("publicProfile.friend")}</Badge>}
+          {profile.is_friend && <Badge tone="pink">{t("publicProfile.friend")}</Badge>}
           {profile.mutual_friends > 0 && (
             <Badge tone="neutral">
               {t("publicProfile.mutuals", { count: profile.mutual_friends })}
@@ -96,7 +96,7 @@ export default async function PublicProfilePage({
 
           {profile.shared_quests > 0 && (
             <Section title={t("publicProfile.together")}>
-              <p className="rounded-card border border-mint-soft bg-mint-soft p-4 text-body-s font-semibold text-mint-text">
+              <p className="rounded-card border border-line bg-pink-soft p-4 text-body-s font-semibold text-pink-text">
                 {t("publicProfile.sharedQuests", { count: profile.shared_quests })}
               </p>
             </Section>

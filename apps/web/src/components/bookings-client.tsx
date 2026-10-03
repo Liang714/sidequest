@@ -48,7 +48,7 @@ export function BookingsClient({ bookings }: { bookings: BookingOut[] }) {
         <div key={b.id} className="rounded-card border border-line bg-surface p-4 shadow-e1">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-body-s tabular-nums text-ink">{b.provider_booking_ref}</span>
-            <Badge tone={b.status === "confirmed" ? "mint" : "neutral"}>
+            <Badge tone={b.status === "confirmed" ? "pink" : "neutral"}>
               {t(`booking.status.${b.status}`)}
             </Badge>
           </div>

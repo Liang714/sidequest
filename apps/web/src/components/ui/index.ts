@@ -1,6 +1,7 @@
 /**
- * CREW design system primitives.
- * Spec: docs/superpowers/specs/2026-08-27-crew-ui-design.md
+ * Bold Pop design system primitives.
+ * Spec: docs/superpowers/specs/2026-10-03-bold-pop-design.md (visual + motion);
+ * product rules (Rule of Faces, IA) carried from 2026-08-27-crew-ui-design.md
  * Live preview: /dev/kitchen-sink (dev only)
  */
 export { Button } from "./button";

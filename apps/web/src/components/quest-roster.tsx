@@ -48,7 +48,7 @@ export async function QuestRoster({
             const isMe = p.user_id === currentUserId;
             const row = (
               <>
-                <Avatar name={p.username} userId={p.user_id} size="sm" ringClassName="border-transparent" />
+                <Avatar name={p.username} userId={p.user_id} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-h3 text-ink">{p.username}</span>
@@ -57,7 +57,7 @@ export async function QuestRoster({
                         {t("quest.host")}
                       </Badge>
                     )}
-                    {isMe && <Badge tone="mint">{t("quest.you")}</Badge>}
+                    {isMe && <Badge tone="pink">{t("quest.you")}</Badge>}
                   </span>
                 </span>
                 {!isMe && <ChevronRight aria-hidden className="h-4 w-4 shrink-0 text-ink-faint" />}

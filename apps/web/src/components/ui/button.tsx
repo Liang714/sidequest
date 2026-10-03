@@ -4,23 +4,27 @@ import clsx from "clsx";
 import { Loader2 } from "lucide-react";
 
 /**
- * CREW Button — spec §H.
+ * Bold Pop Button — spec §2.4.
  *
- * `primary` is a tangerine FILL with near-black ink. White on #FF6A3D is
- * 2.5:1 and fails WCAG AA; `text-on-hot` is 6.7:1. Never override it.
+ * Every filled variant is a black-outlined slab on a hard 3px shadow
+ * (`.pressable` in globals.css): hover lifts it 1px, press pushes it flat
+ * into the page in 90ms linear. `primary` is yellow with black ink (16:1);
+ * `info` is the only white-text fill (blue, 5.1:1). Never put white on
+ * yellow or pink — both fail.
  *
  * Loading holds the label in place (rendered invisible) so the button can't
  * change width mid-request and shift the layout under the user's thumb.
  */
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "info" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-hot text-on-hot",
-  secondary: "bg-transparent text-ink border border-line hover:bg-surface-elevated",
-  ghost: "bg-transparent text-ink-muted hover:text-ink",
-  danger: "bg-transparent text-danger-text border border-danger-soft hover:bg-danger-soft",
+  primary: "pressable border border-line bg-hot text-on-hot",
+  secondary: "pressable border border-line bg-surface text-ink",
+  info: "pressable border border-line bg-info text-on-info",
+  ghost: "bg-transparent text-ink underline-offset-4 hover:underline",
+  danger: "pressable border border-line bg-surface text-danger-text hover:bg-danger-soft",
 };
 
 const SIZES: Record<ButtonSize, string> = {
@@ -62,21 +66,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       disabled={disabled || loading}
       className={clsx(
-        "relative inline-flex items-center justify-center gap-2 rounded-button font-bold",
-        "transition-[transform,background-color,color] duration-150 ease-crew",
-        "active:scale-[0.97] disabled:pointer-events-none",
+        "relative inline-flex items-center justify-center gap-2 rounded-button font-bold tracking-[-0.01em]",
+        "disabled:pointer-events-none",
         // `disabled` and `loading` need different affordances: a disabled
-        // button is unavailable, a loading one is working (full opacity,
-        // spinner).
+        // button is unavailable, a loading one is working (full colour,
+        // spinner, still on its shadow).
         //
-        // Dimming a tangerine fill to 40% produces a washed-out salmon that
-        // reads as broken rather than unavailable, so a disabled primary
-        // drops to a neutral surface instead. Other variants are already
-        // low-contrast enough that opacity alone works.
+        // Disabled loses its fill AND its shadow AND goes dashed — three
+        // signals, so it can't be mistaken for "pressed" or for a secondary
+        // button, and colour is never the only cue (spec §5.4).
         disabled && !loading
-          ? variant === "primary"
-            ? "bg-surface-elevated text-ink-faint"
-            : clsx(VARIANTS[variant], "opacity-40")
+          ? variant === "ghost"
+            ? clsx(VARIANTS.ghost, "opacity-40")
+            : "border border-dashed border-ink-faint bg-surface-elevated text-ink-faint"
           : VARIANTS[variant],
         SIZES[size],
         block && "w-full",

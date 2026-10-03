@@ -46,7 +46,7 @@ export function AdminBusinessesClient({ businesses }: { businesses: BusinessOut[
               type="button"
               disabled={pending && pendingId === b.id}
               onClick={() => act(b.id, "verify")}
-              className="flex-1 rounded-button bg-lime py-2.5 font-display text-[12.5px] font-semibold text-[#0B0B0F] disabled:opacity-60"
+              className="flex-1 rounded-button pressable border border-line bg-pink py-2.5 font-display text-[12.5px] font-bold text-on-pink disabled:opacity-60"
             >
               {t("admin.verify")}
             </button>

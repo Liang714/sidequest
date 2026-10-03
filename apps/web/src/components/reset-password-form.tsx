@@ -28,7 +28,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-button bg-blue py-3.5 font-display text-[14px] font-semibold text-white shadow-glow-blue disabled:opacity-60"
+        className="rounded-button pressable border border-line bg-hot py-3.5 font-display text-[14px] font-bold text-on-hot disabled:opacity-60"
       >
         {t("auth.resetPasswordCta")}
       </button>

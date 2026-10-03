@@ -7,6 +7,9 @@ import { ChevronRight } from "lucide-react";
  * XPBar and CompatBadge — spec §H.
  *
  * Both exist to make a number honest rather than impressive.
+ *
+ * Bold Pop XP bar: a chunky outlined track with a striped pink fill that
+ * springs to its width. The stripes are static — only the width moves.
  */
 
 export interface XPBarProps {
@@ -39,11 +42,17 @@ export function XPBar({ current, target, level, levelLabel, locale = "en", class
         aria-valuemin={0}
         aria-valuemax={target}
         aria-label={`Level ${level} progress`}
-        className="mt-1.5 h-2 overflow-hidden rounded-pill bg-surface-elevated"
+        className="mt-1.5 h-4 overflow-hidden rounded-pill border border-line bg-surface"
       >
         <div
-          className="h-full rounded-pill bg-mint transition-[width] duration-500 ease-crew motion-reduce:transition-none"
-          style={{ width: `${pct}%` }}
+          className="h-full border-r-2 border-line bg-pink transition-[width] duration-700 ease-pop motion-reduce:transition-none"
+          style={{
+            width: `${pct}%`,
+            // No right border at 0% — a lone 2px line would read as progress.
+            borderRightWidth: pct > 0 && pct < 100 ? undefined : 0,
+            backgroundImage:
+              "repeating-linear-gradient(-45deg, transparent 0 6px, rgba(0,0,0,0.12) 6px 12px)",
+          }}
         />
       </div>
     </div>
@@ -72,7 +81,7 @@ export function CompatBadge({ score, label = "your match", onExplain, className 
   );
 
   const classes = clsx(
-    "inline-flex items-center gap-1 rounded-chip border border-info-soft bg-info-soft px-3 py-1.5",
+    "inline-flex items-center gap-1 rounded-chip border border-line bg-info-soft px-3 py-1.5",
     "text-caption font-bold text-info-text",
     className,
   );
@@ -80,7 +89,7 @@ export function CompatBadge({ score, label = "your match", onExplain, className 
   if (!onExplain) return <span className={classes}>{content}</span>;
 
   return (
-    <button type="button" onClick={onExplain} className={clsx(classes, "min-h-11")}>
+    <button type="button" onClick={onExplain} className={clsx(classes, "pressable min-h-11")}>
       {content}
     </button>
   );

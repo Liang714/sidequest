@@ -11,6 +11,7 @@ import { QuestRoster } from "@/components/quest-roster";
 import { ReportQuestButton } from "@/components/report-quest-button";
 import { CategoryIcon } from "@/components/category-icon";
 import { Badge } from "@/components/ui";
+import { vtName } from "@/components/motion/transition-link";
 import { Link } from "@/i18n/navigation";
 import { requireSession } from "@/lib/auth";
 import { apiFetch, ApiError } from "@/lib/api-client";
@@ -85,29 +86,36 @@ export default async function QuestDetailPage({ params }: { params: Promise<{ id
         {t("common.back")}
       </Link>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Badge tone="neutral" icon={<CategoryIcon category={category} className="h-3 w-3" />}>
-          {t(`category.${category}`)}
-        </Badge>
-        {live && <Badge tone="danger">{t("quest.live")}</Badge>}
-        {quest.sponsor && (
-          <Badge tone="warn" icon={<Building2 className="h-3 w-3" />}>
-            {t("quest.sponsoredBy", { name: quest.sponsor.business_name })}
-          </Badge>
-        )}
-      </div>
-
-      <h1 className="mt-3 text-display text-ink">{quest.title}</h1>
-
-      {/* Time as a datum, coloured only when it's genuinely urgent. */}
-      <p
-        className={clsx(
-          "mt-2 text-numeric tabular-nums",
-          urgent ? "text-danger-text" : "text-ink-muted",
-        )}
+      {/* The header card shares a view-transition-name with the feed card,
+          so opening a quest morphs the card into this block (spec §4.2). */}
+      <header
+        className="mt-2 rounded-card border border-line bg-hot-soft p-4 shadow-e2"
+        style={{ viewTransitionName: vtName("quest", quest.id) }}
       >
-        {startLabel} · {budgetLabel}
-      </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="neutral" icon={<CategoryIcon category={category} className="h-3 w-3" />}>
+            {t(`category.${category}`)}
+          </Badge>
+          {live && <Badge tone="danger">{t("quest.live")}</Badge>}
+          {quest.sponsor && (
+            <Badge tone="warn" icon={<Building2 className="h-3 w-3" />}>
+              {t("quest.sponsoredBy", { name: quest.sponsor.business_name })}
+            </Badge>
+          )}
+        </div>
+
+        <h1 className="mt-3 text-display text-ink">{quest.title}</h1>
+
+        {/* Time as a datum, coloured only when it's genuinely urgent. */}
+        <p
+          className={clsx(
+            "mt-2 text-numeric tabular-nums",
+            urgent ? "text-danger-text" : "text-ink-muted",
+          )}
+        >
+          {startLabel} · {budgetLabel}
+        </p>
+      </header>
 
       {quest.description && (
         <p className="mt-4 text-body text-ink-muted">{quest.description}</p>
@@ -132,11 +140,11 @@ export default async function QuestDetailPage({ params }: { params: Promise<{ id
               <span
                 className={clsx(
                   "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-pill border",
-                  o.completed_by_me ? "border-mint bg-mint" : "border-line",
+                  o.completed_by_me ? "border-line bg-pink animate-pop-in" : "border-line",
                 )}
               >
                 {o.completed_by_me && (
-                  <Check aria-hidden className="h-3 w-3 text-on-mint" strokeWidth={3} />
+                  <Check aria-hidden className="h-3 w-3 text-on-pink" strokeWidth={3} />
                 )}
               </span>
               <span className={o.completed_by_me ? "text-ink" : "text-ink-muted"}>
@@ -148,7 +156,7 @@ export default async function QuestDetailPage({ params }: { params: Promise<{ id
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-numeric tabular-nums text-mint-text">
+        <p className="mt-2 text-numeric tabular-nums text-pink-text">
           {t("quest.xpReward", { xp: quest.xp_reward })}
         </p>
       </section>

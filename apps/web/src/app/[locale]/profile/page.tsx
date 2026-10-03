@@ -57,7 +57,7 @@ export default async function ProfilePage() {
   return (
     <AppShell>
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue font-display text-[22px] font-bold text-white shadow-glow-blue">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-line bg-info font-display text-[22px] font-bold text-on-info shadow-e1">
           {initialFromUsername(session.username)}
         </div>
         <div>
@@ -172,7 +172,7 @@ function HubLink({ href, icon, label }: { href: string; icon: React.ReactNode; l
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 text-body-s font-medium text-ink transition-colors duration-150 ease-crew hover:bg-surface-elevated"
+      className="flex min-h-11 items-center gap-3 rounded-card border border-line bg-surface px-4 py-3 text-body-s font-medium text-ink transition-colors duration-150 ease-snap hover:bg-surface-elevated"
     >
       <span className="text-ink-muted">{icon}</span>
       <span className="flex-1">{label}</span>

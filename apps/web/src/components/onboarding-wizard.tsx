@@ -92,8 +92,8 @@ export function OnboardingWizard({
           <div
             key={i}
             className={clsx(
-              "h-1 flex-1 rounded-pill transition-colors duration-150 ease-crew",
-              i <= step ? "bg-hot" : "bg-surface-elevated",
+              "h-2.5 flex-1 rounded-pill border border-line transition-colors duration-base ease-snap",
+              i <= step ? "bg-hot" : "bg-surface",
             )}
           />
         ))}
@@ -114,9 +114,9 @@ export function OnboardingWizard({
                     onClick={() => toggle(selectedInterestIds, setSelectedInterestIds, interest.id)}
                     className={clsx(
                       "flex min-h-11 flex-col items-center gap-1.5 rounded-card border px-2 py-4 text-caption font-semibold",
-                      "transition-colors duration-150 ease-crew",
+                      "transition-colors duration-150 ease-snap",
                       selected
-                        ? "border-hot bg-hot text-on-hot"
+                        ? "border-line bg-hot text-on-hot shadow-e1"
                         : "border-line bg-surface text-ink-muted",
                     )}
                   >
@@ -136,7 +136,7 @@ export function OnboardingWizard({
               aria-live="polite"
               className={clsx(
                 "mt-4 text-center text-body-s font-semibold",
-                matchCount > 0 ? "text-mint-text" : "text-ink-faint",
+                matchCount > 0 ? "text-pink-text" : "text-ink-faint",
               )}
             >
               {matchCount > 0 ? t("matchCount", { count: matchCount }) : t("matchNone")}
@@ -156,9 +156,9 @@ export function OnboardingWizard({
                   onClick={() => setGroupSize(g)}
                   className={clsx(
                     "flex min-h-11 items-center gap-2 rounded-card border px-4 py-3.5 text-left text-h3",
-                    "transition-colors duration-150 ease-crew",
+                    "transition-colors duration-150 ease-snap",
                     groupSize === g
-                      ? "border-hot bg-hot text-on-hot"
+                      ? "border-line bg-hot text-on-hot shadow-e1"
                       : "border-line bg-surface text-ink",
                   )}
                 >
@@ -178,9 +178,9 @@ export function OnboardingWizard({
                   onClick={() => toggle(vibes, setVibes, v)}
                   className={clsx(
                     "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-4 text-caption font-semibold",
-                    "transition-colors duration-150 ease-crew",
+                    "transition-colors duration-150 ease-snap",
                     vibes.includes(v)
-                      ? "border-hot bg-hot text-on-hot"
+                      ? "border-line bg-hot text-on-hot shadow-e1"
                       : "border-line bg-surface text-ink-muted",
                   )}
                 >
@@ -197,7 +197,7 @@ export function OnboardingWizard({
             <div className="mt-2 flex h-40 flex-col items-center justify-center gap-2 rounded-card border border-dashed border-line text-center">
               <MapPin aria-hidden className="h-9 w-9 text-hot-text" />
               {locationStatus === "granted" && (
-                <span className="text-caption font-semibold text-mint-text">{t("locationSaved")}</span>
+                <span className="text-caption font-semibold text-pink-text">{t("locationSaved")}</span>
               )}
               {locationStatus === "denied" && (
                 <span className="px-6 text-caption text-ink-faint">{t("locationDenied")}</span>

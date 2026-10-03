@@ -126,7 +126,7 @@ export function BookActivityWidget({ questId }: { questId: string }) {
         type="button"
         disabled={pending}
         onClick={checkAvailability}
-        className="mt-3 w-full rounded-button bg-blue py-2.5 font-display text-[12.5px] font-semibold text-white disabled:opacity-60"
+        className="mt-3 w-full rounded-button pressable border border-line bg-hot py-2.5 font-display text-[12.5px] font-bold text-on-hot disabled:opacity-60"
       >
         {pending ? t("common.loading") : t("booking.checkAvailability")}
       </button>
@@ -155,7 +155,7 @@ export function BookActivityWidget({ questId }: { questId: string }) {
                   type="button"
                   disabled={bookingPending}
                   onClick={() => book(slot)}
-                  className="rounded-button bg-lime px-3 py-1.5 font-display text-[11.5px] font-semibold text-[#0B0B0F] disabled:opacity-60"
+                  className="rounded-button pressable border border-line bg-pink px-3 py-1.5 font-display text-[11.5px] font-bold text-on-pink disabled:opacity-60"
                 >
                   {bookingPending && bookingSlotRef === slot.slot_ref ? t("common.loading") : t("booking.book")}
                 </button>

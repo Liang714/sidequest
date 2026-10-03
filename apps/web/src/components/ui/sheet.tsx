@@ -4,7 +4,11 @@ import { useEffect, useRef, type ReactNode } from "react";
 import clsx from "clsx";
 
 /**
- * Sheet — spec §H. Bottom sheet on mobile, centred panel from 640px up.
+ * Sheet — spec §2.4. Bottom sheet on mobile, centred panel from 640px up.
+ *
+ * Motion (globals.css, keyed off `.sheet-panel`): on mobile it slides up in
+ * 250ms snap; from 640px the centred panel pops in like a sticker. The
+ * scrim fades in linearly. Both collapse under reduced motion.
  *
  * Built on native <dialog>.showModal() deliberately: it gives a real focus
  * trap, Escape handling, inertness of the background, and top-layer
@@ -77,9 +81,9 @@ export function Sheet({ open, onClose, title, hideTitle = false, children, class
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="rounded-t-sheet border border-line bg-surface-elevated p-5 shadow-e3 sm:rounded-sheet"
+        className="sheet-panel rounded-t-sheet border border-b-0 border-line bg-surface p-5 sm:rounded-sheet sm:border-b sm:shadow-e3"
       >
-        <div aria-hidden className="mx-auto mb-4 h-1 w-9 rounded-pill bg-line sm:hidden" />
+        <div aria-hidden className="mx-auto mb-4 h-1.5 w-10 rounded-pill bg-ink sm:hidden" />
         <h2 className={clsx("text-h1 text-ink", hideTitle && "sr-only")}>{title}</h2>
         <div className={clsx(!hideTitle && "mt-4")}>{children}</div>
       </div>

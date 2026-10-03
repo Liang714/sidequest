@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Camera, MapPin, Plus, Search, Star, Users } from "lucide-react";
 import {
   Avatar,
@@ -21,6 +21,7 @@ import {
   PresenceStrip,
   XPBar,
 } from "@/components/ui";
+import { Confetti, DrawnCheck } from "@/components/motion/celebrate";
 import { distanceBandLabel, joinNames } from "@/lib/people";
 
 const CREW = [
@@ -32,7 +33,9 @@ const CREW = [
 ];
 
 export function KitchenSink() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [fire, setFire] = useState(0);
+  const [replay, setReplay] = useState(0);
+  const [shakeKey, setShakeKey] = useState(0);
   const [selected, setSelected] = useState<string[]>(["Photography"]);
   const [loading, setLoading] = useState(false);
 
@@ -41,63 +44,65 @@ export function KitchenSink() {
   }
 
   return (
-    // data-theme on a wrapper lets both themes be compared without touching
-    // the app-wide next-themes setting.
-    <div data-theme={theme} className="min-h-screen bg-bg text-ink">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-bg/90 px-4 py-3 backdrop-blur-md">
+    <div className="min-h-screen bg-bg text-ink">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-bg px-4 py-3">
         <div>
-          <p className="text-label uppercase text-ink-faint">CREW design system</p>
-          <h1 className="text-h2 text-ink">Kitchen sink</h1>
+          <p className="text-label uppercase text-ink-faint">Bold Pop design system</p>
+          <h1 className="text-h2 text-ink">
+            Kitchen <span className="marker">sink</span>
+          </h1>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-        >
-          {theme === "dark" ? "Light" : "Dark"}
-        </Button>
+        <Badge tone="hot" tilt>
+          Light only
+        </Badge>
       </header>
 
       <main className="mx-auto max-w-[900px] px-4 pb-20">
-        <Section title="Color" note="Fills vs accessible text variants. On light, hot is 3.1:1 and mint 1.6:1 as text — hence the separate -text tokens.">
+        <Section title="Color" note="Fills vs accessible text variants. Yellow is 1.3:1 and pink 2.1:1 as text — hence the separate -text tokens. Only blue takes white text (5.1:1); every other fill takes black.">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Swatch className="bg-bg border border-line" label="bg" />
-            <Swatch className="bg-surface border border-line" label="surface" />
-            <Swatch className="bg-surface-elevated border border-line" label="surface-elevated" />
-            <Swatch className="bg-line" label="line" />
-            <Swatch className="bg-hot" label="hot (fill)" labelClassName="text-on-hot" />
-            <Swatch className="bg-mint" label="mint (fill)" labelClassName="text-on-mint" />
-            <Swatch className="bg-info" label="info" labelClassName="text-on-info" />
+            <Swatch className="bg-bg" label="bg" />
+            <Swatch className="bg-surface" label="surface" />
+            <Swatch className="bg-surface-elevated" label="surface-elevated" />
+            <Swatch className="bg-line" label="line / ink" labelClassName="text-surface" />
+            <Swatch className="bg-hot" label="hot = yellow" labelClassName="text-on-hot" />
+            <Swatch className="bg-pink" label="pink" labelClassName="text-on-pink" />
+            <Swatch className="bg-info" label="info = blue" labelClassName="text-on-info" />
+            <Swatch className="bg-warn" label="warn" labelClassName="text-on-warn" />
             <Swatch className="bg-danger" label="danger" labelClassName="text-on-danger" />
+            <Swatch className="bg-hot-soft" label="hot-soft" labelClassName="text-ink" />
+            <Swatch className="bg-pink-soft" label="pink-soft" labelClassName="text-pink-text" />
+            <Swatch className="bg-info-soft" label="info-soft" labelClassName="text-info-text" />
           </div>
-          <div className="mt-3 flex flex-wrap gap-4 rounded-card border border-line bg-surface p-4">
-            <p className="text-hot-text text-body-s font-semibold">hot as text</p>
-            <p className="text-mint-text text-body-s font-semibold">mint as text</p>
+          <div className="mt-3 flex flex-wrap gap-4 rounded-card border border-line bg-surface p-4 shadow-e1">
+            <p className="text-hot-text text-body-s font-semibold">hot as text (links → blue)</p>
+            <p className="text-pink-text text-body-s font-semibold">pink as text</p>
             <p className="text-info-text text-body-s font-semibold">info as text</p>
             <p className="text-ink-muted text-body-s">ink-muted</p>
             <p className="text-ink-faint text-body-s">ink-faint (metadata only)</p>
           </div>
         </Section>
 
-        <Section title="Type" note="Figtree, sentence case throughout. Uppercase only on the label style.">
-          <div className="rounded-card border border-line bg-surface p-4">
-            <Row m="display 30/1.12"><span className="text-display">Free tonight?</span></Row>
-            <Row m="h1 27/1.14"><span className="text-h1">7 people are out near you</span></Row>
-            <Row m="h2 21/1.25"><span className="text-h2">Minji, Tae &amp; Sora</span></Row>
-            <Row m="h3 17/1.35"><span className="text-h3">Hongdae Photo Hunt</span></Row>
-            <Row m="body 16/1.55"><span className="text-body">Find 5 neon signs, then a group photo.</span></Row>
-            <Row m="body-s 14/1.5"><span className="text-body-s text-ink-muted">Exit 9, Hongik Univ. Station</span></Row>
-            <Row m="caption 12.5"><span className="text-caption text-ink-muted">under 1km · Lv 4 · 2 mutual</span></Row>
-            <Row m="label 11 upper"><span className="text-label uppercase text-ink-faint">Crews forming</span></Row>
+        <Section title="Type" note="Space Grotesk 400–700, sentence case throughout. Uppercase only on the label style. Hangul falls through to the system Korean face at weight 800.">
+          <div className="rounded-card border border-line bg-surface p-4 shadow-e1">
+            <Row m="hero 56/0.98 (web)"><span className="text-hero">What&rsquo;s your <span className="marker">sidequest</span>?</span></Row>
+            <Row m="display 34/1.04"><span className="text-display">Free tonight?</span></Row>
+            <Row m="h1 28/1.1"><span className="text-h1">7 people are out near you</span></Row>
+            <Row m="h2 22/1.2"><span className="text-h2">Minji, Tae &amp; Sora</span></Row>
+            <Row m="h3 18/1.3"><span className="text-h3">Hongdae Photo Hunt</span></Row>
+            <Row m="body 16/1.5"><span className="text-body">Find 5 neon signs, then a group photo.</span></Row>
+            <Row m="body-s 14/1.45"><span className="text-body-s text-ink-muted">Exit 9, Hongik Univ. Station</span></Row>
+            <Row m="caption 13"><span className="text-caption text-ink-muted">under 1km · Lv 4 · 2 mutual</span></Row>
+            <Row m="label 11.5 upper"><span className="text-label uppercase text-ink-faint">Crews forming</span></Row>
             <Row m="numeric tabular"><span className="text-numeric tabular-nums">₩15,000 · 2,840 / 3,500</span></Row>
             <Row m="Hangul (no tracking)"><span lang="ko" className="text-h2">홍대 사진 헌트</span></Row>
           </div>
         </Section>
 
-        <Section title="Buttons" note="Primary is a tangerine fill with near-black ink — 6.7:1. White on hot would be 2.5:1 and fail.">
+        <Section title="Buttons" note="Black-outlined slabs on a hard 3px shadow. Hover lifts 1px; press pushes flat into the page (90ms, linear). Disabled loses fill, shadow and goes dashed — three cues, never colour alone.">
           <div className="flex flex-wrap items-center gap-3">
             <Button>Join them</Button>
             <Button variant="secondary">Open room</Button>
+            <Button variant="info">Ask AI</Button>
             <Button variant="ghost">Not now</Button>
             <Button variant="danger">Leave quest</Button>
             <Button disabled>Quest full</Button>
@@ -151,7 +156,7 @@ export function KitchenSink() {
             <AvatarSpec size="lg" label="lg 78 — profile" />
             <div className="text-center">
               <Avatar name="Tae" userId="u-tae" size="md" checkedIn />
-              <p className="mt-2 text-caption text-mint-text">checked in</p>
+              <p className="mt-2 text-caption text-pink-text">checked in</p>
             </div>
             <div className="text-center">
               <Avatar name="Sora" userId="u-sora" size="md" dimmed />
@@ -176,7 +181,7 @@ export function KitchenSink() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge tone="warn">Sponsored</Badge>
-            <Badge tone="mint" icon={<Star className="h-3 w-3" />}>Friend</Badge>
+            <Badge tone="pink" icon={<Star className="h-3 w-3" />}>Friend</Badge>
             <Badge tone="info">AI draft</Badge>
             <Badge tone="hot">Pro</Badge>
             <Badge tone="neutral">EN OK</Badge>
@@ -212,7 +217,7 @@ export function KitchenSink() {
 
         <Section
           title="Crew card"
-          note="Hierarchy inverts the category default: faces → names → activity → trust → CTA. Time is a datum in the meta line, never a countdown headline — in CREW the pressure is social (&ldquo;looking for 2 more&rdquo;), which is truer and can&rsquo;t be inflated into FOMO."
+          note="Hierarchy inverts the category default: faces → names → activity → trust → CTA. Time is a datum in the meta line, never a countdown headline — the pressure is social (&ldquo;looking for 2 more&rdquo;), which is truer and can&rsquo;t be inflated into FOMO."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <CrewCard
@@ -227,7 +232,7 @@ export function KitchenSink() {
               urgent
               trust={
                 <>
-                  <Badge tone="mint" icon={<Star className="h-3 w-3" />}>Sora is your friend</Badge>
+                  <Badge tone="pink" icon={<Star className="h-3 w-3" />}>Sora is your friend</Badge>
                   <CompatBadge score={94} onExplain={() => {}} />
                 </>
               }
@@ -343,7 +348,7 @@ export function KitchenSink() {
 
         <Section
           title="Progress"
-          note="XP is mint and tabular so it doesn&rsquo;t jitter as it counts up. Compatibility is always tappable through to the real breakdown — docs/AI.md is explicit that it&rsquo;s a conventional scorer, so the honest presentation is a transparent one."
+          note="XP is a chunky striped pink bar that springs to width, and tabular so the number doesn&rsquo;t jitter as it counts up. Compatibility is always tappable through to the real breakdown — docs/AI.md is explicit that it&rsquo;s a conventional scorer, so the honest presentation is a transparent one."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-card border border-line bg-surface p-4">
@@ -356,26 +361,96 @@ export function KitchenSink() {
           </div>
         </Section>
 
-        <Section title="Radius & elevation" note="Six radii, no exceptions. Dark gets depth from surface lightness + hairline; shadows only exist on light.">
+        <Section title="Radius & elevation" note="Six radii, no exceptions. Elevation is a hard, zero-blur black offset — 3 / 5 / 8px. Never a soft shadow.">
           <div className="flex flex-wrap gap-3">
-            {(["card", "button", "input", "bubble", "sheet", "chip"] as const).map((r) => (
+            {(
+              [
+                ["card", "rounded-card"],
+                ["button", "rounded-button"],
+                ["input", "rounded-input"],
+                ["bubble", "rounded-bubble"],
+                ["sheet", "rounded-sheet"],
+                ["chip", "rounded-chip"],
+              ] as const
+            ).map(([r, cls]) => (
+              // Full literal class names — Tailwind can't see `rounded-${r}`.
               <div
                 key={r}
-                className={`flex h-20 w-24 items-center justify-center border border-line bg-surface text-caption text-ink-muted rounded-${r}`}
+                className={`flex h-20 w-24 items-center justify-center border border-line bg-surface text-caption text-ink-muted ${cls}`}
               >
                 {r}
               </div>
             ))}
           </div>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-surface text-caption text-ink-muted shadow-e1">e1 card</div>
-            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-surface-elevated text-caption text-ink-muted shadow-e2">e2 sheet</div>
-            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-surface-elevated text-caption text-ink-muted shadow-e3">e3 modal</div>
+          <div className="mt-3 flex flex-wrap gap-5">
+            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-surface text-caption font-bold shadow-e1">e1 · 3px</div>
+            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-hot text-caption font-bold shadow-e2">e2 · 5px</div>
+            <div className="flex h-20 w-28 items-center justify-center rounded-card border border-line bg-pink text-caption font-bold shadow-e3">e3 · 8px</div>
           </div>
         </Section>
 
-        <Section title="Icons" note="Lucide, 1.5px stroke. Emoji are gone from all interface chrome — they render inconsistently per platform and can't take state color.">
-          <div className="flex flex-wrap gap-4 rounded-card border border-line bg-surface p-4 text-ink-muted">
+        <Section
+          title="Motion"
+          note="Snappy, near-linear easing for feedback; the overshoot curve is reserved for sticker entrances. Every animation below collapses under prefers-reduced-motion — confetti renders nothing, the check renders already drawn."
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="relative flex flex-col items-center gap-3 rounded-card border border-line bg-surface p-6 shadow-e1">
+              <Confetti fireKey={fire} />
+              <DrawnCheck key={fire} />
+              <Button size="sm" onClick={() => setFire((f) => f + 1)}>
+                Complete quest
+              </Button>
+              <p className="text-caption text-ink-muted">confetti · check-draw · pop-in</p>
+            </div>
+            <div className="flex flex-col items-center gap-3 rounded-card border border-line bg-surface p-6 shadow-e1">
+              <div key={replay} className="flex gap-2">
+                {["bg-pop-yellow", "bg-pop-pink", "bg-pop-blue"].map((bg, i) => (
+                  <span
+                    key={bg}
+                    style={{ "--i": i } as CSSProperties}
+                    className={`stagger h-12 w-12 animate-pop-in rounded-button border border-line shadow-e1 ${bg}`}
+                  />
+                ))}
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => setReplay((r) => r + 1)}>
+                Replay stagger
+              </Button>
+              <p className="text-caption text-ink-muted">pop-in · 40ms stagger</p>
+            </div>
+            <div className="flex flex-col items-center gap-3 rounded-card border border-line bg-surface p-6 shadow-e1">
+              <input
+                key={shakeKey}
+                aria-label="Email"
+                aria-invalid={shakeKey > 0}
+                placeholder="you@uni.ac.kr"
+                className={`h-12 w-full rounded-input border border-line bg-surface px-3 text-body-s outline-none ${shakeKey > 0 ? "animate-shake bg-danger-soft" : ""}`}
+              />
+              <Button size="sm" variant="danger" onClick={() => setShakeKey((k) => k + 1)}>
+                Submit invalid
+              </Button>
+              <p className="text-caption text-ink-muted">validation shake · 320ms</p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            {(
+              [
+                ["instant", "90ms", "press"],
+                ["fast", "150ms", "hover, toggle"],
+                ["base", "250ms", "sheet, tab, page"],
+                ["slow", "400ms", "pop-in, reveal"],
+              ] as const
+            ).map(([name, ms, use]) => (
+              <div key={name} className="rounded-card border border-line bg-surface p-3">
+                <p className="text-h3">{name}</p>
+                <p className="text-numeric tabular-nums">{ms}</p>
+                <p className="text-caption text-ink-muted">{use}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Icons" note="Lucide at 2px stroke (2.5px when active) to match the 2px outlines. Emoji are gone from all interface chrome — they render inconsistently per platform and can't take state color.">
+          <div className="flex flex-wrap gap-4 rounded-card border border-line bg-surface p-4 text-ink">
             {[Search, MapPin, Plus, Users, Camera, Star].map((Icon, i) => (
               <Icon key={i} className="h-6 w-6" />
             ))}
@@ -388,8 +463,8 @@ export function KitchenSink() {
 
 function Section({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
   return (
-    <section className="mt-10 border-t border-line pt-5">
-      <h2 className="text-h2 text-ink">{title}</h2>
+    <section className="reveal mt-12 border-t border-line pt-5">
+      <h2 className="text-h1 text-ink">{title}</h2>
       {note && <p className="mb-4 mt-1 max-w-[70ch] text-body-s text-ink-muted">{note}</p>}
       {children}
     </section>
@@ -416,7 +491,7 @@ function Swatch({
   labelClassName?: string;
 }) {
   return (
-    <div className={`flex h-16 flex-col justify-end rounded-input p-2 ${className}`}>
+    <div className={`flex h-16 flex-col justify-end rounded-input border border-line p-2 ${className}`}>
       <span className={`text-label uppercase ${labelClassName}`}>{label}</span>
     </div>
   );

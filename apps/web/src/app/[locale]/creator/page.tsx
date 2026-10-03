@@ -40,7 +40,7 @@ export default async function CreatorDashboardPage() {
 
       <Link
         href="/creator/quests/new"
-        className="mt-5 block rounded-button bg-violet py-3.5 text-center font-display text-[14px] font-semibold text-white"
+        className="mt-5 block rounded-button pressable border border-line bg-info py-3.5 text-center font-display text-[14px] font-bold text-on-info"
       >
         {t("creator.publishQuest")}
       </Link>

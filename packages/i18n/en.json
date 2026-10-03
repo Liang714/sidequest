@@ -224,8 +224,7 @@
     "deleteAccountPasswordLabel": "Confirm your password",
     "deleteAccountButton": "Permanently Delete Account",
     "preferences": "Preferences",
-    "language": "Language",
-    "appearance": "Appearance"
+    "language": "Language"
   },
   "profile": {
     "level": "Level {level}",

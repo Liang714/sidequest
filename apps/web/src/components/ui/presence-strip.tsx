@@ -34,13 +34,13 @@ export function PresenceStrip({ state, label, actionLabel, onAction, className }
     <div
       className={clsx(
         "flex items-center justify-between gap-3 rounded-card border px-4 py-3",
-        active ? "border-mint-soft bg-mint-soft" : "border-line bg-surface",
+        active ? "border-line bg-pink-soft" : "border-line bg-surface",
         className,
       )}
     >
       <span className="flex min-w-0 items-center gap-2">
         {active ? (
-          <CircleDot aria-hidden className="h-4 w-4 shrink-0 text-mint-text" />
+          <CircleDot aria-hidden className="h-4 w-4 shrink-0 text-pink-text" />
         ) : (
           <Circle aria-hidden className="h-4 w-4 shrink-0 text-ink-faint" />
         )}
@@ -49,7 +49,7 @@ export function PresenceStrip({ state, label, actionLabel, onAction, className }
             "truncate text-body-s",
             // `expiring` gets weight, not a colour change — it's a heads-up,
             // not an error, and the strip must not read as alarming.
-            active ? "font-semibold text-mint-text" : "text-ink-muted",
+            active ? "font-semibold text-pink-text" : "text-ink-muted",
             state === "expiring" && "text-warn-text",
           )}
         >
@@ -62,7 +62,7 @@ export function PresenceStrip({ state, label, actionLabel, onAction, className }
         onClick={onAction}
         className={clsx(
           "shrink-0 text-body-s font-bold underline underline-offset-2",
-          active ? "text-mint-text" : "text-hot-text",
+          active ? "text-pink-text" : "text-hot-text",
         )}
       >
         {actionLabel}
