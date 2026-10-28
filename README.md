@@ -4,30 +4,16 @@
 that turns free time into real-world experiences with other people: discover a
 spontaneous activity, form a temporary group, do it, and level up.
 
-> **Status: Phase 7 (Booking) foundation done.** Phase 0 (product
-> foundation), Phase 1 (clickable prototype), Phase 2 (MVP — auth, quests,
-> friends, quest rooms over WebSocket, gamification, `apps/web` wired to
-> the real API end to end), Phase 3 (AI quest generation, compatibility
-> scoring, content-based "For You" recommendations), Phase 4 (a real
-> achievement engine, level-up/new-achievement moments, an achievement
-> gallery + quest history), Phase 5 (business accounts with an admin
-> verification gate, sponsored/discount quests, business analytics),
-> Phase 6 (Pro subscriptions, a free/Pro AI generation quota with
-> purchasable credit packs, and a creator marketplace with a real
-> paywall), and Phase 7 (activity booking tied to a quest, with commission
-> tracking) are all complete — **except** the pieces that genuinely can't
-> be without a real vendor account: an actual Stripe/Toss charge, and a
-> real booking provider integration (Phase 0 never named one, and the
-> product spec tags booking "Could" priority anyway). Payments and
-> bookings both run behind provider abstractions defaulting to a fake
-> provider that always succeeds, same $0-to-develop posture as everything
-> else here; real Stripe/Toss adapters are implemented but unverified
-> (see [docs/ROADMAP.md](docs/ROADMAP.md) Phase 6 and Phase 7 for exactly
-> what that means). AI runs on a local Ollama model by default — free, no
-> API key — swappable to Claude via one env var (see
-> [docs/AI.md](docs/AI.md)). Verified with real browser runs through the
-> actual UI against the actual backend, not just API-level tests. See
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status (September 2026):** the web app and the FastAPI backend work end to end through the real UI. The mobile app is not started, and payments and bookings run on fake providers (real Stripe/Toss adapters exist but are unverified).
+
+| | |
+|---|---|
+| **Built** | Auth, quests, friends, WebSocket quest rooms, gamification and achievements; business accounts with admin verification; Pro subscriptions with an AI quota; a creator marketplace; activity booking with commission tracking |
+| **AI** | Quest generation, compatibility scoring, "For You" recommendations and itinerary planning, behind one provider interface: local Ollama by default, Claude via one env var ([docs/AI.md](docs/AI.md)). AI suggests; it never publishes on its own |
+| **Checks** | 131 API test functions against real Postgres and Valkey, ruff and mypy, plus web typecheck, lint and build, all in CI on every push; browser runs through the real UI |
+| **Not done** | Mobile app; real payment and booking vendors; no users or production deployment |
+
+Phase-by-phase detail is in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Start here
 
@@ -62,7 +48,7 @@ sidequest/
 
 ## Local development
 
-This dev machine has neither Docker nor Homebrew, so local infra runs as a
+Without Docker or Homebrew, local infra runs as a
 **self-contained toolchain under `.tools/`** (gitignored, no sudo) instead
 of `infra/docker-compose.yml` — same services (Postgres, Valkey), just
 installed as portable binaries. `infra/docker-compose.yml` is still the
@@ -83,7 +69,7 @@ uv sync --dev
 uv run alembic upgrade head
 uv run python -m app.seed        # categories/interests/achievements
 uv run uvicorn app.main:app --reload   # http://localhost:8000/api/v1/docs
-uv run pytest                    # 21 tests, incl. the two-user E2E flow
+uv run pytest                    # 131 test functions in 21 files, incl. the two-user E2E flow
 
 # web (separate terminal) — talks to the API above; apps/web/.env.local
 # already points API_URL/NEXT_PUBLIC_WS_URL at localhost:8000
